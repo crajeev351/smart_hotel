@@ -1,25 +1,29 @@
-"""
-URL configuration for config project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import path, include   # ✅ include must be here
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from menu.views import MenuCategoryViewSet, MenuItemViewSet
+from accounts.views import login_page, logout_page
+from menu.views import menu_count, room_count, users_by_role
+# API router
+router = DefaultRouter()
+router.register(r'categories', MenuCategoryViewSet)
+router.register(r'menu-items', MenuItemViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # ✅ ADD THIS LINE
-    path('api/', include('menu.urls')),
+    # ✅ FRONTEND
+    path('', include('menu.urls')),
+    path('', include('rooms.urls')),
+    
+
+    # ✅ API
+    path('api/', include(router.urls)),
+    # Login / Logout
+    path('login/', login_page, name='login'),
+    path('logout/', logout_page, name='logout'),
+    path('api/', include('accounts.urls')),
+    path('api/reports/menu-count/', menu_count),
+    path('api/reports/room-count/', room_count),
+    path('api/reports/users-by-role/', users_by_role),
 ]

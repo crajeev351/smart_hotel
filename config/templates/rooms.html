@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2 class="mb-4">🛏 Rooms</h2>
+
+<!-- FORM -->
+<div class="card p-4 mb-4 shadow-sm">
+    <form method="POST" class="row g-3">
+        {% csrf_token %}
+
+        <div class="col-md-2">
+            <input type="text" name="room_number" class="form-control shadow-sm" placeholder="Room No" required>
+        </div>
+
+        <div class="col-md-3">
+            <select name="room_type" class="form-control shadow-sm">
+                <option value="SINGLE">Single</option>
+                <option value="DOUBLE">Double</option>
+                <option value="DELUXE">Deluxe</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <input type="number" name="price" class="form-control shadow-sm" placeholder="Price" required>
+        </div>
+
+        <div class="col-md-2">
+            <input type="number" name="capacity" class="form-control shadow-sm" placeholder="Capacity" required>
+        </div>
+
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-custom w-100 shadow-sm">Add Room</button>
+        </div>
+
+    </form>
+</div>
+
+<!-- ROOM CARDS -->
+<div class="row">
+    {% for room in rooms %}
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm p-3 h-100">
+
+            <h5 class="fw-bold">Room {{ room.room_number }}</h5>
+
+            <p class="text-muted mb-1">₹ {{ room.price_per_night }}</p>
+
+            <p class="mb-1">Type: {{ room.room_type }}</p>
+
+            <p class="mb-2">Capacity: {{ room.capacity }}</p>
+
+            {% if room.status == "AVAILABLE" %}
+                <span class="badge bg-success mb-2">Available</span>
+            {% else %}
+                <span class="badge bg-danger mb-2">Occupied</span>
+            {% endif %}
+
+            <!-- DELETE BUTTON -->
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="delete_id" value="{{ room.id }}">
+                <button class="btn btn-danger btn-sm mt-2 w-100">Delete</button>
+            </form>
+
+        </div>
+    </div>
+    {% empty %}
+        <p>No rooms added yet.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

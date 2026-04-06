@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2 class="mb-4">🍔 Menu Items</h2>
+
+<!-- FORM -->
+<div class="card p-4 mb-4 shadow-sm">
+    <form method="POST" class="row g-3">
+        {% csrf_token %}
+
+        <div class="col-md-3">
+            <input type="text" name="name" class="form-control shadow-sm" placeholder="Item Name" required>
+        </div>
+
+        <div class="col-md-2">
+            <input type="number" name="price" class="form-control shadow-sm" placeholder="Price" required>
+        </div>
+
+        <div class="col-md-3">
+            <select name="category" class="form-control shadow-sm" required>
+                <option value="">Select Category</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-center">
+            <input type="checkbox" name="is_veg" class="form-check-input me-2">
+            <label>Veg</label>
+        </div>
+
+        <div class="col-md-2">
+            <input type="text" name="image_url" class="form-control shadow-sm" placeholder="Image URL">
+        </div>
+
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-custom w-100 shadow-sm">Add</button>
+        </div>
+
+    </form>
+</div>
+
+<!-- ITEMS GRID -->
+<div class="row">
+    {% for item in items %}
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm p-3 h-100">
+
+            <!-- IMAGE -->
+            {% if item.image_url %}
+            <img src="{{ item.image_url }}" class="img-fluid rounded mb-3"
+                 style="height:180px; object-fit:cover;">
+            {% endif %}
+
+            <h5 class="fw-bold">{{ item.name }}</h5>
+
+            <p class="text-muted mb-1">₹ {{ item.price }}</p>
+
+            <p class="mb-2">
+                <strong>{{ item.category.name }}</strong>
+            </p>
+
+            <!-- VEG / NON-VEG -->
+            {% if item.is_veg %}
+                <span class="badge bg-success mb-2">Veg</span>
+            {% else %}
+                <span class="badge bg-danger mb-2">Non-Veg</span>
+            {% endif %}
+
+            <!-- DELETE BUTTON -->
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="delete_id" value="{{ item.id }}">
+                <button class="btn btn-danger btn-sm mt-2">Delete</button>
+            </form>
+
+        </div>
+    </div>
+    {% empty %}
+        <p>No menu items added yet.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}
