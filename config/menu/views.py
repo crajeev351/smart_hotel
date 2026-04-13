@@ -114,6 +114,10 @@ def menu_items_page(request):
         'items': items
     })
 
+@login_required
+def reports_dashboard(request):
+    return render(request, 'reports.html')
+
 
 # =========================
 # MODULE 5 - REPORT APIs

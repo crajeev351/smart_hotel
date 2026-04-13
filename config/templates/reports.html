@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2 class="mb-4">📊 Reports Dashboard</h2>
+
+<div class="row">
+
+    <!-- MENU COUNT -->
+    <div class="col-md-4">
+        <div class="card shadow p-4 text-center">
+            <h4>🍔 Menu Items</h4>
+            <h1 id="menuCount">0</h1>
+        </div>
+    </div>
+
+    <!-- ROOM COUNT -->
+    <div class="col-md-4">
+        <div class="card shadow p-4 text-center">
+            <h4>🏨 Rooms</h4>
+            <h1 id="roomCount">0</h1>
+        </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="col-md-4">
+        <div class="card shadow p-4 text-center">
+            <h4>👤 Users by Role</h4>
+            <div id="userRoles"></div>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+
+// MENU COUNT
+fetch('/api/reports/menu-count/')
+.then(res => res.json())
+.then(data => {
+    document.getElementById('menuCount').innerText = data.total_menu_items;
+});
+
+
+// ROOM COUNT
+fetch('/api/reports/room-count/')
+.then(res => res.json())
+.then(data => {
+    document.getElementById('roomCount').innerText = data.total_rooms;
+});
+
+
+// USERS BY ROLE
+fetch('/api/reports/users-by-role/')
+.then(res => res.json())
+.then(data => {
+
+    let html = "";
+
+    data.forEach(role => {
+        html += `<p><strong>${role.role}</strong>: ${role.count}</p>`;
+    });
+
+    document.getElementById('userRoles').innerHTML = html;
+});
+
+</script>
+
+{% endblock %}
