@@ -59,11 +59,11 @@ def category_page(request):
         display_order = request.POST.get('display_order')
         description = request.POST.get('description')
 
-        if name:  # ✅ Prevent NULL error
+        if name:
             MenuCategory.objects.create(
                 name=name,
                 display_order=display_order,
-                description=description
+                description=description,
             )
 
         return redirect('categories')
@@ -90,18 +90,17 @@ def menu_items_page(request):
         name = request.POST.get('name')
         price = request.POST.get('price')
         category_id = request.POST.get('category')
-        is_veg = request.POST.get('is_veg') == 'on'
-        image_url = request.POST.get('image_url')
+        is_veg = request.POST.get('is_veg') == 'veg'
+        image = request.FILES.get('image')
 
         if name and category_id:
             category = MenuCategory.objects.get(id=category_id)
-
             MenuItem.objects.create(
                 name=name,
                 price=price,
                 category=category,
                 is_veg=is_veg,
-                image_url=image_url,
+                image=image,
             )
 
         return redirect('menu_items')
@@ -113,6 +112,7 @@ def menu_items_page(request):
         'categories': categories,
         'items': items
     })
+
 
 @login_required
 def reports_dashboard(request):

@@ -5,6 +5,8 @@ from menu.views import MenuCategoryViewSet, MenuItemViewSet
 from accounts.views import login_page, logout_page
 from menu.views import menu_count, room_count, users_by_role
 from menu.views import reports_dashboard
+from django.conf import settings
+from django.conf.urls.static import static
 # API router
 router = DefaultRouter()
 router.register(r'categories', MenuCategoryViewSet)
@@ -29,3 +31,5 @@ urlpatterns = [
     path('api/reports/users-by-role/', users_by_role),
     path('reports/', reports_dashboard, name='reports'),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

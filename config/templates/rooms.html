@@ -1,73 +1,129 @@
 {% extends 'base.html' %}
-
 {% block content %}
 
-<h2 class="mb-4">🛏 Rooms</h2>
-
-<!-- FORM -->
-<div class="card p-4 mb-4 shadow-sm">
-    <form method="POST" class="row g-3">
-        {% csrf_token %}
-
-        <div class="col-md-2">
-            <input type="text" name="room_number" class="form-control shadow-sm" placeholder="Room No" required>
-        </div>
-
-        <div class="col-md-3">
-            <select name="room_type" class="form-control shadow-sm">
-                <option value="SINGLE">Single</option>
-                <option value="DOUBLE">Double</option>
-                <option value="DELUXE">Deluxe</option>
-            </select>
-        </div>
-
-        <div class="col-md-2">
-            <input type="number" name="price" class="form-control shadow-sm" placeholder="Price" required>
-        </div>
-
-        <div class="col-md-2">
-            <input type="number" name="capacity" class="form-control shadow-sm" placeholder="Capacity" required>
-        </div>
-
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-custom w-100 shadow-sm">Add Room</button>
-        </div>
-
-    </form>
-</div>
-
-<!-- ROOM CARDS -->
-<div class="row">
-    {% for room in rooms %}
-    <div class="col-md-4 mb-4">
-        <div class="card shadow-sm p-3 h-100">
-
-            <h5 class="fw-bold">Room {{ room.room_number }}</h5>
-
-            <p class="text-muted mb-1">₹ {{ room.price_per_night }}</p>
-
-            <p class="mb-1">Type: {{ room.room_type }}</p>
-
-            <p class="mb-2">Capacity: {{ room.capacity }}</p>
-
-            {% if room.status == "AVAILABLE" %}
-                <span class="badge bg-success mb-2">Available</span>
-            {% else %}
-                <span class="badge bg-danger mb-2">Occupied</span>
-            {% endif %}
-
-            <!-- DELETE BUTTON -->
-            <form method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="delete_id" value="{{ room.id }}">
-                <button class="btn btn-danger btn-sm mt-2 w-100">Delete</button>
-            </form>
-
-        </div>
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-label">Total Rooms</div>
+        <div class="stat-val">{{ rooms|length }}</div>
     </div>
-    {% empty %}
-        <p>No rooms added yet.</p>
-    {% endfor %}
+    <div class="stat-card">
+        <div class="stat-label">Available</div>
+        <div class="stat-val" style="color:#4a7a3d"><span id="availCount">—</span></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Occupied</div>
+        <div class="stat-val" style="color:#7a3d3d"><span id="occupCount">—</span></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Maintenance</div>
+        <div class="stat-val" style="color:#7a6a3d"><span id="maintCount">—</span></div>
+    </div>
 </div>
+
+<div class="page-content">
+    <div class="section-title">Add Room</div>
+
+    <div class="card p-4 mb-4">
+        <form method="POST" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-2">
+                <input type="text" name="room_number" class="form-control" placeholder="Room No" required>
+            </div>
+            <div class="col-md-2">
+                <select name="room_type" class="form-select">
+                    <option value="SINGLE">Single</option>
+                    <option value="DOUBLE">Double</option>
+                    <option value="DELUXE">Deluxe</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="price" class="form-control" placeholder="Price" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="capacity" class="form-control" placeholder="Capacity" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="floor" class="form-control" placeholder="Floor">
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="AVAILABLE">Available</option>
+                    <option value="OCCUPIED">Occupied</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-custom w-100">Add Room</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="section-title">All Rooms</div>
+
+    <div class="row">
+        {% for room in rooms %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if room.room_type == "SINGLE" %}
+                    <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400"
+                         class="img-fluid rounded-top" style="height:160px; object-fit:cover; opacity:0.7;">
+                {% elif room.room_type == "DOUBLE" %}
+                    <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400"
+                         class="img-fluid rounded-top" style="height:160px; object-fit:cover; opacity:0.7;">
+                {% elif room.room_type == "DELUXE" %}
+                    <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400"
+                         class="img-fluid rounded-top" style="height:160px; object-fit:cover; opacity:0.7;">
+                {% endif %}
+
+                <div class="p-3">
+                    <h5 class="fw-bold">Room {{ room.room_number }}</h5>
+                    <p class="mb-1" style="font-size:15px; color:#c9a96e;">
+                        ₹ {{ room.price_per_night }}
+                        <span style="font-size:11px; color:#2e3450;">/ night</span>
+                    </p>
+                    <p class="mb-1" style="font-size:13px;">
+                        Type: <strong style="color:#8b9bb4;">{{ room.room_type }}</strong>
+                    </p>
+                    <p class="mb-1" style="font-size:13px;">
+                        Capacity: <strong style="color:#8b9bb4;">{{ room.capacity }}</strong>
+                    </p>
+                    <p class="mb-2" style="font-size:13px;">
+                        Floor: <strong style="color:#8b9bb4;">{{ room.floor|default:"—" }}</strong>
+                    </p>
+
+                    {% if room.status == "AVAILABLE" %}
+                        <span class="badge bg-success mb-2 room-status" data-status="AVAILABLE">Available</span>
+                    {% elif room.status == "OCCUPIED" %}
+                        <span class="badge bg-danger mb-2 room-status" data-status="OCCUPIED"> Occupied</span>
+                    {% else %}
+                        <span class="badge bg-warning mb-2 room-status" data-status="MAINTENANCE"> Maintenance</span>
+                    {% endif %}
+
+                    <form method="POST" class="mt-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_id" value="{{ room.id }}">
+                        <button class="btn btn-danger btn-sm w-100">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+            <p style="color:#2e3450;">No rooms added yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    const badges = document.querySelectorAll('.room-status');
+    let avail = 0, occup = 0, maint = 0;
+    badges.forEach(b => {
+        if (b.dataset.status === 'AVAILABLE') avail++;
+        else if (b.dataset.status === 'OCCUPIED') occup++;
+        else if (b.dataset.status === 'MAINTENANCE') maint++;
+    });
+    document.getElementById('availCount').innerText = avail;
+    document.getElementById('occupCount').innerText = occup;
+    document.getElementById('maintCount').innerText = maint;
+</script>
 
 {% endblock %}

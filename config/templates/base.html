@@ -6,92 +6,384 @@
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Poppins', sans-serif;
-            background: #f4f6f9;
+            font-family: 'DM Sans', sans-serif;
+            background: #0c0e14;
+            color: #c8d0e0;
         }
 
-        /* Sidebar */
+        /* ── SIDEBAR ── */
         .sidebar {
             height: 100vh;
-            background: #1e293b;
-            color: white;
+            background: #0f1117;
+            border-right: 1px solid #1e2130;
             position: fixed;
             width: 220px;
-            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            padding: 24px 22px 20px;
+            border-bottom: 1px solid #1e2130;
+        }
+
+        .sidebar-logo h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: #e8dcc8;
+            margin: 0;
+        }
+
+        .sidebar-logo span {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #2e3450;
+        }
+
+        .nav-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #2e3450;
+            padding: 18px 22px 6px;
         }
 
         .sidebar a {
-            color: #cbd5f5;
-            display: block;
-            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 22px;
+            color: #4a5068;
             text-decoration: none;
+            font-size: 13px;
+            font-weight: 400;
+            border-left: 2px solid transparent;
+            transition: all 0.15s;
         }
 
         .sidebar a:hover {
-            background: #334155;
-            color: white;
+            color: #8b9bb4;
+            background: #13161f;
         }
 
-        /* Main Content */
+        .sidebar a.active {
+            color: #e8dcc8;
+            background: #13161f;
+            border-left: 2px solid #c9a96e;
+        }
+
+        .nav-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.4;
+            flex-shrink: 0;
+        }
+
+        .sidebar a.active .nav-dot {
+            opacity: 1;
+            background: #c9a96e;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 22px;
+            border-top: 1px solid #1e2130;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #1e2130;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #c9a96e;
+            flex-shrink: 0;
+        }
+
+        .sidebar-username {
+            font-size: 12px;
+            color: #4a5068;
+        }
+
+        /* ── MAIN ── */
         .main {
             margin-left: 220px;
-            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Navbar */
+        /* ── TOPBAR ── */
         .topbar {
-            background: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            background: #0f1117;
+            border-bottom: 1px solid #1a1d28;
+            padding: 14px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        /* Cards */
-        .card {
-            border: none;
-            border-radius: 15px;
+        .topbar-left h5 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: #e8dcc8;
+            margin: 0;
         }
 
-        .btn-custom {
-            background: #f43f5e;
-            color: white;
+        .topbar-left small {
+            font-size: 11px;
+            color: #2e3450;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .welcome-badge {
+            background: #1a1d28;
+            border: 1px solid #1e2130;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 12px;
+            color: #4a5068;
+        }
+
+        /* ── STATS ROW ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            padding: 20px 28px 0;
+        }
+
+        .stat-card {
+            background: #0f1117;
+            border: 1px solid #1a1d28;
             border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #2e3450;
+        }
+
+        .stat-val {
+            font-size: 24px;
+            font-weight: 500;
+            color: #e8dcc8;
+            margin-top: 4px;
+        }
+
+        /* ── PAGE CONTENT ── */
+        .page-content {
+            padding: 20px 28px 28px;
+        }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #2e3450;
+            margin-bottom: 14px;
+            margin-top: 20px;
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: #0f1117 !important;
+            border: 1px solid #1a1d28 !important;
+            border-radius: 12px !important;
+            color: #c8d0e0;
+        }
+
+        .card h5 {
+            color: #e8dcc8;
+        }
+
+        .card p, .card label {
+            color: #4a5068;
+        }
+
+        /* ── FORM CONTROLS ── */
+        .form-control, .form-select {
+            background: #13161f !important;
+            border: 1px solid #1e2130 !important;
+            color: #c8d0e0 !important;
+            border-radius: 8px !important;
+            font-size: 13px;
+        }
+
+        .form-control::placeholder {
+            color: #2e3450 !important;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: #13161f !important;
+            border-color: #c9a96e !important;
+            color: #c8d0e0 !important;
+            box-shadow: 0 0 0 2px rgba(201,169,110,0.1) !important;
+        }
+
+        .form-select option {
+            background: #13161f;
+            color: #c8d0e0;
+        }
+
+        /* ── BUTTONS ── */
+        .btn-custom {
+            background: #c9a96e !important;
+            color: #0f1117 !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 600;
+            font-size: 13px;
+            transition: background 0.15s;
         }
 
         .btn-custom:hover {
-            background: #e11d48;
+            background: #b8954f !important;
+            color: #0f1117 !important;
+        }
+
+        .btn-danger {
+            background: #1f0d0d !important;
+            color: #7a3d3d !important;
+            border: 1px solid #2a1a1a !important;
+            font-size: 12px;
+            border-radius: 6px !important;
+        }
+
+        .btn-danger:hover {
+            background: #2a1010 !important;
+            color: #a05050 !important;
+        }
+
+        /* ── BADGES ── */
+        .badge.bg-success {
+            background: #0d1f12 !important;
+            color: #4a7a3d !important;
+            border: 1px solid #1a3020;
+        }
+
+        .badge.bg-danger {
+            background: #1f0d0d !important;
+            color: #7a3d3d !important;
+            border: 1px solid #301a1a;
+        }
+
+        .badge.bg-warning {
+            background: #1f1a0d !important;
+            color: #7a6a3d !important;
+            border: 1px solid #302a1a;
+        }
+
+        .badge.bg-primary {
+            background: #0d1420 !important;
+            color: #3d5a7a !important;
+            border: 1px solid #1a2030;
+        }
+
+        /* ── RADIO LABELS ── */
+        .form-check-label.text-success { color: #4a7a3d !important; }
+        .form-check-label.text-danger  { color: #7a3d3d !important; }
+        .form-check-input:checked { 
+            background-color: #c9a96e !important; 
+            border-color: #c9a96e !important; 
+        }
+
+        /* ── TABLE (reports) ── */
+        table { color: #c8d0e0; }
+        th { color: #2e3450 !important; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0c0e14; }
+        ::-webkit-scrollbar-thumb { background: #1e2130; border-radius: 4px; }
+
+        /* ── PAGE HEADINGS ── */
+        h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            color: #e8dcc8;
+            margin-bottom: 0 !important;
         }
     </style>
 </head>
 
 <body>
 
-<!-- Sidebar -->
+<!-- SIDEBAR -->
 <div class="sidebar">
-    <h4 class="text-center">🏨 Hotel</h4>
+    <div class="sidebar-logo">
+        <h4>The Grand</h4>
+        <span>Management Suite</span>
+    </div>
 
-    <a href="/categories/">📂 Categories</a>
-    <a href="/menu-items/">🍔 Menu</a>
-    <a href="/rooms/">🛏 Rooms</a>
-    <a href="/logout/">🚪 Logout</a>
-    <a href="/reports/">Reports</a>
+    <div class="nav-label">Main</div>
+    <a href="/categories/" class="{% if request.path == '/categories/' %}active{% endif %}">
+        <div class="nav-dot"></div> Categories
+    </a>
+    <a href="/menu-items/" class="{% if request.path == '/menu-items/' %}active{% endif %}">
+        <div class="nav-dot"></div> Menu
+    </a>
+    <a href="/rooms/" class="{% if request.path == '/rooms/' %}active{% endif %}">
+        <div class="nav-dot"></div> Rooms
+    </a>
+
+    <div class="nav-label">System</div>
+    <a href="/reports/" class="{% if request.path == '/reports/' %}active{% endif %}">
+        <div class="nav-dot"></div> Reports
+    </a>
+    <a href="/logout/">
+        <div class="nav-dot"></div> Logout
+    </a>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-avatar">
+            {{ request.user.username|slice:":2"|upper }}
+        </div>
+        <div class="sidebar-username">{{ request.user.username }}</div>
+    </div>
 </div>
 
-<!-- Main Content -->
+<!-- MAIN -->
 <div class="main">
 
-    <!-- Topbar -->
-    <div class="topbar shadow-sm">
-        <h5>Smart Hotelmanagement</h5>
-        <span>Welcome, {{ request.user.username }}</span>
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <h5>Smart Hotel Management</h5>
+            <small>Welcome back, {{ request.user.username }}</small>
+        </div>
+        <div class="topbar-right">
+            <span class="welcome-badge">{{ request.user.get_full_name|default:request.user.username }}</span>
+        </div>
     </div>
 
     {% block content %}

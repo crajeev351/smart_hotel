@@ -1,61 +1,58 @@
 {% extends 'base.html' %}
-
 {% block content %}
 
-<h2 class="mb-4">📂 Categories</h2>
-
-<!-- FORM -->
-<div class="card p-4 mb-4 shadow-sm">
-    <form method="POST" class="row g-3">
-        {% csrf_token %}
-
-        <div class="col-md-4">
-            <input type="text" name="name" class="form-control shadow-sm" placeholder="Category Name" required>
-        </div>
-
-        <div class="col-md-3">
-            <input type="number" name="display_order" class="form-control shadow-sm" placeholder="Display Order" required>
-        </div>
-
-        <div class="col-md-3">
-            <input type="text" name="description" class="form-control shadow-sm" placeholder="Description">
-        </div>
-
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-custom w-100 shadow-sm">Add</button>
-        </div>
-
-    </form>
-</div>
-
-<!-- CATEGORY CARDS -->
-<div class="row">
-    {% for cat in categories %}
-    <div class="col-md-4 mb-4">
-        <div class="card shadow-sm p-3 h-100">
-
-            <h5 class="fw-bold">{{ cat.name }}</h5>
-
-            <p class="text-muted mb-2">
-                {{ cat.description|default:"No description" }}
-            </p>
-
-            <span class="badge bg-primary mb-2">
-                Order: {{ cat.display_order }}
-            </span>
-
-            <!-- DELETE BUTTON -->
-            <form method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="delete_id" value="{{ cat.id }}">
-                <button class="btn btn-danger btn-sm mt-2 w-100">Delete</button>
-            </form>
-
-        </div>
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-label">Total Categories</div>
+        <div class="stat-val">{{ categories|length }}</div>
     </div>
-    {% empty %}
-        <p>No categories added yet.</p>
-    {% endfor %}
+    <div class="stat-card">
+        <div class="stat-label">Active</div>
+        <div class="stat-val" style="color:#4a7a3d">{{ categories|length }}</div>
+    </div>
 </div>
 
-{% endblock %}  
+<div class="page-content">
+    <div class="section-title">Add Category</div>
+
+    <div class="card p-4 mb-4">
+        <form method="POST" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-4">
+                <input type="text" name="name" class="form-control" placeholder="Category Name" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="display_order" class="form-control" placeholder="Display Order" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="description" class="form-control" placeholder="Description">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-custom w-100">Add</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="section-title">All Categories</div>
+
+    <div class="row">
+        {% for cat in categories %}
+        <div class="col-md-4 mb-4">
+            <div class="card p-3 h-100">
+                <h5 class="fw-bold">{{ cat.name }}</h5>
+                <p class="mb-2" style="font-size:13px;">{{ cat.description|default:"No description" }}</p>
+                <span class="badge bg-primary mb-2" style="width:fit-content;">Order: {{ cat.display_order }}</span>
+                <form method="POST" class="mt-auto">
+                    {% csrf_token %}
+                    <input type="hidden" name="delete_id" value="{{ cat.id }}">
+                    <button class="btn btn-danger btn-sm w-100">Delete</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+            <p style="color:#2e3450;">No categories added yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

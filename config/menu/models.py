@@ -16,7 +16,7 @@ class MenuItem(models.Model):
     category = models.ForeignKey(MenuCategory, on_delete=models.CASCADE)
     is_veg = models.BooleanField(default=True)
     is_available = models.BooleanField(default=True)
-    image_url = models.URLField(blank=True, null=True)
+    image = models.ImageField(upload_to='menu_images/', blank=True, null=True)
     prep_time = models.IntegerField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
