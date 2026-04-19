@@ -11,6 +11,20 @@ def rooms_page(request):
             Room.objects.filter(id=request.POST.get('delete_id')).delete()
             return redirect('rooms')
 
+        # ✅ UPDATE LOGIC
+        if 'update_id' in request.POST:
+            room_id = request.POST.get('update_id')
+            price = request.POST.get('price')
+            status = request.POST.get('status')
+            try:
+                room = Room.objects.get(id=room_id)
+                room.price_per_night = price
+                room.status = status
+                room.save()
+            except Room.DoesNotExist:
+                pass
+            return redirect('rooms')
+
         room_number = request.POST.get('room_number')
         room_type = request.POST.get('room_type')
         price = request.POST.get('price')

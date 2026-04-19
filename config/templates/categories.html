@@ -7,50 +7,59 @@
         <div class="stat-val">{{ categories|length }}</div>
     </div>
     <div class="stat-card">
-        <div class="stat-label">Active</div>
-        <div class="stat-val" style="color:#4a7a3d">{{ categories|length }}</div>
+        <div class="stat-label">Status</div>
+        <div class="stat-val" style="color:#4a7a3d">Active</div>
     </div>
 </div>
 
 <div class="page-content">
-    <div class="section-title">Add Category</div>
+    <div class="section-title">Add New Category</div>
 
-    <div class="card p-4 mb-4">
-        <form method="POST" class="row g-3">
+    <div class="card p-4 mb-5" style="border: 1px solid #2a2e38 !important; background: linear-gradient(145deg, #0f1117, #13161f) !important;">
+        <form method="POST" class="row g-3 align-items-end">
             {% csrf_token %}
             <div class="col-md-4">
-                <input type="text" name="name" class="form-control" placeholder="Category Name" required>
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Category Name</label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Appetizers" required>
             </div>
             <div class="col-md-3">
-                <input type="number" name="display_order" class="form-control" placeholder="Display Order" required>
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Display Order</label>
+                <input type="number" name="display_order" class="form-control" placeholder="1" required>
             </div>
             <div class="col-md-3">
-                <input type="text" name="description" class="form-control" placeholder="Description">
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Description</label>
+                <input type="text" name="description" class="form-control" placeholder="Briefly describe category">
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-custom w-100">Add</button>
+                <button type="submit" class="btn btn-custom w-100">Add Category</button>
             </div>
         </form>
     </div>
 
-    <div class="section-title">All Categories</div>
+    <div class="section-title">Existing Categories</div>
 
-    <div class="row">
+    <div class="row g-4">
         {% for cat in categories %}
-        <div class="col-md-4 mb-4">
-            <div class="card p-3 h-100">
-                <h5 class="fw-bold">{{ cat.name }}</h5>
-                <p class="mb-2" style="font-size:13px;">{{ cat.description|default:"No description" }}</p>
-                <span class="badge bg-primary mb-2" style="width:fit-content;">Order: {{ cat.display_order }}</span>
-                <form method="POST" class="mt-auto">
-                    {% csrf_token %}
-                    <input type="hidden" name="delete_id" value="{{ cat.id }}">
-                    <button class="btn btn-danger btn-sm w-100">Delete</button>
-                </form>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 p-4" style="border-left: 3px solid #c9a96e !important;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="fw-bold mb-0">{{ cat.name }}</h5>
+                    <span class="badge bg-primary">Order: {{ cat.display_order }}</span>
+                </div>
+                <p class="mb-4" style="font-size:14px; color:#8b9bb4; line-height: 1.6;">{{ cat.description|default:"No description provided for this category." }}</p>
+                <div class="mt-auto">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_id" value="{{ cat.id }}">
+                        <button class="btn btn-danger w-100">Remove Category</button>
+                    </form>
+                </div>
             </div>
         </div>
         {% empty %}
-            <p style="color:#2e3450;">No categories added yet.</p>
+            <div class="col-12 text-center py-5">
+                <p style="color:#6b7280; font-style: italic;">No categories added yet. Start by adding one above.</p>
+            </div>
         {% endfor %}
     </div>
 </div>

@@ -17,26 +17,33 @@
 </div>
 
 <div class="page-content">
-    <div class="section-title">Users by Role</div>
-    <div class="card p-4 mb-4">
-        <div id="userRoles" style="display:flex; flex-direction:column; gap:14px;"></div>
+    <div class="section-title">Staff Composition</div>
+
+    <div class="card p-4 mb-5">
+        <div id="userRoles" style="display:flex; flex-direction:column; gap:20px;"></div>
     </div>
 
-    <div class="row">
+    <div class="row g-4">
         <div class="col-md-6">
-            <div class="section-title">Menu Overview</div>
-            <div class="card p-4">
-                <p style="font-size:13px; color:#2e3450;">Total items currently in the menu catalogue.</p>
-                <div style="font-size:36px; font-weight:500; color:#c9a96e; margin-top:8px;" id="menuCountBig">—</div>
-                <p style="font-size:11px; color:#2e3450; margin-top:4px;">menu items</p>
+            <div class="section-title">Menu Analytics</div>
+            <div class="card p-4 text-center">
+                <div class="mb-3">
+                    <span style="font-size: 2rem;">🍽️</span>
+                </div>
+                <p style="font-size:13px; color:#8b9bb4;">Total items currently in the curated menu catalogue.</p>
+                <div style="font-size:42px; font-weight:600; color:#c9a96e; margin: 10px 0;" id="menuCountBig">—</div>
+                <p style="font-size:11px; color:#6b7280; text-transform: uppercase; letter-spacing: 1px;">Current Menu Items</p>
             </div>
         </div>
         <div class="col-md-6">
-            <div class="section-title">Room Overview</div>
-            <div class="card p-4">
-                <p style="font-size:13px; color:#2e3450;">Total rooms registered in the system.</p>
-                <div style="font-size:36px; font-weight:500; color:#c9a96e; margin-top:8px;" id="roomCountBig">—</div>
-                <p style="font-size:11px; color:#2e3450; margin-top:4px;">rooms</p>
+            <div class="section-title">Room Analytics</div>
+            <div class="card p-4 text-center">
+                <div class="mb-3">
+                    <span style="font-size: 2rem;">🏨</span>
+                </div>
+                <p style="font-size:13px; color:#8b9bb4;">Total rooms registered and managed in the system.</p>
+                <div style="font-size:42px; font-weight:600; color:#c9a96e; margin: 10px 0;" id="roomCountBig">—</div>
+                <p style="font-size:11px; color:#6b7280; text-transform: uppercase; letter-spacing: 1px;">Total Registered Rooms</p>
             </div>
         </div>
     </div>
@@ -67,13 +74,13 @@ fetch('/api/reports/users-by-role/')
         data.forEach(role => {
             let pct = total > 0 ? Math.round((role.count / total) * 100) : 0;
             html += `
-            <div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <span style="font-size:12px; color:#8b9bb4; text-transform:uppercase; letter-spacing:1px;">${role.role}</span>
-                    <span style="font-size:12px; color:#4a5068;">${role.count} member${role.count !== 1 ? 's' : ''}</span>
+            <div class="mb-2">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-size:12px; color:#e8dcc8; text-transform:uppercase; letter-spacing:1px; font-weight: 500;">${role.role}</span>
+                    <span style="font-size:12px; color:#8b9bb4;">${role.count} member${role.count !== 1 ? 's' : ''}</span>
                 </div>
-                <div style="height:5px; background:#1a1d28; border-radius:3px;">
-                    <div style="width:${pct}%; height:100%; background:#c9a96e; border-radius:3px; transition:width 0.4s;"></div>
+                <div style="height:8px; background:#1a1d28; border-radius:4px; overflow:hidden;">
+                    <div style="width:${pct}%; height:100%; background: linear-gradient(90deg, #c9a96e, #b8954f); border-radius:4px; transition:width 0.6s ease-out;"></div>
                 </div>
             </div>`;
         });

@@ -8,28 +8,30 @@
     </div>
     <div class="stat-card">
         <div class="stat-label">Available</div>
-        <div class="stat-val" style="color:#4a7a3d"><span id="availCount">—</span></div>
+        <div class="stat-val" style="color:#68b368"><span id="availCount">—</span></div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Occupied</div>
-        <div class="stat-val" style="color:#7a3d3d"><span id="occupCount">—</span></div>
+        <div class="stat-val" style="color:#ff6b6b"><span id="occupCount">—</span></div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Maintenance</div>
-        <div class="stat-val" style="color:#7a6a3d"><span id="maintCount">—</span></div>
+        <div class="stat-val" style="color:#ffc107"><span id="maintCount">—</span></div>
     </div>
 </div>
 
 <div class="page-content">
-    <div class="section-title">Add Room</div>
+    <div class="section-title">Add New Room</div>
 
-    <div class="card p-4 mb-4">
-        <form method="POST" class="row g-3">
+    <div class="card p-4 mb-5" style="border: 1px solid #2a2e38 !important; background: linear-gradient(145deg, #0f1117, #13161f) !important;">
+        <form method="POST" class="row g-3 align-items-end">
             {% csrf_token %}
             <div class="col-md-2">
-                <input type="text" name="room_number" class="form-control" placeholder="Room No" required>
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Room No</label>
+                <input type="text" name="room_number" class="form-control" placeholder="101" required>
             </div>
             <div class="col-md-2">
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Room Type</label>
                 <select name="room_type" class="form-select">
                     <option value="SINGLE">Single</option>
                     <option value="DOUBLE">Double</option>
@@ -37,78 +39,108 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <input type="number" name="price" class="form-control" placeholder="Price" required>
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Price (₹)</label>
+                <input type="number" name="price" class="form-control" placeholder="2500" required>
             </div>
             <div class="col-md-2">
-                <input type="number" name="capacity" class="form-control" placeholder="Capacity" required>
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Capacity</label>
+                <input type="number" name="capacity" class="form-control" placeholder="2" required>
             </div>
             <div class="col-md-2">
-                <input type="number" name="floor" class="form-control" placeholder="Floor">
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Floor</label>
+                <input type="number" name="floor" class="form-control" placeholder="1">
             </div>
             <div class="col-md-2">
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Status</label>
                 <select name="status" class="form-select">
                     <option value="AVAILABLE">Available</option>
                     <option value="OCCUPIED">Occupied</option>
                     <option value="MAINTENANCE">Maintenance</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-custom w-100">Add Room</button>
+            <div class="col-md-12 mt-3">
+                <button type="submit" class="btn btn-custom w-100" style="max-width: 200px;">Add Room</button>
             </div>
         </form>
     </div>
 
-    <div class="section-title">All Rooms</div>
+    <div class="section-title">Room Inventory</div>
 
-    <div class="row">
+    <div class="row g-4">
         {% for room in rooms %}
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                {% if room.room_type == "SINGLE" %}
-                    <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400"
-                         class="img-fluid rounded-top" style="height:160px; object-fit:cover; opacity:0.7;">
-                {% elif room.room_type == "DOUBLE" %}
-                    <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400"
-                         class="img-fluid rounded-top" style="height:160px; object-fit:cover; opacity:0.7;">
-                {% elif room.room_type == "DELUXE" %}
-                    <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400"
-                         class="img-fluid rounded-top" style="height:160px; object-fit:cover; opacity:0.7;">
-                {% endif %}
+        <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="card h-100 overflow-hidden" style="border-bottom: 3px solid #c9a96e !important;">
+                <div class="position-relative">
+                    {% if room.room_type == "SINGLE" %}
+                        <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400"
+                             class="img-fluid w-100" style="height:160px; object-fit:cover; opacity:0.6;">
+                    {% elif room.room_type == "DOUBLE" %}
+                        <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400"
+                             class="img-fluid w-100" style="height:160px; object-fit:cover; opacity:0.6;">
+                    {% elif room.room_type == "DELUXE" %}
+                        <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400"
+                             class="img-fluid w-100" style="height:160px; object-fit:cover; opacity:0.6;">
+                    {% endif %}
+                </div>
 
                 <div class="p-3">
-                    <h5 class="fw-bold">Room {{ room.room_number }}</h5>
-                    <p class="mb-1" style="font-size:15px; color:#c9a96e;">
-                        ₹ {{ room.price_per_night }}
-                        <span style="font-size:11px; color:#2e3450;">/ night</span>
-                    </p>
-                    <p class="mb-1" style="font-size:13px;">
-                        Type: <strong style="color:#8b9bb4;">{{ room.room_type }}</strong>
-                    </p>
-                    <p class="mb-1" style="font-size:13px;">
-                        Capacity: <strong style="color:#8b9bb4;">{{ room.capacity }}</strong>
-                    </p>
-                    <p class="mb-2" style="font-size:13px;">
-                        Floor: <strong style="color:#8b9bb4;">{{ room.floor|default:"—" }}</strong>
-                    </p>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="fw-bold mb-0">Room {{ room.room_number }}</h5>
+                        <span style="font-weight: 600; color: #c9a96e; font-size: 16px;">₹ {{ room.price_per_night }}</span>
+                    </div>
+                    <div class="mb-3" style="font-size: 13px; color: #8b9bb4;">
+                        <div class="mb-1">Type: <strong style="color:#e8dcc8;">{{ room.room_type }}</strong></div>
+                        <div class="mb-1">Capacity: <strong style="color:#e8dcc8;">{{ room.capacity }}</strong></div>
+                        <div class="mb-1">Floor: <strong style="color:#e8dcc8;">{{ room.floor|default:"—" }}</strong></div>
+                        <div class="mt-2">
+                            {% if room.status == "AVAILABLE" %}
+                                <span class="badge bg-success room-status" data-status="AVAILABLE">Available</span>
+                            {% elif room.status == "OCCUPIED" %}
+                                <span class="badge bg-danger room-status" data-status="OCCUPIED">Occupied</span>
+                            {% else %}
+                                <span class="badge bg-warning room-status" data-status="MAINTENANCE">Maintenance</span>
+                            {% endif %}
+                        </div>
+                    </div>
 
-                    {% if room.status == "AVAILABLE" %}
-                        <span class="badge bg-success mb-2 room-status" data-status="AVAILABLE">Available</span>
-                    {% elif room.status == "OCCUPIED" %}
-                        <span class="badge bg-danger mb-2 room-status" data-status="OCCUPIED"> Occupied</span>
-                    {% else %}
-                        <span class="badge bg-warning mb-2 room-status" data-status="MAINTENANCE"> Maintenance</span>
-                    {% endif %}
+                    <div class="d-flex gap-2 mt-auto">
+                        <button class="btn btn-outline-primary btn-sm w-50 edit-btn" data-room-id="{{ room.id }}" style="border-color: #2a2e38; color: #c8d0e0;">Edit</button>
+                        <form method="POST" class="w-50">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_id" value="{{ room.id }}">
+                            <button class="btn btn-danger btn-sm w-100">Delete</button>
+                        </form>
+                    </div>
 
-                    <form method="POST" class="mt-2">
-                        {% csrf_token %}
-                        <input type="hidden" name="delete_id" value="{{ room.id }}">
-                        <button class="btn btn-danger btn-sm w-100">Delete</button>
-                    </form>
+                    <div class="edit-mode d-none mt-3 p-3 border rounded" style="background: #161a22 !important; border-color: #c9a96e !important; color: #c8d0e0;">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="update_id" value="{{ room.id }}">
+                            <div class="mb-2">
+                                <label class="small fw-bold" style="color: #6b7280; font-size: 10px; text-transform: uppercase;">Price</label>
+                                <input type="number" name="price" class="form-control form-control-sm" value="{{ room.price_per_night }}" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="small fw-bold" style="color: #6b7280; font-size: 10px; text-transform: uppercase;">Status</label>
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="AVAILABLE" {% if room.status == "AVAILABLE" %}selected{% endif %}>Available</option>
+                                    <option value="OCCUPIED" {% if room.status == "OCCUPIED" %}selected{% endif %}>Occupied</option>
+                                    <option value="MAINTENANCE" {% if room.status == "MAINTENANCE" %}selected{% endif %}>Maintenance</option>
+                                </select>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-custom btn-sm w-100">Save</button>
+                                <button type="button" class="btn btn-secondary btn-sm w-100 cancel-btn" style="background: #1e2130; color: #8b9bb4; border: none;">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
-            <p style="color:#2e3450;">No rooms added yet.</p>
+            <div class="col-12 text-center py-5">
+                <p style="color:#6b7280; font-style: italic;">No rooms registered in the system.</p>
+            </div>
         {% endfor %}
     </div>
 </div>
@@ -124,6 +156,22 @@
     document.getElementById('availCount').innerText = avail;
     document.getElementById('occupCount').innerText = occup;
     document.getElementById('maintCount').innerText = maint;
+
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.closest('.card').querySelector('.edit-mode');
+            target.classList.toggle('d-none');
+            btn.innerText = target.classList.contains('d-none') ? 'Edit' : 'Close';
+        });
+    });
+
+    document.querySelectorAll('.cancel-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const card = btn.closest('.card');
+            card.querySelector('.edit-mode').classList.add('d-none');
+            card.querySelector('.edit-btn').innerText = 'Edit';
+        });
+    });
 </script>
 
 {% endblock %}
