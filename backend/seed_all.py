@@ -82,11 +82,12 @@ for u in users:
         user.save()
         print(f"Updated user: {u['username']}")
 
-# Run existing seed scripts if available
+# Run room and table seed scripts and clear sample bookings
 try:
     import seed_rooms
     import seed_tables
-    import seed_bookings
+    from rooms.models import Booking
+    Booking.objects.all().delete()
 except Exception as e:
     print(f"Additional seeding: {e}")
 
