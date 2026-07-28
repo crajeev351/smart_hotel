@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: smarthotel-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    envVars:
+      - key: POSTGRES_DB
+        value: smarthotel
+      - key: POSTGRES_USER
+        value: smarthotel_user
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+      - key: DB_HOST
+        fromDatabase:
+          name: smarthotel-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: smarthotel-postgres
+          property: port
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: smarthotel-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: smarthotel-redis
+          property: port
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+
+  - type: web
+    name: smarthotel-frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: starter
+
+databases:
+  - name: smarthotel-postgres
+    databaseName: smarthotel
+    user: smarthotel_user
+    plan: starter

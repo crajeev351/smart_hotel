@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smarthotel-config
+  labels:
+    app: smarthotel
+data:
+  DB_HOST: postgres-service
+  DB_PORT: "5432"
+  REDIS_HOST: redis-service
+  REDIS_PORT: "6379"
+  POSTGRES_DB: smarthotel
+  POSTGRES_USER: smarthotel_user
+  DEBUG: "False"

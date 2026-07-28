@@ -1,0 +1,77 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: smarthotel_db
+    restart: always
+    environment:
+      POSTGRES_DB: smarthotel
+      POSTGRES_USER: smarthotel_user
+      POSTGRES_PASSWORD: smarthotel_password_992
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: smarthotel_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smarthotel_backend
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py check &&
+             gunicorn --bind 0.0.0.0:8000 config.wsgi:application"
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_DB: smarthotel
+      POSTGRES_USER: smarthotel_user
+      POSTGRES_PASSWORD: smarthotel_password_992
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SECRET_KEY: django-insecure-31tp%gcn%zrj19y&cd9hk7p@8kg&d231xj0m^5&mji_&8vz$$ao
+      DEBUG: "True"
+    depends_on:
+      - db
+      - redis
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+          ignore:
+            - db.sqlite3
+            - venv/
+            - __pycache__/
+        - action: rebuild
+          path: ./backend/requirements.txt
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smarthotel_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: rebuild
+          path: ./frontend/src
+        - action: rebuild
+          path: ./frontend/package.json
+
+volumes:
+  postgres_data:

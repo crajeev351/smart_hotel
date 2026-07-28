@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  labels:
+    app: smarthotel
+    service: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: smarthotel
+      service: frontend
+  template:
+    metadata:
+      labels:
+        app: smarthotel
+        service: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: smarthotel-frontend:latest  # Replace with your Docker Registry image tag (e.g. gcr.io/project/frontend)
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  labels:
+    app: smarthotel
+    service: frontend
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: smarthotel
+    service: frontend
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: frontend-hpa
+  labels:
+    app: smarthotel
+    service: frontend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend-deployment
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80

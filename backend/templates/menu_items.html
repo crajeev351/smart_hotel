@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-label">Total Items</div>
+        <div class="stat-val">{{ items|length }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Categories</div>
+        <div class="stat-val">{{ categories|length }}</div>
+    </div>
+</div>
+
+<div class="page-content">
+    <div class="section-title">Add New Menu Item</div>
+
+    <div class="card p-4 mb-5" style="border: 1px solid #2a2e38 !important; background: linear-gradient(145deg, #0f1117, #13161f) !important;">
+        <form method="POST" class="row g-3 align-items-end" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="col-md-3">
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Item Name</label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Truffle Pasta" required>
+            </div>
+            <div class="col-md-2">
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Price (₹)</label>
+                <input type="number" name="price" class="form-control" placeholder="0.00" required>
+            </div>
+            <div class="col-md-2">
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Category</label>
+                <select name="category" class="form-select" required>
+                    <option value="">Select Category</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Dietary Type</label>
+                <div class="d-flex align-items-center gap-3" style="height: 38px;">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="is_veg" value="veg" id="veg" checked>
+                        <label class="form-check-label text-success fw-bold" style="font-size: 13px;" for="veg">Veg</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="is_veg" value="nonveg" id="nonveg">
+                        <label class="form-check-label text-danger fw-bold" style="font-size: 13px;" for="nonveg">Non-Veg</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="field-label" style="font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; display: block; letter-spacing: 1px;">Image</label>
+                <input type="file" name="image" class="form-control" accept="image/*">
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-custom w-100">Add</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="section-title">Menu Catalogue</div>
+
+    <div class="row g-4">
+        {% for item in items %}
+        <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="card h-100 overflow-hidden" style="border-bottom: 3px solid #c9a96e !important;">
+                <div class="position-relative">
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" class="img-fluid w-100" style="height:200px; object-fit:cover;">
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center" style="height:200px; background:#13161f; color:#c9a96e; font-size:3rem;">🍽️</div>
+                    {% endif %}
+                    <div class="position-absolute top-0 end-0 p-2">
+                        {% if item.is_veg %}
+                            <span class="badge bg-success">Veg</span>
+                        {% else %}
+                            <span class="badge bg-danger">Non-Veg</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="p-3">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="fw-bold mb-0 text-truncate" style="max-width: 100%; color: #fff;">{{ item.name }}</h5>
+                        </div>
+                    </div>
+
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <p class="mb-0" style="font-size:13px; color:#8b9bb4;">
+                            <strong style="color:#e8dcc8;">{{ item.category.name }}</strong>
+                        </p>
+                        <div id="price-container-{{ item.id }}">
+                            <div id="price-view-{{ item.id }}" class="d-flex align-items-center justify-content-end">
+                                <span style="font-weight: 600; color: #c9a96e; font-size: 18px;">₹ {{ item.price }}</span>
+                            </div>
+                            <div id="price-edit-{{ item.id }}" class="d-none">
+                                <form method="POST" class="d-flex align-items-center gap-1">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="update_id" value="{{ item.id }}">
+                                    <input type="number" name="new_price" class="form-control form-control-sm" value="{{ item.price }}" style="width: 90px; height: 24px; font-size: 12px; background: #1a1d24; border: 1px solid #3f4451; color: #fff;">
+                                    <button type="submit" class="btn btn-sm btn-success py-0 px-1" style="font-size: 10px; height: 24px;">✓</button>
+                                    <button type="button" class="btn btn-sm btn-secondary py-0 px-1" style="font-size: 10px; height: 24px;" onclick="toggleEditPrice('{{ item.id }}')">✕</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-light btn-sm flex-grow-1" style="font-size: 12px; border-color: #3f4451;" onclick="toggleEditPrice('{{ item.id }}')">Edit Price</button>
+                        <form method="POST" class="flex-grow-1">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_id" value="{{ item.id }}">
+                            <button class="btn btn-danger btn-sm w-100" style="font-size: 12px;">Remove</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <p style="color:#6b7280; font-style: italic;">No menu items found. Start curate your menu above.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function toggleEditPrice(itemId) {
+        document.getElementById('price-view-' + itemId).classList.toggle('d-none');
+        document.getElementById('price-edit-' + itemId).classList.toggle('d-none');
+    }
+</script>
+
+{% endblock %}
