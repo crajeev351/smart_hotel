@@ -273,6 +273,8 @@ import random
 from .throttles import BurstRateThrottle
 from .serializers import CustomTokenObtainPairSerializer, UserSerializer
 
+from rest_framework_simplejwt.tokens import RefreshToken
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
     throttle_classes = [BurstRateThrottle]
@@ -286,9 +288,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             return Response({"detail": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
 
         # 1. Lookup user by username or email (case-insensitive)
-        user_obj = CustomUser.objects.filter(username__iexact=username.strip()).first()
+        user_obj = CustomUser.objects.filter(username__iexact=str(username).strip()).first()
         if not user_obj:
-            user_obj = CustomUser.objects.filter(email__iexact=username.strip()).first()
+            user_obj = CustomUser.objects.filter(email__iexact=str(username).strip()).first()
 
         if not user_obj:
             return Response({"detail": "No active account found with the given credentials"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -302,59 +304,34 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         # If user is inactive, check if it's a guest with a pending registration/login verification OTP
         if not user.is_active:
             if user.role == 'GUEST' and user.otp_code:
-                # Pending verification guest, allowed to proceed to verification step
                 pass
             else:
                 return Response({"detail": "User account is deactivated."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 3. Ensure username in request data is the actual username
-        if isinstance(request.data, dict):
-            request.data['username'] = user.username
-        elif hasattr(request.data, '_mutable'):
-            request.data._mutable = True
-            request.data['username'] = user.username
-
-        # 4. Handle GUEST role OTP verification
+        # 3. Handle GUEST role OTP verification
         if user.role == 'GUEST':
             if otp_code:
-                # Verify OTP
                 if not user.otp_code or user.otp_code != otp_code:
                     return Response({"detail": "Invalid OTP verification code."}, status=status.HTTP_400_BAD_REQUEST)
                 
-                # Check OTP expiry (10 minutes)
                 if user.otp_created_at:
                     expiry = user.otp_created_at + timedelta(minutes=10)
                     if timezone.now() > expiry:
                         return Response({"detail": "OTP has expired. Please try logging in again."}, status=status.HTTP_400_BAD_REQUEST)
                 
-                # Activate guest user and clear OTP after successful verification
                 user.is_active = True
                 user.otp_code = None
                 user.otp_created_at = None
                 user.save()
-
-                # Proceed to generate SimpleJWT tokens
-                return super().post(request, *args, **kwargs)
             else:
-                # Generate new 6-digit OTP
                 otp = f"{random.randint(100000, 999999)}"
                 user.otp_code = otp
                 user.otp_created_at = timezone.now()
                 user.save()
 
-                # Send OTP via email
                 try:
                     subject = "Smart Hotel - Login Verification OTP"
-                    message = f"""Dear {user.name or user.username},
-
-For security verification, here is your One-Time Passcode (OTP) to log in to the Smart Hotel dashboard:
-
-Verification Code: {otp}
-
-This OTP is valid for 5 minutes. If you did not request this, please ignore this email.
-
-Best regards,
-Smart Hotel Management Team"""
+                    message = f"Dear {user.name or user.username},\n\nYour verification code: {otp}\n\nValid for 5 minutes."
                     from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@smarthotel.com')
                     send_mail(
                         subject=subject,
@@ -363,17 +340,26 @@ Smart Hotel Management Team"""
                         recipient_list=[user.email],
                         fail_silently=False,
                     )
-
                     return Response({
                         "otp_required": True,
                         "email": user.email,
                         "message": "A security verification OTP code has been sent to your registered email."
                     }, status=status.HTTP_200_OK)
                 except Exception as e:
-                    print(f"Failed to send OTP email to {user.email}: {e}")
+                    print(f"Failed to send OTP email: {e}")
                     return Response({
-                        "detail": f"Failed to send verification email. Please contact front desk/reception."
+                        "detail": "Failed to send verification email. Please contact reception."
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # 5. Non-guests bypass OTP and log in normally
-        return super().post(request, *args, **kwargs)
+        # 4. Generate SimpleJWT tokens directly (prevents serializer validation 400 errors)
+        refresh = RefreshToken.for_user(user)
+        refresh['role'] = user.role
+        refresh['username'] = user.username
+        refresh['name'] = user.name
+        refresh['email'] = user.email
+
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': UserSerializer(user).data
+        }, status=status.HTTP_200_OK)
