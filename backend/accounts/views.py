@@ -308,9 +308,11 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 return Response({"detail": "User account is deactivated."}, status=status.HTTP_400_BAD_REQUEST)
 
         # 3. Ensure username in request data is the actual username
-        if hasattr(request.data, '_mutable'):
+        if isinstance(request.data, dict):
+            request.data['username'] = user.username
+        elif hasattr(request.data, '_mutable'):
             request.data._mutable = True
-        request.data['username'] = user.username
+            request.data['username'] = user.username
 
         # 4. Handle GUEST role OTP verification
         if user.role == 'GUEST':
