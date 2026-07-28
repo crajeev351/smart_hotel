@@ -2,9 +2,10 @@ services:
   - type: web
     name: smarthotel-backend
     env: docker
-    dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    plan: starter
+    dockerfilePath: Dockerfile
+    dockerCommand: sh -c "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 config.wsgi:application"
+    plan: free
     envVars:
       - key: POSTGRES_DB
         value: smarthotel
@@ -38,12 +39,12 @@ services:
   - type: web
     name: smarthotel-frontend
     env: docker
-    dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
-    plan: starter
+    dockerfilePath: Dockerfile
+    plan: free
 
 databases:
   - name: smarthotel-postgres
     databaseName: smarthotel
     user: smarthotel_user
-    plan: starter
+    plan: free
