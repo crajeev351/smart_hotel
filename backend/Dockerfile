@@ -33,5 +33,5 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
-# Run gunicorn production server
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "config.wsgi:application"]
+# Run migrations, seed testing users, and start gunicorn production server
+CMD ["sh", "-c", "python manage.py migrate && python seed_all.py && gunicorn --bind 0.0.0.0:8000 config.wsgi:application"]
