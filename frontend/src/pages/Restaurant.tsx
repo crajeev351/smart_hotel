@@ -872,12 +872,12 @@ const Restaurant: React.FC = () => {
                     {filteredMenu.map(item => (
                       <div key={item.id} className="glass-panel rounded-2xl overflow-hidden flex flex-col justify-between glass-card-hover group border border-white/5 bg-slate-950/20">
                         <div>
-                          <div className="h-32 bg-slate-950 relative overflow-hidden">
+                          <div className="w-full aspect-[16/9] sm:aspect-[16/10] bg-slate-950 relative overflow-hidden flex items-center justify-center">
                             {item.image ? (
                               <img 
                                 src={item.image.startsWith('http') ? item.image : `http://localhost:8000/media/${item.image.split('media/').pop()}`} 
                                 alt={item.name}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-slate-800">

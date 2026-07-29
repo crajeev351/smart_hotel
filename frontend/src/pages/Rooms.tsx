@@ -319,10 +319,10 @@ const Rooms: React.FC = () => {
 
       {/* ═══ 3D DISPATCH PANEL: Building Left | Map Right ═══ */}
       <div className="glass-panel rounded-2xl border border-white/5 overflow-hidden">
-        <div className="flex min-h-[520px]">
+        <div className="flex flex-col lg:flex-row min-h-[520px]">
 
           {/* ═══ LEFT PANEL: Isometric Building & Level List ═══ */}
-          <div className="hidden lg:flex flex-col items-center w-[350px] shrink-0 border-r border-white/5 p-5 bg-[#03050d] relative overflow-hidden">
+          <div className="flex flex-col items-center w-full lg:w-[350px] shrink-0 border-b lg:border-b-0 lg:border-r border-white/5 p-3 sm:p-5 bg-[#03050d] relative overflow-hidden">
             {/* Background grid */}
             <div className="absolute inset-0 pointer-events-none"
               style={{
@@ -338,7 +338,7 @@ const Rooms: React.FC = () => {
             </div>
 
             {/* SVG Isometric Skyscraper — Exact Mockup Replica */}
-            <div className="flex items-start gap-4 relative z-10 w-full justify-between">
+            <div className="flex items-start justify-center gap-2 sm:gap-4 relative z-10 w-full max-w-full overflow-x-auto pb-2">
               {/* Building SVG */}
               <div className="relative w-[240px] h-[440px] shrink-0 flex items-end">
                 <svg viewBox="0 0 240 440" className="w-full h-full" style={{ overflow: 'visible' }} xmlns="http://www.w3.org/2000/svg">
@@ -768,20 +768,8 @@ const Rooms: React.FC = () => {
                 <Building2 className="w-16 h-16 text-pink-500/25 mb-4 animate-pulse" />
                 <h3 className="text-xl font-black text-white mb-2">Select a Level</h3>
                 <p className="text-xs text-gray-500 max-w-sm">
-                  Click on any floor structure level on the left block to open the floor's 3D sanitation map.
+                  Click on any floor structure level on the building block to open the floor's 3D sanitation map.
                 </p>
-                {/* Mobile selector */}
-                <div className="flex lg:hidden flex-wrap gap-2 justify-center mt-6">
-                  {uniqueFloors.sort((a, b) => b - a).map(floorNum => (
-                    <button
-                      key={floorNum}
-                      onClick={() => handleFloorClick(floorNum)}
-                      className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/5 text-gray-400 hover:text-pink-400 hover:border-pink-500/30 transition text-xs font-bold"
-                    >
-                      Floor {floorNum}
-                    </button>
-                  ))}
-                </div>
               </div>
             ) : floorTransitioning ? (
               <div className="flex-1 flex items-center justify-center relative z-10">
