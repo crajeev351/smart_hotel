@@ -65,24 +65,24 @@ const getMenuItemImage = (item: any): string => {
 
   const getFallback = () => {
     if (lowerName.includes('burger')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cheeseburger.jpg/600px-Cheeseburger.jpg';
+      return 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cheeseburger.jpg';
     }
     if (lowerName.includes('fries')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/French_fries_in_bowl.jpg/600px-French_fries_in_bowl.jpg';
+      return 'https://upload.wikimedia.org/wikipedia/commons/8/83/French_Fries.JPG';
     }
     if (lowerName.includes('pinacolada') || lowerName.includes('pina colada') || lowerCat.includes('drink')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Pina_Colada.jpg/600px-Pina_Colada.jpg';
+      return 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Pi%C3%B1a_Colada.jpg';
     }
     if (lowerName.includes('jamun') || lowerName.includes('cake') || lowerCat.includes('dessert')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Gulab_jamun_2.jpg/600px-Gulab_jamun_2.jpg';
+      return 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Gulab-jamun-wallpaper-1.jpg';
     }
     if (lowerName.includes('paneer') || lowerName.includes('naan') || lowerCat.includes('main')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Shahi_Paneer_Elante.jpg/600px-Shahi_Paneer_Elante.jpg';
+      return 'https://upload.wikimedia.org/wikipedia/commons/a/ad/Shahi_panner.jpg';
     }
     if (lowerName.includes('coffee')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/A_small_cup_of_coffee.jpg/600px-A_small_cup_of_coffee.jpg';
+      return 'https://upload.wikimedia.org/wikipedia/commons/e/e4/Latte_and_dark_coffee.jpg';
     }
-    return 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Empty_Red_Plate.jpg/600px-Empty_Red_Plate.jpg';
+    return 'https://upload.wikimedia.org/wikipedia/commons/5/55/Chocolate_fudge_cake.jpg';
   };
 
   if (item.image && typeof item.image === 'string' && item.image.trim() !== '') {

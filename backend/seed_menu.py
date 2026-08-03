@@ -34,7 +34,7 @@ items_data = [
         "price": 500.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cheeseburger.jpg/600px-Cheeseburger.jpg"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Cheeseburger.jpg"
     },
     {
         "name": "burger",
@@ -42,7 +42,7 @@ items_data = [
         "price": 500.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cheeseburger.jpg/600px-Cheeseburger.jpg"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Cheeseburger.jpg"
     },
     {
         "name": "fries",
@@ -50,7 +50,7 @@ items_data = [
         "price": 100.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/French_fries_in_bowl.jpg/600px-French_fries_in_bowl.jpg"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/8/83/French_Fries.JPG"
     },
     {
         "name": "pinacolada",
@@ -58,7 +58,7 @@ items_data = [
         "price": 80.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Pina_Colada.jpg/600px-Pina_Colada.jpg"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Pi%C3%B1a_Colada.jpg"
     },
     {
         "name": "gulab jamun",
@@ -66,7 +66,7 @@ items_data = [
         "price": 200.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Gulab_jamun_2.jpg/600px-Gulab_jamun_2.jpg"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Gulab-jamun-wallpaper-1.jpg"
     },
     {
         "name": "Butter Paneer & Naan",
@@ -74,7 +74,7 @@ items_data = [
         "price": 350.00,
         "is_veg": True,
         "prep_time": 20,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Shahi_Paneer_Elante.jpg/600px-Shahi_Paneer_Elante.jpg"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Shahi_panner.jpg"
     },
     {
         "name": "Cold Coffee",
@@ -82,7 +82,7 @@ items_data = [
         "price": 120.00,
         "is_veg": True,
         "prep_time": 5,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/A_small_cup_of_coffee.jpg/600px-A_small_cup_of_coffee.jpg"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Latte_and_dark_coffee.jpg"
     },
     {
         "name": "Chocolate Lava Cake",
@@ -90,7 +90,7 @@ items_data = [
         "price": 250.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Chocolate_lavas_cake.jpg/600px-Chocolate_lavas_cake.jpg"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/5/55/Chocolate_fudge_cake.jpg"
     },
 ]
 
