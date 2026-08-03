@@ -44,11 +44,11 @@ services:
       - key: EMAIL_USE_TLS
         value: "True"
       - key: EMAIL_HOST_USER
-        value: rajeevchouhan.comp.scoe.com@gmail.com
+        sync: false
       - key: EMAIL_HOST_PASSWORD
-        value: dbkybylquuuzljuk
+        sync: false
       - key: DEFAULT_FROM_EMAIL
-        value: rajeevchouhan.comp.scoe.com@gmail.com
+        sync: false
 
   - type: web
     name: smarthotel-frontend
@@ -56,6 +56,9 @@ services:
     dockerContext: ./frontend
     dockerfilePath: Dockerfile
     plan: free
+    envVars:
+      - key: VITE_API_URL
+        sync: false
 
 databases:
   - name: smarthotel-postgres

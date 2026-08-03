@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.core.mail import send_mail
-from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import CustomUser
 from .serializers import UserSerializer
+from .email_utils import EmailConfigurationError, send_configured_mail
 
 
 def login_page(request):
@@ -133,15 +132,15 @@ This code is valid for 10 minutes.
 
 Best regards,
 Smart Hotel Management Team"""
-            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@smarthotel.com')
-            send_mail(
+            send_configured_mail(
                 subject=subject,
                 message=message,
-                from_email=from_email,
                 recipient_list=[email],
-                fail_silently=False,
             )
             return Response({"message": f"Verification code sent to {email}."}, status=status.HTTP_200_OK)
+        except EmailConfigurationError as e:
+            print(f"Email configuration error while sending check-in OTP: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             print(f"Failed to send check-in OTP: {e}")
             return Response({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -333,19 +332,21 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 try:
                     subject = "Smart Hotel - Login Verification OTP"
                     message = f"Dear {user.name or user.username},\n\nYour verification code: {otp}\n\nValid for 5 minutes."
-                    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@smarthotel.com')
-                    send_mail(
+                    send_configured_mail(
                         subject=subject,
                         message=message,
-                        from_email=from_email,
                         recipient_list=[user.email],
-                        fail_silently=False,
                     )
                     return Response({
                         "otp_required": True,
                         "email": user.email,
                         "message": "A security verification OTP code has been sent to your registered email."
                     }, status=status.HTTP_200_OK)
+                except EmailConfigurationError as e:
+                    print(f"Email configuration error while sending login OTP: {e}")
+                    return Response({
+                        "detail": str(e)
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 except Exception as e:
                     print(f"Failed to send OTP email: {e}")
                     return Response({

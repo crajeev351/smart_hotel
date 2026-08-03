@@ -31,10 +31,13 @@ if env_path.exists():
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-31tp%gcn%zrj19y&cd9hk7p@8kg&d231xj0m^5&mji_&8vz$ao'
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-31tp%gcn%zrj19y&cd9hk7p@8kg&d231xj0m^5&mji_&8vz$ao'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = ['*']
 
@@ -210,7 +213,8 @@ EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', default_email_backend)
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@smarthotel.com')
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 20))
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL') or EMAIL_HOST_USER or 'noreply@smarthotel.com'
 
 # JWT Authentication Config
 SIMPLE_JWT = {
