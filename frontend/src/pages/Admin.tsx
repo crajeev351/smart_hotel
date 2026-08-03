@@ -3,7 +3,7 @@ import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { 
   BarChart3, Hotel, Utensils, Users, Settings, Mail, Trash, Edit, Save, 
-  X, CreditCard, TrendingUp
+  X, CreditCard, TrendingUp, Key
 } from 'lucide-react';
 
 interface Room {
@@ -45,6 +45,7 @@ interface User {
   username: string;
   email: string;
   name: string;
+  phone?: string;
   role: string;
   is_active: boolean;
 }
@@ -93,6 +94,15 @@ const Admin: React.FC = () => {
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null);
+  const [editingUserCredentials, setEditingUserCredentials] = useState<{
+    id: string;
+    username: string;
+    name: string;
+    email: string;
+    phone: string;
+    role: string;
+    newPassword?: string;
+  } | null>(null);
 
   // New item forms
   const [newRoom, setNewRoom] = useState({ room_number: '', room_type: 'SINGLE', price_per_night: '', capacity: 2, floor: 1 });
@@ -295,6 +305,33 @@ const Admin: React.FC = () => {
       loadData();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to delete user');
+    }
+  };
+
+  const handleUpdateUserCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUserCredentials) return;
+
+    try {
+      const payload: any = {
+        username: editingUserCredentials.username,
+        name: editingUserCredentials.name,
+        email: editingUserCredentials.email,
+        phone: editingUserCredentials.phone,
+        role: editingUserCredentials.role,
+      };
+
+      if (editingUserCredentials.newPassword && editingUserCredentials.newPassword.trim() !== '') {
+        payload.password = editingUserCredentials.newPassword.trim();
+      }
+
+      await API.patch(`users/${editingUserCredentials.id}/`, payload);
+      setSuccess(`Account credentials updated successfully for @${editingUserCredentials.username}`);
+      setEditingUserCredentials(null);
+      loadData();
+    } catch (err: any) {
+      const errMsg = err.response?.data ? JSON.stringify(err.response.data) : 'Failed to update user credentials';
+      setError(errMsg);
     }
   };
 
@@ -1093,14 +1130,32 @@ const Admin: React.FC = () => {
                           </button>
                         )}
                         {currentUser?.role === 'ADMIN' && (
-                          <button 
-                            onClick={() => handleDeleteUser(user.id, user.name)} 
-                            className="ml-2 text-red-600 hover:bg-red-50 hover:text-red-700 text-xs px-3 py-1.5 sm:px-2 sm:py-1 border border-red-200 rounded font-semibold transition inline-flex items-center gap-1"
-                            title="Delete User Account"
-                          >
-                            <Trash className="w-3.5 h-3.5" />
-                            Delete
-                          </button>
+                          <>
+                            <button 
+                              onClick={() => setEditingUserCredentials({
+                                id: user.id,
+                                username: user.username,
+                                name: user.name || '',
+                                email: user.email || '',
+                                phone: user.phone || '',
+                                role: user.role || 'GUEST',
+                                newPassword: ''
+                              })}
+                              className="ml-2 text-indigo-400 hover:bg-indigo-500/10 border border-indigo-500/20 text-xs px-2.5 py-1 rounded font-semibold transition inline-flex items-center gap-1 cursor-pointer"
+                              title="Edit Credentials (Username & Password)"
+                            >
+                              <Key className="w-3.5 h-3.5" />
+                              Edit Credentials
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteUser(user.id, user.name)} 
+                              className="ml-2 text-rose-400 hover:bg-rose-500/10 border border-rose-500/20 text-xs px-2.5 py-1 rounded font-semibold transition inline-flex items-center gap-1 cursor-pointer"
+                              title="Delete User Account"
+                            >
+                              <Trash className="w-3.5 h-3.5" />
+                              Delete
+                            </button>
+                          </>
                         )}
                       </td>
                     </tr>
@@ -1179,6 +1234,114 @@ const Admin: React.FC = () => {
               {loading ? 'Dispatching Campaign Emails...' : 'Send Campaign to All Registered Guests'}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* 🔐 Admin Edit User Credentials Modal */}
+      {editingUserCredentials && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="glass-panel p-6 rounded-2xl max-w-md w-full border border-white/10 space-y-4 shadow-2xl relative">
+            <div className="flex justify-between items-center pb-3 border-b border-white/10">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Key className="w-5 h-5 text-indigo-400" />
+                Edit User Credentials
+              </h3>
+              <button 
+                onClick={() => setEditingUserCredentials(null)}
+                className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/5 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateUserCredentials} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">Username</label>
+                <input 
+                  type="text" 
+                  required
+                  value={editingUserCredentials.username}
+                  onChange={e => setEditingUserCredentials({...editingUserCredentials, username: e.target.value})}
+                  className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">
+                  New Password <span className="text-gray-500 font-normal">(Leave blank to keep unchanged)</span>
+                </label>
+                <input 
+                  type="password" 
+                  placeholder="Enter new password"
+                  value={editingUserCredentials.newPassword || ''}
+                  onChange={e => setEditingUserCredentials({...editingUserCredentials, newPassword: e.target.value})}
+                  className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">Full Name</label>
+                <input 
+                  type="text" 
+                  value={editingUserCredentials.name}
+                  onChange={e => setEditingUserCredentials({...editingUserCredentials, name: e.target.value})}
+                  className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">Email Address</label>
+                <input 
+                  type="email" 
+                  value={editingUserCredentials.email}
+                  onChange={e => setEditingUserCredentials({...editingUserCredentials, email: e.target.value})}
+                  className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1">Phone Number</label>
+                  <input 
+                    type="text" 
+                    value={editingUserCredentials.phone}
+                    onChange={e => setEditingUserCredentials({...editingUserCredentials, phone: e.target.value})}
+                    className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1">System Role</label>
+                  <select 
+                    value={editingUserCredentials.role}
+                    onChange={e => setEditingUserCredentials({...editingUserCredentials, role: e.target.value})}
+                    className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                  >
+                    <option value="GUEST">Guest</option>
+                    <option value="WAITER">Waiter</option>
+                    <option value="KITCHEN">Kitchen Staff</option>
+                    <option value="RECEPTION">Receptionist</option>
+                    <option value="ADMIN">System Admin</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingUserCredentials(null)}
+                  className="flex-1 py-2.5 bg-slate-900 text-gray-300 font-semibold rounded-xl border border-white/10 hover:bg-slate-800 text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 glowing-btn-indigo text-white font-bold rounded-xl text-xs cursor-pointer"
+                >
+                  Save Credentials
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

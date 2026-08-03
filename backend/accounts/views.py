@@ -76,25 +76,26 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
 
     def perform_update(self, serializer):
-        role = serializer.instance.role
-        email = serializer.validated_data.get('email', serializer.instance.email)
-        phone = serializer.validated_data.get('phone', serializer.instance.phone)
+        if self.request.user.role != 'ADMIN':
+            role = serializer.instance.role
+            email = serializer.validated_data.get('email', serializer.instance.email)
+            phone = serializer.validated_data.get('phone', serializer.instance.phone)
 
-        if role == 'GUEST' and (email.strip().lower() != serializer.instance.email.strip().lower() or phone.strip() != serializer.instance.phone.strip()):
-            from .models import OTPVerification
-            from rest_framework.exceptions import ValidationError
+            if role == 'GUEST' and (email.strip().lower() != serializer.instance.email.strip().lower() or phone.strip() != serializer.instance.phone.strip()):
+                from .models import OTPVerification
+                from rest_framework.exceptions import ValidationError
 
-            otp_record = OTPVerification.objects.filter(
-                email=email.strip().lower(),
-                phone=phone.strip(),
-                is_verified=True
-            ).order_by('-created_at').first()
+                otp_record = OTPVerification.objects.filter(
+                    email=email.strip().lower(),
+                    phone=phone.strip(),
+                    is_verified=True
+                ).order_by('-created_at').first()
 
-            if not otp_record:
-                raise ValidationError({"error": "Guest identity verification required for email/phone changes."})
+                if not otp_record:
+                    raise ValidationError({"error": "Guest identity verification required for email/phone changes."})
 
-            otp_record.is_verified = False
-            otp_record.save()
+                otp_record.is_verified = False
+                otp_record.save()
 
         serializer.save()
 

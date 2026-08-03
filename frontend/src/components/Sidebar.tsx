@@ -124,17 +124,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-white/5 bg-[#080a11]/40">
-          <button 
-            onClick={() => {
-              onClose();
-              logout();
-            }}
-            className="flex items-center px-4 py-3 text-sm font-semibold text-gray-400 hover:text-rose-400 hover:bg-rose-500/5 rounded-xl transition duration-200 w-full text-left group cursor-pointer"
-          >
-            <LogOut className="w-5 h-5 mr-3 text-gray-500 group-hover:text-rose-400 transition" />
-            Logout
-          </button>
+        <div className="p-4 border-t border-white/5 bg-[#080a11]/40 text-center">
+          <p className="text-[11px] text-gray-500 font-semibold">Smart Hotel Cloud v2.0</p>
         </div>
       </div>
     </>

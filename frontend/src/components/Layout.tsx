@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
-import { Menu } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -32,13 +32,29 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </h2>
           </div>
           
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-300 hidden sm:inline">
-              Welcome, <span className="text-white font-semibold">{user?.name || user?.username}</span>
-            </span>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold tracking-wider shadow-[0_0_12px_rgba(99,102,241,0.3)] border border-white/10 uppercase">
-              {user?.username?.[0]}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold tracking-wider shadow-[0_0_12px_rgba(99,102,241,0.3)] border border-white/10 uppercase text-xs">
+                {user?.username?.[0]}
+              </div>
+              <div className="hidden sm:flex flex-col text-left">
+                <span className="text-xs font-bold text-white leading-none capitalize">
+                  {user?.name || user?.username}
+                </span>
+                <span className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wider mt-0.5">
+                  {user?.role || 'GUEST'}
+                </span>
+              </div>
             </div>
+
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl transition duration-200 cursor-pointer shadow-sm"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
           </div>
         </header>
 
