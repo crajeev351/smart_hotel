@@ -34,7 +34,7 @@ items_data = [
         "price": 500.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Cheeseburger.jpg"
+        "image": "/menu_images/burger.png"
     },
     {
         "name": "burger",
@@ -42,7 +42,7 @@ items_data = [
         "price": 500.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Cheeseburger.jpg"
+        "image": "/menu_images/burger.png"
     },
     {
         "name": "fries",
@@ -50,7 +50,7 @@ items_data = [
         "price": 100.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/8/83/French_Fries.JPG"
+        "image": "/menu_images/fries.png"
     },
     {
         "name": "pinacolada",
@@ -58,7 +58,7 @@ items_data = [
         "price": 80.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Pi%C3%B1a_Colada.jpg"
+        "image": "/menu_images/pinacolada.png"
     },
     {
         "name": "gulab jamun",
@@ -66,7 +66,7 @@ items_data = [
         "price": 200.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Gulab-jamun-wallpaper-1.jpg"
+        "image": "/menu_images/gulab_jamun.png"
     },
     {
         "name": "Butter Paneer & Naan",
@@ -74,7 +74,7 @@ items_data = [
         "price": 350.00,
         "is_veg": True,
         "prep_time": 20,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Shahi_panner.jpg"
+        "image": "/menu_images/butter_paneer.png"
     },
     {
         "name": "Cold Coffee",
@@ -82,7 +82,7 @@ items_data = [
         "price": 120.00,
         "is_veg": True,
         "prep_time": 5,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Latte_and_dark_coffee.jpg"
+        "image": "/menu_images/cold_coffee.png"
     },
     {
         "name": "Chocolate Lava Cake",
@@ -90,7 +90,7 @@ items_data = [
         "price": 250.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://upload.wikimedia.org/wikipedia/commons/5/55/Chocolate_fudge_cake.jpg"
+        "image": "/menu_images/lava_cake.png"
     },
 ]
 
@@ -112,9 +112,9 @@ for item in items_data:
             print(f"Created menu item: {item['name']}")
         else:
             img_str = str(m_item.image or '')
-            if not img_str or img_str.startswith('/media/') or img_str.startswith('menu_images/') or 'unsplash.com' in img_str:
+            if not img_str or not img_str.startswith('/menu_images/'):
                 m_item.image = item["image"]
                 m_item.save()
-                print(f"Updated image URL to Wikimedia for menu item: {item['name']}")
+                print(f"Updated image path to local static folder for menu item: {item['name']}")
 
 print(f"Menu database seeded! Total categories: {MenuCategory.objects.count()}, Total items: {MenuItem.objects.count()}")

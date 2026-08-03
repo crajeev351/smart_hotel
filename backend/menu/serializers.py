@@ -25,7 +25,7 @@ class MenuItemSerializer(serializers.ModelSerializer):
         if not obj.image:
             return None
         img_str = str(obj.image)
-        if img_str.startswith('http://') or img_str.startswith('https://'):
+        if img_str.startswith('http://') or img_str.startswith('https://') or img_str.startswith('/menu_images/'):
             return img_str
         request = self.context.get('request')
         try:
