@@ -401,8 +401,12 @@ const Reception: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      await API.post(`invoices/${currentInvoice.id}/pay-invoice/`);
-      setSuccess(`Invoice Paid Successfully! A copy has been emailed to the guest.`);
+      const response = await API.post(`invoices/${currentInvoice.id}/pay-invoice/`);
+      if (response.data?.email_sent) {
+        setSuccess(`Invoice paid successfully! A polished receipt has been emailed to the guest.`);
+      } else {
+        setSuccess(`Invoice paid successfully, but the receipt email was not delivered. ${response.data?.email_error || 'Please check the email provider settings.'}`);
+      }
       setCurrentInvoice(null);
       setSelectedBillingGuestId('');
       fetchData();
