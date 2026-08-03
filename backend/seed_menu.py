@@ -34,7 +34,7 @@ items_data = [
         "price": 500.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cheeseburger.jpg/600px-Cheeseburger.jpg"
     },
     {
         "name": "burger",
@@ -42,7 +42,7 @@ items_data = [
         "price": 500.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cheeseburger.jpg/600px-Cheeseburger.jpg"
     },
     {
         "name": "fries",
@@ -50,7 +50,7 @@ items_data = [
         "price": 100.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600&auto=format&fit=crop"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/French_fries_in_bowl.jpg/600px-French_fries_in_bowl.jpg"
     },
     {
         "name": "pinacolada",
@@ -58,7 +58,7 @@ items_data = [
         "price": 80.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&auto=format&fit=crop"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Pina_Colada.jpg/600px-Pina_Colada.jpg"
     },
     {
         "name": "gulab jamun",
@@ -66,7 +66,7 @@ items_data = [
         "price": 200.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Gulab_jamun_2.jpg/600px-Gulab_jamun_2.jpg"
     },
     {
         "name": "Butter Paneer & Naan",
@@ -74,7 +74,7 @@ items_data = [
         "price": 350.00,
         "is_veg": True,
         "prep_time": 20,
-        "image": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Shahi_Paneer_Elante.jpg/600px-Shahi_Paneer_Elante.jpg"
     },
     {
         "name": "Cold Coffee",
@@ -82,7 +82,7 @@ items_data = [
         "price": 120.00,
         "is_veg": True,
         "prep_time": 5,
-        "image": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&auto=format&fit=crop"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/A_small_cup_of_coffee.jpg/600px-A_small_cup_of_coffee.jpg"
     },
     {
         "name": "Chocolate Lava Cake",
@@ -90,7 +90,7 @@ items_data = [
         "price": 250.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&auto=format&fit=crop"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Chocolate_lavas_cake.jpg/600px-Chocolate_lavas_cake.jpg"
     },
 ]
 
@@ -111,11 +111,10 @@ for item in items_data:
         if created:
             print(f"Created menu item: {item['name']}")
         else:
-            # Overwrite image if empty or points to stale local media folder
             img_str = str(m_item.image or '')
-            if not img_str or img_str.startswith('/media/') or img_str.startswith('menu_images/'):
+            if not img_str or img_str.startswith('/media/') or img_str.startswith('menu_images/') or 'unsplash.com' in img_str:
                 m_item.image = item["image"]
                 m_item.save()
-                print(f"Updated image URL for menu item: {item['name']}")
+                print(f"Updated image URL to Wikimedia for menu item: {item['name']}")
 
 print(f"Menu database seeded! Total categories: {MenuCategory.objects.count()}, Total items: {MenuItem.objects.count()}")

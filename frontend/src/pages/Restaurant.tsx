@@ -64,16 +64,31 @@ const getMenuItemImage = (item: any): string => {
   const lowerCat = (item.category_name || item.category || '').toString().toLowerCase();
 
   const getFallback = () => {
-    if (lowerName.includes('burger')) return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop';
-    if (lowerName.includes('fries')) return 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600&auto=format&fit=crop';
-    if (lowerName.includes('pinacolada') || lowerName.includes('pina colada') || lowerCat.includes('drink')) return 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&auto=format&fit=crop';
-    if (lowerName.includes('jamun') || lowerName.includes('cake') || lowerCat.includes('dessert')) return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop';
-    if (lowerName.includes('paneer') || lowerName.includes('naan') || lowerCat.includes('main')) return 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop';
-    if (lowerName.includes('coffee')) return 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&auto=format&fit=crop';
-    return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop';
+    if (lowerName.includes('burger')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cheeseburger.jpg/600px-Cheeseburger.jpg';
+    }
+    if (lowerName.includes('fries')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/French_fries_in_bowl.jpg/600px-French_fries_in_bowl.jpg';
+    }
+    if (lowerName.includes('pinacolada') || lowerName.includes('pina colada') || lowerCat.includes('drink')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Pina_Colada.jpg/600px-Pina_Colada.jpg';
+    }
+    if (lowerName.includes('jamun') || lowerName.includes('cake') || lowerCat.includes('dessert')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Gulab_jamun_2.jpg/600px-Gulab_jamun_2.jpg';
+    }
+    if (lowerName.includes('paneer') || lowerName.includes('naan') || lowerCat.includes('main')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Shahi_Paneer_Elante.jpg/600px-Shahi_Paneer_Elante.jpg';
+    }
+    if (lowerName.includes('coffee')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/A_small_cup_of_coffee.jpg/600px-A_small_cup_of_coffee.jpg';
+    }
+    return 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Empty_Red_Plate.jpg/600px-Empty_Red_Plate.jpg';
   };
 
   if (item.image && typeof item.image === 'string' && item.image.trim() !== '') {
+    if (item.image.includes('unsplash.com')) {
+      return getFallback();
+    }
     if (item.image.startsWith('http://') || item.image.startsWith('https://')) {
       return item.image;
     }
