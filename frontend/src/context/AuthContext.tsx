@@ -22,13 +22,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      // In a real app, you might want to verify the token or fetch user details
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const initAuth = async () => {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        try {
+          const userResponse = await API.get('users/me/');
+          setUser(userResponse.data);
+          localStorage.setItem('user', JSON.stringify(userResponse.data));
+        } catch (err) {
+          console.error('Session expired or invalid:', err);
+          logout();
+        }
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const login = async (credentials: any): Promise<{ otp_required?: boolean; email?: string; message?: string } | void> => {

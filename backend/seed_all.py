@@ -76,19 +76,19 @@ for u in users:
         user.save()
         print(f"Created user: {u['username']}")
     else:
-        # Ensure password matches
         user.set_password(u["password"])
         user.role = u["role"]
         user.save()
         print(f"Updated user: {u['username']}")
 
-# Run room and table seed scripts and clear sample bookings
+# Run additional seeder scripts safely and idempotently
 try:
+    import seed_customers
+    import seed_menu
     import seed_rooms
     import seed_tables
-    from rooms.models import Booking
-    Booking.objects.all().delete()
+    import seed_bookings
 except Exception as e:
-    print(f"Additional seeding: {e}")
+    print(f"Additional seeding module execution note: {e}")
 
-print("✅ All default testing users and database records seeded successfully!")
+print("All default testing users, guest customer records, menu database, rooms, tables, and bookings seeded successfully!")
