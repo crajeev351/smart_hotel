@@ -34,7 +34,7 @@ items_data = [
         "price": 500.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80"
+        "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop"
     },
     {
         "name": "burger",
@@ -42,7 +42,7 @@ items_data = [
         "price": 500.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80"
+        "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop"
     },
     {
         "name": "fries",
@@ -50,7 +50,7 @@ items_data = [
         "price": 100.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=600&q=80"
+        "image": "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600&auto=format&fit=crop"
     },
     {
         "name": "pinacolada",
@@ -58,7 +58,7 @@ items_data = [
         "price": 80.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80"
+        "image": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&auto=format&fit=crop"
     },
     {
         "name": "gulab jamun",
@@ -66,7 +66,7 @@ items_data = [
         "price": 200.00,
         "is_veg": True,
         "prep_time": 10,
-        "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80"
+        "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop"
     },
     {
         "name": "Butter Paneer & Naan",
@@ -74,7 +74,7 @@ items_data = [
         "price": 350.00,
         "is_veg": True,
         "prep_time": 20,
-        "image": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80"
+        "image": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop"
     },
     {
         "name": "Cold Coffee",
@@ -82,7 +82,7 @@ items_data = [
         "price": 120.00,
         "is_veg": True,
         "prep_time": 5,
-        "image": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80"
+        "image": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&auto=format&fit=crop"
     },
     {
         "name": "Chocolate Lava Cake",
@@ -90,7 +90,7 @@ items_data = [
         "price": 250.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80"
+        "image": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&auto=format&fit=crop"
     },
 ]
 
@@ -111,9 +111,11 @@ for item in items_data:
         if created:
             print(f"Created menu item: {item['name']}")
         else:
-            # If item image is empty, populate default image
-            if not m_item.image:
+            # Overwrite image if empty or points to stale local media folder
+            img_str = str(m_item.image or '')
+            if not img_str or img_str.startswith('/media/') or img_str.startswith('menu_images/'):
                 m_item.image = item["image"]
                 m_item.save()
+                print(f"Updated image URL for menu item: {item['name']}")
 
 print(f"Menu database seeded! Total categories: {MenuCategory.objects.count()}, Total items: {MenuItem.objects.count()}")

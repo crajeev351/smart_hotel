@@ -60,37 +60,34 @@ interface Order {
 }
 
 const getMenuItemImage = (item: any): string => {
+  const lowerName = (item.name || '').toLowerCase();
+  const lowerCat = (item.category_name || item.category || '').toString().toLowerCase();
+
+  const getFallback = () => {
+    if (lowerName.includes('burger')) return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop';
+    if (lowerName.includes('fries')) return 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600&auto=format&fit=crop';
+    if (lowerName.includes('pinacolada') || lowerName.includes('pina colada') || lowerCat.includes('drink')) return 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&auto=format&fit=crop';
+    if (lowerName.includes('jamun') || lowerName.includes('cake') || lowerCat.includes('dessert')) return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop';
+    if (lowerName.includes('paneer') || lowerName.includes('naan') || lowerCat.includes('main')) return 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop';
+    if (lowerName.includes('coffee')) return 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&auto=format&fit=crop';
+    return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop';
+  };
+
   if (item.image && typeof item.image === 'string' && item.image.trim() !== '') {
-    if (item.image.startsWith('http')) return item.image;
+    if (item.image.startsWith('http://') || item.image.startsWith('https://')) {
+      return item.image;
+    }
+    const isCloud = typeof window !== 'undefined' && window.location.hostname.includes('onrender.com');
+    if (isCloud || item.image.includes('menu_images/')) {
+      return getFallback();
+    }
     const baseURL = API.defaults.baseURL || 'http://127.0.0.1:8000/api/';
     const host = baseURL.replace(/\/api\/?$/, '');
     const cleanPath = item.image.startsWith('/') ? item.image : `/${item.image}`;
     return `${host}${cleanPath}`;
   }
 
-  const lowerName = (item.name || '').toLowerCase();
-  const lowerCat = (item.category_name || item.category || '').toString().toLowerCase();
-
-  if (lowerName.includes('burger')) {
-    return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80';
-  }
-  if (lowerName.includes('fries')) {
-    return 'https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=600&q=80';
-  }
-  if (lowerName.includes('pinacolada') || lowerName.includes('pina colada') || lowerCat.includes('drink')) {
-    return 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80';
-  }
-  if (lowerName.includes('jamun') || lowerName.includes('cake') || lowerCat.includes('dessert')) {
-    return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80';
-  }
-  if (lowerName.includes('paneer') || lowerName.includes('naan') || lowerCat.includes('main')) {
-    return 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80';
-  }
-  if (lowerName.includes('coffee')) {
-    return 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80';
-  }
-
-  return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
+  return getFallback();
 };
 
 const Restaurant: React.FC = () => {
