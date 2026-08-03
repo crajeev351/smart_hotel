@@ -50,6 +50,16 @@ interface User {
   is_active: boolean;
 }
 
+interface EditUserCredentials {
+  id: string;
+  username: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  newPassword?: string;
+}
+
 interface Analytics {
   total_rooms: number;
   occupied_rooms: number;
@@ -94,15 +104,7 @@ const Admin: React.FC = () => {
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null);
-  const [editingUserCredentials, setEditingUserCredentials] = useState<{
-    id: string;
-    username: string;
-    name: string;
-    email: string;
-    phone: string;
-    role: string;
-    newPassword?: string;
-  } | null>(null);
+  const [editingUserCredentials, setEditingUserCredentials] = useState<EditUserCredentials | null>(null);
 
   // New item forms
   const [newRoom, setNewRoom] = useState({ room_number: '', room_type: 'SINGLE', price_per_night: '', capacity: 2, floor: 1 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Hotel, Utensils, ConciergeBell, ChefHat, Settings, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, Hotel, Utensils, ConciergeBell, ChefHat, Settings, X } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -9,7 +9,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
 
   const getNavItems = () => {
