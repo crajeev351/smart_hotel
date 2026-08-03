@@ -28,14 +28,70 @@ for cat in categories_data:
         print(f"Created category: {cat['name']}")
 
 items_data = [
-    {"name": "veg burger", "category": "snacks", "price": 500.00, "is_veg": True, "prep_time": 15},
-    {"name": "burger", "category": "snacks", "price": 500.00, "is_veg": True, "prep_time": 15},
-    {"name": "fries", "category": "snacks", "price": 100.00, "is_veg": True, "prep_time": 10},
-    {"name": "pinacolada", "category": "drinks", "price": 80.00, "is_veg": True, "prep_time": 10},
-    {"name": "gulab jamun", "category": "dessert", "price": 200.00, "is_veg": True, "prep_time": 10},
-    {"name": "Butter Paneer & Naan", "category": "main course", "price": 350.00, "is_veg": True, "prep_time": 20},
-    {"name": "Cold Coffee", "category": "drinks", "price": 120.00, "is_veg": True, "prep_time": 5},
-    {"name": "Chocolate Lava Cake", "category": "dessert", "price": 250.00, "is_veg": True, "prep_time": 15},
+    {
+        "name": "veg burger",
+        "category": "snacks",
+        "price": 500.00,
+        "is_veg": True,
+        "prep_time": 15,
+        "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+        "name": "burger",
+        "category": "snacks",
+        "price": 500.00,
+        "is_veg": True,
+        "prep_time": 15,
+        "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+        "name": "fries",
+        "category": "snacks",
+        "price": 100.00,
+        "is_veg": True,
+        "prep_time": 10,
+        "image": "https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+        "name": "pinacolada",
+        "category": "drinks",
+        "price": 80.00,
+        "is_veg": True,
+        "prep_time": 10,
+        "image": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+        "name": "gulab jamun",
+        "category": "dessert",
+        "price": 200.00,
+        "is_veg": True,
+        "prep_time": 10,
+        "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+        "name": "Butter Paneer & Naan",
+        "category": "main course",
+        "price": 350.00,
+        "is_veg": True,
+        "prep_time": 20,
+        "image": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+        "name": "Cold Coffee",
+        "category": "drinks",
+        "price": 120.00,
+        "is_veg": True,
+        "prep_time": 5,
+        "image": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+        "name": "Chocolate Lava Cake",
+        "category": "dessert",
+        "price": 250.00,
+        "is_veg": True,
+        "prep_time": 15,
+        "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80"
+    },
 ]
 
 for item in items_data:
@@ -48,10 +104,16 @@ for item in items_data:
                 "price": item["price"],
                 "is_veg": item["is_veg"],
                 "is_available": True,
-                "prep_time": item["prep_time"]
+                "prep_time": item["prep_time"],
+                "image": item["image"]
             }
         )
         if created:
             print(f"Created menu item: {item['name']}")
+        else:
+            # If item image is empty, populate default image
+            if not m_item.image:
+                m_item.image = item["image"]
+                m_item.save()
 
 print(f"Menu database seeded! Total categories: {MenuCategory.objects.count()}, Total items: {MenuItem.objects.count()}")

@@ -59,6 +59,40 @@ interface Order {
   items: OrderItemDetails[];
 }
 
+const getMenuItemImage = (item: any): string => {
+  if (item.image && typeof item.image === 'string' && item.image.trim() !== '') {
+    if (item.image.startsWith('http')) return item.image;
+    const baseURL = API.defaults.baseURL || 'http://127.0.0.1:8000/api/';
+    const host = baseURL.replace(/\/api\/?$/, '');
+    const cleanPath = item.image.startsWith('/') ? item.image : `/${item.image}`;
+    return `${host}${cleanPath}`;
+  }
+
+  const lowerName = (item.name || '').toLowerCase();
+  const lowerCat = (item.category_name || item.category || '').toString().toLowerCase();
+
+  if (lowerName.includes('burger')) {
+    return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80';
+  }
+  if (lowerName.includes('fries')) {
+    return 'https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=600&q=80';
+  }
+  if (lowerName.includes('pinacolada') || lowerName.includes('pina colada') || lowerCat.includes('drink')) {
+    return 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80';
+  }
+  if (lowerName.includes('jamun') || lowerName.includes('cake') || lowerCat.includes('dessert')) {
+    return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80';
+  }
+  if (lowerName.includes('paneer') || lowerName.includes('naan') || lowerCat.includes('main')) {
+    return 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80';
+  }
+  if (lowerName.includes('coffee')) {
+    return 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80';
+  }
+
+  return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
+};
+
 const Restaurant: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tableParam = searchParams.get('table');
@@ -873,17 +907,15 @@ const Restaurant: React.FC = () => {
                       <div key={item.id} className="glass-panel rounded-2xl overflow-hidden flex flex-col justify-between glass-card-hover group border border-white/5 bg-slate-950/20">
                         <div>
                           <div className="w-full aspect-[16/9] sm:aspect-[16/10] bg-slate-950 relative overflow-hidden flex items-center justify-center">
-                            {item.image ? (
-                              <img 
-                                src={item.image.startsWith('http') ? item.image : `http://localhost:8000/media/${item.image.split('media/').pop()}`} 
-                                alt={item.name}
-                                className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-slate-800">
-                                <Utensils className="w-12 h-12 stroke-1" />
-                              </div>
-                            )}
+                            <img 
+                              src={getMenuItemImage(item)} 
+                              alt={item.name}
+                              onError={(e: any) => {
+                                e.target.onerror = null;
+                                e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
+                              }}
+                              className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                            />
                             
                             <span className={`absolute top-2 left-2 px-2 py-0.5 rounded text-[8px] font-bold text-white shadow-md border uppercase tracking-wider ${
                               item.is_veg 
