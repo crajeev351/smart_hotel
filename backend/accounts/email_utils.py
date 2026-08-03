@@ -68,6 +68,10 @@ def _send_resend_mail(*, subject, message, recipient_list, html_message=None):
     except error.HTTPError as e:
         details = e.read().decode('utf-8', errors='replace')
         logger.error("Resend API HTTP %s: %s", e.code, details)
+        if e.code == 403 and "only send to your own email" in details.lower():
+            raise EmailConfigurationError(
+                "Resend Testing Mode restriction: Resend only permits sending emails to your registered account email until a domain is verified on resend.com. Please set the guest's email to your registered Resend email address."
+            ) from e
         raise EmailConfigurationError(
             f'Resend email API returned HTTP {e.code}: {details}'
         ) from e
