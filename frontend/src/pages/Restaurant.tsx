@@ -907,9 +907,10 @@ const Restaurant: React.FC = () => {
                             <img 
                               src={getMenuItemImage(item)} 
                               alt={item.name}
+                              referrerPolicy="no-referrer"
                               onError={(e: any) => {
                                 e.target.onerror = null;
-                                e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
+                                e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop';
                               }}
                               className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                             />
