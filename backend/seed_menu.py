@@ -78,7 +78,7 @@ items_data = [
         "price": 80.00,
         "is_veg": True,
         "prep_time": 5,
-        "image": ""
+        "image": "/menu_images/lime_soda.png"
     },
     {
         "name": "gulab jamun",
@@ -102,7 +102,7 @@ items_data = [
         "price": 110.00,
         "is_veg": True,
         "prep_time": 5,
-        "image": ""
+        "image": "/menu_images/mango_kulfi.png"
     },
     {
         "name": "Butter Paneer & Naan",
@@ -118,7 +118,7 @@ items_data = [
         "price": 260.00,
         "is_veg": True,
         "prep_time": 15,
-        "image": ""
+        "image": "/menu_images/dal_makhani.png"
     },
     {
         "name": "Veg Biryani",
@@ -126,7 +126,7 @@ items_data = [
         "price": 280.00,
         "is_veg": True,
         "prep_time": 20,
-        "image": ""
+        "image": "/menu_images/veg_biryani.png"
     },
 ]
 
