@@ -5,6 +5,7 @@ import {
   BarChart3, Hotel, Utensils, Users, Settings, Mail, Trash, Edit, Save, 
   X, CreditCard, TrendingUp, Key
 } from 'lucide-react';
+import { getMenuItemImage } from './Restaurant';
 
 interface Room {
   id: number;
@@ -31,6 +32,7 @@ interface MenuItem {
   category: number;
   is_veg: boolean;
   is_available: boolean;
+  image?: string;
 }
 
 interface MenuCategory {
@@ -105,6 +107,9 @@ const Admin: React.FC = () => {
   const [editingTable, setEditingTable] = useState<Table | null>(null);
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null);
   const [editingUserCredentials, setEditingUserCredentials] = useState<EditUserCredentials | null>(null);
+
+  const [newMenuItemImage, setNewMenuItemImage] = useState<File | null>(null);
+  const [editingMenuItemImage, setEditingMenuItemImage] = useState<File | null>(null);
 
   // New item forms
   const [newRoom, setNewRoom] = useState({ room_number: '', room_type: 'SINGLE', price_per_night: '', capacity: 2, floor: 1 });
@@ -235,9 +240,27 @@ const Admin: React.FC = () => {
   const handleAddMenuItem = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await API.post('menu-items/', newMenuItem);
+      const formData = new FormData();
+      formData.append('name', newMenuItem.name);
+      formData.append('description', newMenuItem.description);
+      formData.append('price', newMenuItem.price);
+      formData.append('category', newMenuItem.category);
+      formData.append('is_veg', String(newMenuItem.is_veg));
+      if (newMenuItemImage) {
+        formData.append('image', newMenuItemImage);
+      }
+
+      await API.post('menu-items/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       setSuccess('Menu item added');
       setNewMenuItem({ name: '', description: '', price: '', category: '', is_veg: true });
+      setNewMenuItemImage(null);
+      const fileInput = document.getElementById('new-menu-item-image') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
       loadData();
     } catch (err) {
       setError('Failed to add menu item');
@@ -246,9 +269,25 @@ const Admin: React.FC = () => {
 
   const handleUpdateMenuItem = async (item: MenuItem) => {
     try {
-      await API.put(`menu-items/${item.id}/`, item);
+      const formData = new FormData();
+      formData.append('name', item.name);
+      formData.append('description', item.description || '');
+      formData.append('price', item.price);
+      formData.append('category', String(item.category));
+      formData.append('is_veg', String(item.is_veg));
+      if (editingMenuItemImage) {
+        formData.append('image', editingMenuItemImage);
+      }
+
+      await API.patch(`menu-items/${item.id}/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       setSuccess('Menu item updated');
       setEditingMenuItem(null);
+      setEditingMenuItemImage(null);
       loadData();
     } catch (err) {
       setError('Update failed');
@@ -924,6 +963,16 @@ const Admin: React.FC = () => {
                   />
                   <label htmlFor="veg-checkbox" className="text-sm font-semibold text-gray-300">Is Vegetarian Dish</label>
                 </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1">Dish Image (Optional)</label>
+                  <input 
+                    type="file" 
+                    id="new-menu-item-image"
+                    accept="image/*"
+                    onChange={e => setNewMenuItemImage(e.target.files?.[0] || null)}
+                    className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-400 focus:ring-2 focus:ring-indigo-500 rounded-lg outline-none transition cursor-pointer text-xs"
+                  />
+                </div>
                 <button type="submit" className="w-full py-2 glowing-btn-indigo text-white rounded-lg font-bold">
                   Add Menu Item
                 </button>
@@ -951,12 +1000,20 @@ const Admin: React.FC = () => {
                       {editingMenuItem?.id === item.id ? (
                         <>
                           <td className="p-2">
-                            <input 
-                              type="text" 
-                              value={editingMenuItem.name}
-                              onChange={e => setEditingMenuItem({...editingMenuItem, name: e.target.value})}
-                              className="w-28 p-1 border rounded"
-                            />
+                            <div className="flex flex-col gap-1 min-w-[120px]">
+                              <input 
+                                type="text" 
+                                value={editingMenuItem.name}
+                                onChange={e => setEditingMenuItem({...editingMenuItem, name: e.target.value})}
+                                className="w-full p-1 border rounded text-xs bg-slate-950 text-white border-white/10"
+                              />
+                              <input 
+                                type="file" 
+                                accept="image/*"
+                                onChange={e => setEditingMenuItemImage(e.target.files?.[0] || null)}
+                                className="text-[10px] text-gray-400 mt-1 cursor-pointer w-full"
+                              />
+                            </div>
                           </td>
                           <td className="p-2">
                             <select
@@ -989,9 +1046,20 @@ const Admin: React.FC = () => {
                         </>
                       ) : (
                         <>
-                          <td className="p-3 font-semibold text-white">
-                            {item.name}
-                            <p className="text-xs text-gray-500 font-normal">{item.description}</p>
+                          <td className="p-3 font-semibold text-white flex items-center gap-3">
+                            <img 
+                              src={getMenuItemImage(item)} 
+                              alt={item.name}
+                              className="w-10 h-10 object-cover rounded-lg border border-white/10 shadow-sm"
+                              onError={(e: any) => {
+                                e.target.onerror = null;
+                                e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=100&auto=format&fit=crop';
+                              }}
+                            />
+                            <div>
+                              {item.name}
+                              <p className="text-xs text-gray-500 font-normal">{item.description}</p>
+                            </div>
                           </td>
                           <td className="p-3 text-gray-400 text-xs">
                             {categories.find(c => c.id === item.category)?.name || 'Uncategorized'}

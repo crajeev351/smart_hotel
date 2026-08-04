@@ -13,27 +13,29 @@ class MenuCategorySerializer(serializers.ModelSerializer):
         return value
 
 
-class MenuItemSerializer(serializers.ModelSerializer):
-    category_name = serializers.CharField(source='category.name', read_only=True)
-    image = serializers.SerializerMethodField()
-
-    class Meta:
-        model = MenuItem
-        fields = '__all__'
-
-    def get_image(self, obj):
-        if not obj.image:
+class WritableImageField(serializers.ImageField):
+    def to_representation(self, value):
+        if not value:
             return None
-        img_str = str(obj.image)
+        img_str = str(value)
         if img_str.startswith('http://') or img_str.startswith('https://') or img_str.startswith('/menu_images/'):
             return img_str
         request = self.context.get('request')
         try:
             if request is not None:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
+                return request.build_absolute_uri(value.url)
+            return value.url
         except Exception:
             return img_str
+
+
+class MenuItemSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    image = WritableImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = MenuItem
+        fields = '__all__'
 
     def validate_price(self, value):
         if value <= 0:

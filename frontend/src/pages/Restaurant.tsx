@@ -59,7 +59,7 @@ interface Order {
   items: OrderItemDetails[];
 }
 
-const getMenuItemImage = (item: any): string => {
+export const getMenuItemImage = (item: any): string => {
   const lowerName = (item.name || '').toLowerCase();
   const lowerCat = (item.category_name || item.category || '').toString().toLowerCase();
 
@@ -86,15 +86,11 @@ const getMenuItemImage = (item: any): string => {
   };
 
   if (item.image && typeof item.image === 'string' && item.image.trim() !== '') {
-    if (item.image.includes('unsplash.com')) {
-      return getFallback();
-    }
     if (item.image.startsWith('http://') || item.image.startsWith('https://')) {
       return item.image;
     }
-    const isCloud = typeof window !== 'undefined' && window.location.hostname.includes('onrender.com');
-    if (isCloud || item.image.includes('menu_images/')) {
-      return getFallback();
+    if (item.image.startsWith('/menu_images/')) {
+      return item.image;
     }
     const baseURL = API.defaults.baseURL || 'http://127.0.0.1:8000/api/';
     const host = baseURL.replace(/\/api\/?$/, '');
