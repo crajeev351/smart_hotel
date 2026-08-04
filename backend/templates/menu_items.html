@@ -66,8 +66,8 @@
             <div class="card h-100 overflow-hidden" style="border-bottom: 3px solid #c9a96e !important;">
                 <div class="position-relative">
                     {% if item.image %}
-                        {% if 'menu_images/' in item.image.name %}
-                            <img src="/media/menu_images/{{ item.image.name|cut:'/menu_images/' }}" class="img-fluid w-100" style="height:200px; object-fit:cover;">
+                        {% if item.image.name|slice:":13" == "/menu_images/" %}
+                            <img src="/media/menu_images/{{ item.image.name|slice:"13:" }}" class="img-fluid w-100" style="height:200px; object-fit:cover;">
                         {% else %}
                             <img src="{{ item.image.url }}" class="img-fluid w-100" style="height:200px; object-fit:cover;">
                         {% endif %}
