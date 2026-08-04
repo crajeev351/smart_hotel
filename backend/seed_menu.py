@@ -27,11 +27,15 @@ for cat in categories_data:
     if created:
         print(f"Created category: {cat['name']}")
 
+# Clear existing menu items first for a clean slate
+print("Clearing existing menu items...")
+MenuItem.objects.all().delete()
+
 items_data = [
     {
         "name": "veg burger",
         "category": "snacks",
-        "price": 500.00,
+        "price": 180.00,
         "is_veg": True,
         "prep_time": 15,
         "image": "/menu_images/burger.png"
@@ -39,7 +43,7 @@ items_data = [
     {
         "name": "burger",
         "category": "snacks",
-        "price": 500.00,
+        "price": 220.00,
         "is_veg": True,
         "prep_time": 15,
         "image": "/menu_images/burger.png"
@@ -55,26 +59,10 @@ items_data = [
     {
         "name": "pinacolada",
         "category": "drinks",
-        "price": 80.00,
+        "price": 140.00,
         "is_veg": True,
         "prep_time": 10,
         "image": "/menu_images/pinacolada.png"
-    },
-    {
-        "name": "gulab jamun",
-        "category": "dessert",
-        "price": 200.00,
-        "is_veg": True,
-        "prep_time": 10,
-        "image": "/menu_images/gulab_jamun.png"
-    },
-    {
-        "name": "Butter Paneer & Naan",
-        "category": "main course",
-        "price": 350.00,
-        "is_veg": True,
-        "prep_time": 20,
-        "image": "/menu_images/butter_paneer.png"
     },
     {
         "name": "Cold Coffee",
@@ -85,12 +73,60 @@ items_data = [
         "image": "/menu_images/cold_coffee.png"
     },
     {
+        "name": "Fresh Lime Soda",
+        "category": "drinks",
+        "price": 80.00,
+        "is_veg": True,
+        "prep_time": 5,
+        "image": ""
+    },
+    {
+        "name": "gulab jamun",
+        "category": "dessert",
+        "price": 90.00,
+        "is_veg": True,
+        "prep_time": 10,
+        "image": "/menu_images/gulab_jamun.png"
+    },
+    {
         "name": "Chocolate Lava Cake",
         "category": "dessert",
-        "price": 250.00,
+        "price": 160.00,
         "is_veg": True,
         "prep_time": 15,
         "image": "/menu_images/lava_cake.png"
+    },
+    {
+        "name": "Mango Kulfi",
+        "category": "dessert",
+        "price": 110.00,
+        "is_veg": True,
+        "prep_time": 5,
+        "image": ""
+    },
+    {
+        "name": "Butter Paneer & Naan",
+        "category": "main course",
+        "price": 320.00,
+        "is_veg": True,
+        "prep_time": 20,
+        "image": "/menu_images/butter_paneer.png"
+    },
+    {
+        "name": "Dal Makhani & Roti",
+        "category": "main course",
+        "price": 260.00,
+        "is_veg": True,
+        "prep_time": 15,
+        "image": ""
+    },
+    {
+        "name": "Veg Biryani",
+        "category": "main course",
+        "price": 280.00,
+        "is_veg": True,
+        "prep_time": 20,
+        "image": ""
     },
 ]
 
@@ -111,10 +147,11 @@ for item in items_data:
         if created:
             print(f"Created menu item: {item['name']}")
         else:
-            img_str = str(m_item.image or '')
-            if not img_str or not img_str.startswith('/menu_images/'):
-                m_item.image = item["image"]
-                m_item.save()
-                print(f"Updated image path to local static folder for menu item: {item['name']}")
+            m_item.price = item["price"]
+            m_item.is_veg = item["is_veg"]
+            m_item.prep_time = item["prep_time"]
+            m_item.image = item["image"]
+            m_item.save()
+            print(f"Updated menu item: {item['name']}")
 
 print(f"Menu database seeded! Total categories: {MenuCategory.objects.count()}, Total items: {MenuItem.objects.count()}")
