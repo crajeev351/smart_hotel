@@ -19,7 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     const role = user.role || 'GUEST';
 
     // Dashboard is for all roles
-    items.push({ label: 'Dashboard', path: '/', icon: <LayoutDashboard className="w-5 h-5 mr-3" /> });
+    items.push({ label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="w-5 h-5 mr-3" /> });
 
     // Reception is for Frontdesk (Receptionist & Admin)
     if (role === 'ADMIN' || role === 'RECEPTION') {

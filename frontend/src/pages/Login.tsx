@@ -17,7 +17,7 @@ const Login: React.FC = () => {
 
   React.useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 
@@ -39,7 +39,7 @@ const Login: React.FC = () => {
         setMaskedEmail(res.email || '');
         setSuccessMessage(res.message || 'Verification code has been sent to your email.');
       } else {
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err: any) {
       console.error('Login error:', err);

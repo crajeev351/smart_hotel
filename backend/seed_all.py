@@ -23,7 +23,7 @@ users = [
         "name": "Reception Desk Staff",
         "phone": "+1234567891",
         "role": "RECEPTION",
-        "password": "Password123!",
+        "password": "Reception123!",
         "is_staff": False,
         "is_superuser": False
     },
@@ -33,7 +33,7 @@ users = [
         "name": "Floor Waiter Staff",
         "phone": "+1234567892",
         "role": "WAITER",
-        "password": "Password123!",
+        "password": "Waiter123!",
         "is_staff": False,
         "is_superuser": False
     },
@@ -43,7 +43,7 @@ users = [
         "name": "Kitchen Display Staff",
         "phone": "+1234567893",
         "role": "KITCHEN",
-        "password": "Password123!",
+        "password": "Kitchen123!",
         "is_staff": False,
         "is_superuser": False
     },
@@ -53,7 +53,7 @@ users = [
         "name": "Cleaning Janitor Staff",
         "phone": "+1234567894",
         "role": "JANITOR",
-        "password": "Password123!",
+        "password": "Janitor123!",
         "is_staff": False,
         "is_superuser": False
     }

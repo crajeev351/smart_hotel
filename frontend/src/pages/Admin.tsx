@@ -117,6 +117,7 @@ const Admin: React.FC = () => {
   const [newCategory, setNewCategory] = useState({ name: '', description: '', display_order: 1 });
   const [newMenuItem, setNewMenuItem] = useState({ name: '', description: '', price: '', category: '', is_veg: true });
   const [newUser, setNewUser] = useState({ username: '', email: '', name: '', phone: '', role: 'GUEST', password: 'TempPassword123!' });
+  const [newFloorNum, setNewFloorNum] = useState('');
 
   // Marketing form
   const [campaignSenderEmail, setCampaignSenderEmail] = useState('');
@@ -185,6 +186,72 @@ const Admin: React.FC = () => {
       loadData();
     } catch (err: any) {
       setError('Delete failed: ' + err.message);
+    }
+  };
+
+  // Helper to extract floor number
+  const getRoomFloor = (roomNumber: string): number => {
+    const num = parseInt(roomNumber);
+    if (!isNaN(num)) {
+      return Math.floor(num / 100);
+    }
+    return 1;
+  };
+
+  const handleAddFloor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const floorVal = parseInt(newFloorNum);
+    if (isNaN(floorVal) || floorVal < 1) {
+      setError('Please enter a valid floor number.');
+      return;
+    }
+    
+    const exists = rooms.some(r => getRoomFloor(r.room_number) === floorVal);
+    if (exists) {
+      setError(`Floor ${floorVal} already exists in the building.`);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const defaultRoom = {
+        room_number: `${floorVal}01`,
+        room_type: 'SINGLE',
+        price_per_night: '100.00',
+        capacity: 2,
+        floor: floorVal,
+        status: 'AVAILABLE'
+      };
+      await API.post('rooms/', defaultRoom);
+      setSuccess(`Floor L${floorVal} added successfully with default Room ${defaultRoom.room_number}.`);
+      setNewFloorNum('');
+      loadData();
+    } catch (err: any) {
+      console.error(err);
+      setError(JSON.stringify(err.response?.data || 'Failed to add floor.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteFloor = async (floorNum: number, floorRooms: Room[]) => {
+    const confirmMessage = `Are you sure you want to delete Floor L${floorNum}? This will permanently delete all ${floorRooms.length} rooms on this floor.`;
+    if (!window.confirm(confirmMessage)) return;
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await Promise.all(floorRooms.map(room => API.delete(`rooms/${room.id}/`)));
+      setSuccess(`Floor L${floorNum} and all its rooms were deleted successfully.`);
+      loadData();
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to delete floor rooms: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -611,165 +678,233 @@ const Admin: React.FC = () => {
       )}
 
       {/* 🚪 Rooms Management CRUD */}
-      {activeTab === 'rooms' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Add Room Form */}
-          <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4 h-fit">
-            <h3 className="text-lg font-bold text-white">Add New Room</h3>
-            <form onSubmit={handleAddRoom} className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">Room Number</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="e.g. 101"
-                  value={newRoom.room_number}
-                  onChange={e => setNewRoom({...newRoom, room_number: e.target.value})}
-                  className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Type</label>
-                  <select 
-                    value={newRoom.room_type}
-                    onChange={e => setNewRoom({...newRoom, room_type: e.target.value})}
-                    className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+      {activeTab === 'rooms' && (() => {
+        const uniqueFloors = Array.from(new Set(rooms.map(r => getRoomFloor(r.room_number)))).sort((a, b) => b - a);
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Left Column: forms */}
+            <div className="space-y-4 sm:space-y-6">
+              {/* Add Room Form */}
+              <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4 h-fit">
+                <h3 className="text-lg font-bold text-white">Add New Room</h3>
+                <form onSubmit={handleAddRoom} className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">Room Number</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="e.g. 101"
+                      value={newRoom.room_number}
+                      onChange={e => setNewRoom({...newRoom, room_number: e.target.value})}
+                      className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">Type</label>
+                      <select 
+                        value={newRoom.room_type}
+                        onChange={e => setNewRoom({...newRoom, room_type: e.target.value})}
+                        className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer"
+                      >
+                        <option value="SINGLE">Single</option>
+                        <option value="DOUBLE">Double</option>
+                        <option value="DELUXE">Deluxe</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">Floor</label>
+                      <input 
+                        type="number" 
+                        value={newRoom.floor}
+                        onChange={e => setNewRoom({...newRoom, floor: parseInt(e.target.value) || 1})}
+                        className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">Price / Night (₹)</label>
+                      <input 
+                        type="number" 
+                        required
+                        value={newRoom.price_per_night}
+                        onChange={e => setNewRoom({...newRoom, price_per_night: e.target.value})}
+                        className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">Capacity</label>
+                      <input 
+                        type="number" 
+                        value={newRoom.capacity}
+                        onChange={e => setNewRoom({...newRoom, capacity: parseInt(e.target.value) || 2})}
+                        className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  <button 
+                    type="submit" 
+                    className="w-full py-2.5 glowing-btn-indigo hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm cursor-pointer"
                   >
-                    <option value="SINGLE">Single</option>
-                    <option value="DOUBLE">Double</option>
-                    <option value="DELUXE">Deluxe</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Floor</label>
-                  <input 
-                    type="number" 
-                    value={newRoom.floor}
-                    onChange={e => setNewRoom({...newRoom, floor: parseInt(e.target.value) || 1})}
-                    className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
-                  />
-                </div>
+                    Add Room Account
+                  </button>
+                </form>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Price / Night (₹)</label>
-                  <input 
-                    type="number" 
-                    required
-                    value={newRoom.price_per_night}
-                    onChange={e => setNewRoom({...newRoom, price_per_night: e.target.value})}
-                    className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Capacity</label>
-                  <input 
-                    type="number" 
-                    value={newRoom.capacity}
-                    onChange={e => setNewRoom({...newRoom, capacity: parseInt(e.target.value) || 2})}
-                    className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
-                  />
-                </div>
-              </div>
-              <button 
-                type="submit" 
-                className="w-full py-2.5 glowing-btn-indigo hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm"
-              >
-                Add Room Account
-              </button>
-            </form>
-          </div>
 
-          {/* Rooms Table */}
-          <div className="lg:col-span-2 glass-panel p-3 sm:p-4 overflow-hidden border border-white/5 rounded-2xl">
-            <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Hotel Room Inventory</h3>
-            <div className="overflow-x-auto overflow-y-auto max-h-[400px]">
-              <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[500px]">
-                <thead>
-                  <tr className="bg-slate-950/40 border-b border-white/5 border-white/5 text-gray-400">
-                    <th className="p-3">Room</th>
-                    <th className="p-3">Type</th>
-                    <th className="p-3">Price</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rooms.map(room => (
-                    <tr key={room.id} className="border-b border-white/5 border-white/5 hover:bg-white/[0.01]">
-                      {editingRoom?.id === room.id ? (
-                        <>
-                          <td className="p-2">
-                            <input 
-                              type="text" 
-                              value={editingRoom.room_number} 
-                              onChange={e => setEditingRoom({...editingRoom, room_number: e.target.value})}
-                              className="w-16 p-1 border rounded"
-                            />
-                          </td>
-                          <td className="p-2">
-                            <select 
-                              value={editingRoom.room_type} 
-                              onChange={e => setEditingRoom({...editingRoom, room_type: e.target.value})}
-                              className="p-1 border rounded"
-                            >
-                              <option value="SINGLE">Single</option>
-                              <option value="DOUBLE">Double</option>
-                              <option value="DELUXE">Deluxe</option>
-                            </select>
-                          </td>
-                          <td className="p-2">
-                            <input 
-                              type="number" 
-                              value={editingRoom.price_per_night} 
-                              onChange={e => setEditingRoom({...editingRoom, price_per_night: e.target.value})}
-                              className="w-20 p-1 border rounded"
-                            />
-                          </td>
-                          <td className="p-2">
-                            <select 
-                              value={editingRoom.status} 
-                              onChange={e => setEditingRoom({...editingRoom, status: e.target.value})}
-                              className="p-1 border rounded"
-                            >
-                              <option value="AVAILABLE">Available</option>
-                              <option value="OCCUPIED">Occupied</option>
-                              <option value="MAINTENANCE">Maintenance</option>
-                            </select>
-                          </td>
-                          <td className="p-2 text-right space-x-1">
-                            <button onClick={() => handleUpdateRoom(editingRoom)} className="p-1.5 sm:p-1 bg-green-500 text-white rounded"><Save className="w-4 h-4" /></button>
-                            <button onClick={() => setEditingRoom(null)} className="p-1.5 sm:p-1 bg-gray-500 text-white rounded"><X className="w-4 h-4" /></button>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="p-3 font-semibold text-white">Room {room.room_number} (Floor {room.floor})</td>
-                          <td className="p-3 text-gray-400">{room.room_type} (Max: {room.capacity})</td>
-                          <td className="p-3 font-bold">₹{parseFloat(room.price_per_night).toFixed(2)}</td>
-                          <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                              room.status === 'AVAILABLE' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300' :
-                              room.status === 'OCCUPIED' ? 'bg-rose-500/10 border border-rose-500/20 text-rose-300' : 'bg-yellow-100 text-yellow-700'
-                            }`}>
-                              {room.status}
-                            </span>
-                          </td>
-                          <td className="p-3 text-right space-x-2">
-                            <button onClick={() => setEditingRoom(room)} className="p-1.5 sm:p-1 text-indigo-400 hover:bg-indigo-500/10 border border-indigo-500/10 text-indigo-400 rounded"><Edit className="w-4 h-4" /></button>
-                            <button onClick={() => handleDeleteRoom(room.id)} className="p-1.5 sm:p-1 text-red-600 hover:bg-red-50 rounded"><Trash className="w-4 h-4" /></button>
-                          </td>
-                        </>
-                      )}
+              {/* Floor Structure Management */}
+              <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4">
+                <div className="flex items-center gap-2 text-indigo-400">
+                  <Hotel className="w-5 h-5 text-indigo-400" />
+                  <h3 className="text-lg font-bold text-white">Manage Building Floors</h3>
+                </div>
+                <p className="text-xs text-gray-400">
+                  Add or delete floors from the 3D SVG building structure.
+                </p>
+
+                {/* Add Floor Form */}
+                <form onSubmit={handleAddFloor} className="space-y-2 pt-2 border-t border-white/5">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Add Floor Number</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      required
+                      placeholder="e.g. 5"
+                      value={newFloorNum}
+                      onChange={e => setNewFloorNum(e.target.value)}
+                      className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer text-xs"
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-4 py-2 glowing-btn-indigo hover:bg-blue-700 text-white font-bold rounded-lg text-xs shrink-0 cursor-pointer"
+                    >
+                      Add Floor
+                    </button>
+                  </div>
+                </form>
+
+                {/* Current Floors List */}
+                <div className="space-y-2 pt-2 border-t border-white/5">
+                  <label className="block text-xs font-semibold text-gray-500">Current Building Floors</label>
+                  <div className="space-y-1.5 max-h-[200px] overflow-y-auto pr-1">
+                    {uniqueFloors.map(floorNum => {
+                      const floorRooms = rooms.filter(r => getRoomFloor(r.room_number) === floorNum);
+                      return (
+                        <div key={floorNum} className="flex items-center justify-between p-2 bg-slate-950/30 rounded-lg border border-white/5">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-white">Level L{floorNum}</span>
+                            <span className="text-[10px] text-gray-500">{floorRooms.length} rooms configured</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteFloor(floorNum, floorRooms)}
+                            disabled={loading}
+                            className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition cursor-pointer"
+                            title={`Delete Floor L${floorNum} and all its rooms`}
+                          >
+                            <Trash className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Rooms Table */}
+            <div className="lg:col-span-2 glass-panel p-3 sm:p-4 overflow-hidden border border-white/5 rounded-2xl">
+              <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Hotel Room Inventory</h3>
+              <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
+                <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[500px]">
+                  <thead>
+                    <tr className="bg-slate-950/40 border-b border-white/5 border-white/5 text-gray-400">
+                      <th className="p-3">Room</th>
+                      <th className="p-3">Type</th>
+                      <th className="p-3">Price</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {rooms.map(room => (
+                      <tr key={room.id} className="border-b border-white/5 border-white/5 hover:bg-white/[0.01]">
+                        {editingRoom?.id === room.id ? (
+                          <>
+                            <td className="p-2">
+                              <input 
+                                type="text" 
+                                value={editingRoom.room_number} 
+                                onChange={e => setEditingRoom({...editingRoom, room_number: e.target.value})}
+                                className="w-16 p-1 border rounded"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <select 
+                                value={editingRoom.room_type} 
+                                onChange={e => setEditingRoom({...editingRoom, room_type: e.target.value})}
+                                className="p-1 border rounded"
+                              >
+                                <option value="SINGLE">Single</option>
+                                <option value="DOUBLE">Double</option>
+                                <option value="DELUXE">Deluxe</option>
+                              </select>
+                            </td>
+                            <td className="p-2">
+                              <input 
+                                type="number" 
+                                value={editingRoom.price_per_night} 
+                                onChange={e => setEditingRoom({...editingRoom, price_per_night: e.target.value})}
+                                className="w-20 p-1 border rounded"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <select 
+                                value={editingRoom.status} 
+                                onChange={e => setEditingRoom({...editingRoom, status: e.target.value})}
+                                className="p-1 border rounded"
+                              >
+                                <option value="AVAILABLE">Available</option>
+                                <option value="OCCUPIED">Occupied</option>
+                                <option value="MAINTENANCE">Maintenance</option>
+                              </select>
+                            </td>
+                            <td className="p-2 text-right space-x-1">
+                              <button onClick={() => handleUpdateRoom(editingRoom)} className="p-1.5 sm:p-1 bg-green-500 text-white rounded"><Save className="w-4 h-4" /></button>
+                              <button onClick={() => setEditingRoom(null)} className="p-1.5 sm:p-1 bg-gray-500 text-white rounded"><X className="w-4 h-4" /></button>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="p-3 font-semibold text-white">Room {room.room_number} (Floor {room.floor})</td>
+                            <td className="p-3 text-gray-400">{room.room_type} (Max: {room.capacity})</td>
+                            <td className="p-3 font-bold">₹{parseFloat(room.price_per_night).toFixed(2)}</td>
+                            <td className="p-3">
+                              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                room.status === 'AVAILABLE' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300' :
+                                room.status === 'OCCUPIED' ? 'bg-rose-500/10 border border-rose-500/20 text-rose-300' : 'bg-yellow-100 text-yellow-700'
+                              }`}>
+                                {room.status}
+                              </span>
+                            </td>
+                            <td className="p-3 text-right space-x-2">
+                              <button onClick={() => setEditingRoom(room)} className="p-1.5 sm:p-1 text-indigo-400 hover:bg-indigo-500/10 border border-indigo-500/10 text-indigo-400 rounded"><Edit className="w-4 h-4" /></button>
+                              <button onClick={() => handleDeleteRoom(room.id)} className="p-1.5 sm:p-1 text-red-600 hover:bg-red-50 rounded"><Trash className="w-4 h-4" /></button>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 🍽️ Tables Management CRUD */}
       {activeTab === 'tables' && (

@@ -6,10 +6,10 @@ def seed_default_users(sender, **kwargs):
         from accounts.models import CustomUser
         users = [
             {"username": "Rajeev7112", "email": "rajeev7112@smarthotel.com", "name": "Rajeev (Admin)", "phone": "+1234567890", "role": "ADMIN", "password": "Rajeev123!", "is_staff": True, "is_superuser": True},
-            {"username": "reception_test", "email": "reception@smarthotel.com", "name": "Reception Desk Staff", "phone": "+1234567891", "role": "RECEPTION", "password": "Password123!", "is_staff": False, "is_superuser": False},
-            {"username": "waiter_test", "email": "waiter@smarthotel.com", "name": "Floor Waiter Staff", "phone": "+1234567892", "role": "WAITER", "password": "Password123!", "is_staff": False, "is_superuser": False},
-            {"username": "kitchen_test", "email": "kitchen@smarthotel.com", "name": "Kitchen Display Staff", "phone": "+1234567893", "role": "KITCHEN", "password": "Password123!", "is_staff": False, "is_superuser": False},
-            {"username": "janitor_test", "email": "janitor@smarthotel.com", "name": "Cleaning Janitor Staff", "phone": "+1234567894", "role": "JANITOR", "password": "Password123!", "is_staff": False, "is_superuser": False}
+            {"username": "reception_test", "email": "reception@smarthotel.com", "name": "Reception Desk Staff", "phone": "+1234567891", "role": "RECEPTION", "password": "Reception123!", "is_staff": False, "is_superuser": False},
+            {"username": "waiter_test", "email": "waiter@smarthotel.com", "name": "Floor Waiter Staff", "phone": "+1234567892", "role": "WAITER", "password": "Waiter123!", "is_staff": False, "is_superuser": False},
+            {"username": "kitchen_test", "email": "kitchen@smarthotel.com", "name": "Kitchen Display Staff", "phone": "+1234567893", "role": "KITCHEN", "password": "Kitchen123!", "is_staff": False, "is_superuser": False},
+            {"username": "janitor_test", "email": "janitor@smarthotel.com", "name": "Cleaning Janitor Staff", "phone": "+1234567894", "role": "JANITOR", "password": "Janitor123!", "is_staff": False, "is_superuser": False}
         ]
         for u in users:
             user, created = CustomUser.objects.get_or_create(

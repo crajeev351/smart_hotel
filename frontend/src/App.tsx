@@ -20,6 +20,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <Layout>{children}</Layout>;
 };
 
+const RootRedirect: React.FC = () => {
+  const { logout } = useAuth();
+  React.useEffect(() => {
+    logout();
+  }, [logout]);
+  return <Navigate to="/login" replace />;
+};
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -28,6 +36,10 @@ const App: React.FC = () => {
           <Route path="/login" element={<Login />} />
           <Route 
             path="/" 
+            element={<RootRedirect />} 
+          />
+          <Route 
+            path="/dashboard" 
             element={
               <ProtectedRoute>
                 <Dashboard />

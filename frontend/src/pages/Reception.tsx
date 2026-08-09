@@ -193,6 +193,9 @@ const Reception: React.FC = () => {
   };
 
   const uniqueFloors = Array.from(new Set(rooms.map(r => getRoomFloor(r.room_number)))).sort((a, b) => a - b);
+  const sortedFloors = [...uniqueFloors].sort((a, b) => a - b).slice(0, 15);
+  const buildingFloorH = Math.min(58, 260 / Math.max(1, sortedFloors.length));
+  const buildingBaseCy = (490 + sortedFloors.length * buildingFloorH) / 2;
 
   const handleFloorClick = (floorNum: number) => {
     setFloorTransitioning(true);
@@ -838,11 +841,13 @@ const Reception: React.FC = () => {
                   <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 text-center relative z-10">
                     HOTEL STRUCTURE
                   </div>
+
+                  <div className="flex-1" />
+
                   {/* SVG 3D Isometric Building — Neon Dark Design */}
                   {/* SVG Isometric Skyscraper — Exact Mockup Replica */}
-                  <div className="flex items-start justify-center gap-2 sm:gap-4 relative z-10 w-full max-w-full overflow-x-auto pb-2">
-                    {/* Building SVG */}
-                    <div className="relative w-[240px] h-[440px] shrink-0 flex items-end">
+                  <div className="flex items-end justify-center gap-2 sm:gap-4 relative z-10 w-full max-w-full overflow-x-auto pb-2">
+                    <div className="relative w-[240px] h-[440px] shrink-0 flex items-end justify-center">
                       <svg viewBox="0 0 240 440" className="w-full h-full" style={{ overflow: 'visible' }} xmlns="http://www.w3.org/2000/svg">
                         <defs>
                           <filter id="iso-glow">
@@ -878,12 +883,12 @@ const Reception: React.FC = () => {
                         </defs>
 
                         {(() => {
-                          const sorted = [...uniqueFloors].sort((a, b) => a - b).slice(0, 6);
-                          const h = 58;
+                          const sorted = sortedFloors;
+                          const h = buildingFloorH;
                           const w = 78;
                           const d = 58;
                           const cx = 135;
-                          const baseCy = 390;
+                          const baseCy = buildingBaseCy;
 
                           const mapIso = (u: number, v: number, z: number) => ({
                             x: cx - u + v,
@@ -975,27 +980,37 @@ const Reception: React.FC = () => {
                             const leftFace = ptStr(p(0, 0, z1), p(w, 0, z1), p(w, 0, z2), p(0, 0, z2));
                             const rightFace = ptStr(p(0, 0, z1), p(0, d, z1), p(0, d, z2), p(0, 0, z2));
 
+                            // Dynamic offsets scaled by h
+                            const offset2 = h * 0.03;
+                            const offset10 = h * 0.17;
+                            const offset12 = h * 0.20;
+                            const offset14 = h * 0.24;
+                            const offset16 = h * 0.27;
+                            const offset30 = h * 0.51;
+                            const offset34 = h * 0.58;
+                            const offset38 = h * 0.65;
+
                             // Main Corner Bay Window
-                            const vBandPoly = ptStr(p(0, 0, z1 + 14), p(32, 0, z1 + 14), p(32, 0, z2 - 12), p(0, 0, z2 - 12), p(0, 32, z2 - 12), p(0, 32, z1 + 14));
+                            const vBandPoly = ptStr(p(0, 0, z1 + offset14), p(32, 0, z1 + offset14), p(32, 0, z2 - offset12), p(0, 0, z2 - offset12), p(0, 32, z2 - offset12), p(0, 32, z1 + offset14));
 
                             // Ledge (Overhang) for the window
-                            const vLedgeBot = ptStr(p(-2, -2, z1 + 12), p(34, -2, z1 + 12), p(34, 0, z1 + 12), p(0, 0, z1 + 12), p(0, 34, z1 + 12), p(-2, 34, z1 + 12));
-                            const vLedgeTop = ptStr(p(-2, -2, z2 - 12), p(34, -2, z2 - 12), p(34, 0, z2 - 12), p(0, 0, z2 - 12), p(0, 34, z2 - 12), p(-2, 34, z2 - 12));
+                            const vLedgeBot = ptStr(p(-2, -2, z1 + offset12), p(34, -2, z1 + offset12), p(34, 0, z1 + offset12), p(0, 0, z1 + offset12), p(0, 34, z1 + offset12), p(-2, 34, z1 + offset12));
+                            const vLedgeTop = ptStr(p(-2, -2, z2 - offset12), p(34, -2, z2 - offset12), p(34, 0, z2 - offset12), p(0, 0, z2 - offset12), p(0, 34, z2 - offset12), p(-2, 34, z2 - offset12));
 
                             // Side Windows
-                            const lWin1 = ptStr(p(40, 0, z1 + 16), p(52, 0, z1 + 16), p(52, 0, z2 - 14), p(40, 0, z2 - 14));
-                            const lWin2 = ptStr(p(60, 0, z1 + 16), p(72, 0, z1 + 16), p(72, 0, z2 - 14), p(60, 0, z2 - 14));
-                            const rWin1 = ptStr(p(0, 40, z1 + 16), p(0, 52, z1 + 16), p(0, 52, z2 - 14), p(0, 40, z2 - 14));
+                            const lWin1 = ptStr(p(40, 0, z1 + offset16), p(52, 0, z1 + offset16), p(52, 0, z2 - offset14), p(40, 0, z2 - offset14));
+                            const lWin2 = ptStr(p(60, 0, z1 + offset16), p(72, 0, z1 + offset16), p(72, 0, z2 - offset14), p(60, 0, z2 - offset14));
+                            const rWin1 = ptStr(p(0, 40, z1 + offset16), p(0, 52, z1 + offset16), p(0, 52, z2 - offset14), p(0, 40, z2 - offset14));
 
                             // Window Mullions (Frames)
                             const frameColor = "#0f172a";
                             const vMullions = (
                               <>
-                                <line x1={p(16, 0, z1 + 14).x} y1={p(16, 0, z1 + 14).y} x2={p(16, 0, z2 - 12).x} y2={p(16, 0, z2 - 12).y} stroke={frameColor} strokeWidth="1.5" />
-                                <line x1={p(0, 0, z1 + 14).x} y1={p(0, 0, z1 + 14).y} x2={p(0, 0, z2 - 12).x} y2={p(0, 0, z2 - 12).y} stroke={frameColor} strokeWidth="2.5" />
-                                <line x1={p(0, 16, z1 + 14).x} y1={p(0, 16, z1 + 14).y} x2={p(0, 16, z2 - 12).x} y2={p(0, 16, z2 - 12).y} stroke={frameColor} strokeWidth="1.5" />
+                                <line x1={p(16, 0, z1 + offset14).x} y1={p(16, 0, z1 + offset14).y} x2={p(16, 0, z2 - offset12).x} y2={p(16, 0, z2 - offset12).y} stroke={frameColor} strokeWidth="1.5" />
+                                <line x1={p(0, 0, z1 + offset14).x} y1={p(0, 0, z1 + offset14).y} x2={p(0, 0, z2 - offset12).x} y2={p(0, 0, z2 - offset12).y} stroke={frameColor} strokeWidth="2.5" />
+                                <line x1={p(0, 16, z1 + offset14).x} y1={p(0, 16, z1 + offset14).y} x2={p(0, 16, z2 - offset12).x} y2={p(0, 16, z2 - offset12).y} stroke={frameColor} strokeWidth="1.5" />
                                 {/* Horizontal transoms */}
-                                <polyline points={ptStr(p(32, 0, z1 + 30), p(0, 0, z1 + 30), p(0, 32, z1 + 30))} fill="none" stroke={frameColor} strokeWidth="1" />
+                                <polyline points={ptStr(p(32, 0, z1 + offset30), p(0, 0, z1 + offset30), p(0, 32, z1 + offset30))} fill="none" stroke={frameColor} strokeWidth="1" />
                               </>
                             );
 
@@ -1018,12 +1033,12 @@ const Reception: React.FC = () => {
                             // Interior Room Depth
                             const cornerInterior = (
                               <g>
-                                <polygon points={ptStr(p(2, 2, z1 + 14), p(30, 2, z1 + 14), p(30, 30, z1 + 14), p(2, 30, z1 + 14))} fill="#0f172a" />
-                                <polygon points={ptStr(p(2, 2, z2 - 12), p(30, 2, z2 - 12), p(30, 30, z2 - 12), p(2, 30, z2 - 12))} fill="#020617" />
-                                <polygon points={ptStr(p(2, 30, z1 + 14), p(30, 30, z1 + 14), p(30, 30, z2 - 12), p(2, 30, z2 - 12))} fill="#1e293b" />
-                                <polygon points={ptStr(p(30, 2, z1 + 14), p(30, 30, z1 + 14), p(30, 30, z2 - 12), p(30, 2, z2 - 12))} fill="#172033" />
+                                <polygon points={ptStr(p(2, 2, z1 + offset14), p(30, 2, z1 + offset14), p(30, 30, z1 + offset14), p(2, 30, z1 + offset14))} fill="#0f172a" />
+                                <polygon points={ptStr(p(2, 2, z2 - offset12), p(30, 2, z2 - offset12), p(30, 30, z2 - offset12), p(2, 30, z2 - offset12))} fill="#020617" />
+                                <polygon points={ptStr(p(2, 30, z1 + offset14), p(30, 30, z1 + offset14), p(30, 30, z2 - offset12), p(2, 30, z2 - offset12))} fill="#1e293b" />
+                                <polygon points={ptStr(p(30, 2, z1 + offset14), p(30, 30, z1 + offset14), p(30, 30, z2 - offset12), p(30, 2, z2 - offset12))} fill="#172033" />
                                 {/* Inner glowing lamp/accent */}
-                                <line x1={p(15, 28, z1 + 14).x} y1={p(15, 28, z1 + 14).y} x2={p(15, 28, z2 - 12).x} y2={p(15, 28, z2 - 12).y} stroke={neon} strokeWidth="2" opacity="0.1" filter="url(#iso-glow-soft)" />
+                                <line x1={p(15, 28, z1 + offset14).x} y1={p(15, 28, z1 + offset14).y} x2={p(15, 28, z2 - offset12).x} y2={p(15, 28, z2 - offset12).y} stroke={neon} strokeWidth="2" opacity="0.1" filter="url(#iso-glow-soft)" />
                               </g>
                             );
 
@@ -1031,25 +1046,25 @@ const Reception: React.FC = () => {
                             const entranceCanopy = isGroundLobby ? (
                               <g>
                                 {/* Grand Canopy Roof */}
-                                <polygon points={ptStr(p(-12, -12, z1 + 38), p(40, -12, z1 + 38), p(40, 40, z1 + 38), p(-12, 40, z1 + 38))} fill="#334155" stroke="#475569" strokeWidth="0.5" />
-                                <polygon points={ptStr(p(-12, -12, z1 + 34), p(40, -12, z1 + 34), p(40, -12, z1 + 38), p(-12, -12, z1 + 38))} fill="#1e293b" />
-                                <polygon points={ptStr(p(-12, -12, z1 + 34), p(-12, 40, z1 + 34), p(-12, 40, z1 + 38), p(-12, -12, z1 + 38))} fill="#0f172a" />
+                                <polygon points={ptStr(p(-12, -12, z1 + offset38), p(40, -12, z1 + offset38), p(40, 40, z1 + offset38), p(-12, 40, z1 + offset38))} fill="#334155" stroke="#475569" strokeWidth="0.5" />
+                                <polygon points={ptStr(p(-12, -12, z1 + offset34), p(40, -12, z1 + offset34), p(40, -12, z1 + offset38), p(-12, -12, z1 + offset38))} fill="#1e293b" />
+                                <polygon points={ptStr(p(-12, -12, z1 + offset34), p(-12, 40, z1 + offset34), p(-12, 40, z1 + offset38), p(-12, -12, z1 + offset38))} fill="#0f172a" />
                                 {/* Canopy Edge */}
-                                <polyline points={ptStr(p(40, -12, z1 + 38), p(-12, -12, z1 + 38), p(-12, 40, z1 + 38))} fill="none" stroke={neon} strokeWidth="1.5" opacity="0.6" />
+                                <polyline points={ptStr(p(40, -12, z1 + offset38), p(-12, -12, z1 + offset38), p(-12, 40, z1 + offset38))} fill="none" stroke={neon} strokeWidth="1.5" opacity="0.6" />
 
                                 {/* Glass Entrance Doors */}
-                                <polygon points={ptStr(p(0, 0, z1), p(24, 0, z1), p(24, 0, z1 + 34), p(0, 0, z1 + 34))} fill="#1e293b" stroke="#334155" strokeWidth="0.5" />
-                                <polygon points={ptStr(p(0, 0, z1), p(0, 24, z1), p(0, 24, z1 + 34), p(0, 0, z1 + 34))} fill="#0f172a" stroke="#334155" strokeWidth="0.5" />
-                                <polygon points={ptStr(p(0, 0, z1), p(24, 0, z1), p(24, 0, z1 + 34), p(0, 0, z1 + 34))} fill="url(#glass-refl)" />
-                                <polygon points={ptStr(p(0, 0, z1), p(0, 24, z1), p(0, 24, z1 + 34), p(0, 0, z1 + 34))} fill="url(#glass-refl)" />
+                                <polygon points={ptStr(p(0, 0, z1), p(24, 0, z1), p(24, 0, z1 + offset34), p(0, 0, z1 + offset34))} fill="#1e293b" stroke="#334155" strokeWidth="0.5" />
+                                <polygon points={ptStr(p(0, 0, z1), p(0, 24, z1), p(0, 24, z1 + offset34), p(0, 0, z1 + offset34))} fill="#0f172a" stroke="#334155" strokeWidth="0.5" />
+                                <polygon points={ptStr(p(0, 0, z1), p(24, 0, z1), p(24, 0, z1 + offset34), p(0, 0, z1 + offset34))} fill="url(#glass-refl)" />
+                                <polygon points={ptStr(p(0, 0, z1), p(0, 24, z1), p(0, 24, z1 + offset34), p(0, 0, z1 + offset34))} fill="url(#glass-refl)" />
 
                                 {/* Door frames */}
-                                <line x1={p(12, 0, z1).x} y1={p(12, 0, z1).y} x2={p(12, 0, z1 + 34).x} y2={p(12, 0, z1 + 34).y} stroke="#0f172a" strokeWidth="1.5" />
-                                <line x1={p(0, 12, z1).x} y1={p(0, 12, z1).y} x2={p(0, 12, z1 + 34).x} y2={p(0, 12, z1 + 34).y} stroke="#0f172a" strokeWidth="1.5" />
+                                <line x1={p(12, 0, z1).x} y1={p(12, 0, z1).y} x2={p(12, 0, z1 + offset34).x} y2={p(12, 0, z1 + offset34).y} stroke="#0f172a" strokeWidth="1.5" />
+                                <line x1={p(0, 12, z1).x} y1={p(0, 12, z1).y} x2={p(0, 12, z1 + offset34).x} y2={p(0, 12, z1 + offset34).y} stroke="#0f172a" strokeWidth="1.5" />
 
                                 {/* Entrance Inner Glow */}
-                                <polygon points={ptStr(p(0, 0, z1 + 2), p(24, 0, z1 + 2), p(24, 0, z1 + 30), p(0, 0, z1 + 30))} fill={neon} opacity="0.1" />
-                                <polygon points={ptStr(p(0, 0, z1 + 2), p(0, 24, z1 + 2), p(0, 24, z1 + 30), p(0, 0, z1 + 30))} fill={neon} opacity="0.05" />
+                                <polygon points={ptStr(p(0, 0, z1 + offset2), p(24, 0, z1 + offset2), p(24, 0, z1 + offset30), p(0, 0, z1 + offset30))} fill={neon} opacity="0.1" />
+                                <polygon points={ptStr(p(0, 0, z1 + offset2), p(0, 24, z1 + offset2), p(0, 24, z1 + offset30), p(0, 0, z1 + offset30))} fill={neon} opacity="0.05" />
                               </g>
                             ) : null;
 
@@ -1065,10 +1080,10 @@ const Reception: React.FC = () => {
                                 <polygon points={rightFace} fill="url(#iso-rf)" stroke="#0f172a" strokeWidth="0.5" />
 
                                 {/* Architectural Cladding Panel Lines */}
-                                <line x1={p(0, 0, z1 + 10).x} y1={p(0, 0, z1 + 10).y} x2={p(w, 0, z1 + 10).x} y2={p(w, 0, z1 + 10).y} stroke="#cbd5e1" strokeWidth="0.5" opacity="0.1" />
-                                <line x1={p(0, 0, z2 - 10).x} y1={p(0, 0, z2 - 10).y} x2={p(w, 0, z2 - 10).x} y2={p(w, 0, z2 - 10).y} stroke="#cbd5e1" strokeWidth="0.5" opacity="0.1" />
-                                <line x1={p(0, 0, z1 + 10).x} y1={p(0, 0, z1 + 10).y} x2={p(0, d, z1 + 10).x} y2={p(0, d, z1 + 10).y} stroke="#cbd5e1" strokeWidth="0.5" opacity="0.1" />
-                                <line x1={p(0, 0, z2 - 10).x} y1={p(0, 0, z2 - 10).y} x2={p(0, d, z2 - 10).x} y2={p(0, d, z2 - 10).y} stroke="#cbd5e1" strokeWidth="0.5" opacity="0.1" />
+                                <line x1={p(0, 0, z1 + offset10).x} y1={p(0, 0, z1 + offset10).y} x2={p(w, 0, z1 + offset10).x} y2={p(w, 0, z1 + offset10).y} stroke="#cbd5e1" strokeWidth="0.5" opacity="0.1" />
+                                <line x1={p(0, 0, z2 - offset10).x} y1={p(0, 0, z2 - offset10).y} x2={p(w, 0, z2 - offset10).x} y2={p(w, 0, z2 - offset10).y} stroke="#cbd5e1" strokeWidth="0.5" opacity="0.1" />
+                                <line x1={p(0, 0, z1 + offset10).x} y1={p(0, 0, z1 + offset10).y} x2={p(0, d, z1 + offset10).x} y2={p(0, d, z1 + offset10).y} stroke="#cbd5e1" strokeWidth="0.5" opacity="0.1" />
+                                <line x1={p(0, 0, z2 - offset10).x} y1={p(0, 0, z2 - offset10).y} x2={p(0, d, z2 - offset10).x} y2={p(0, d, z2 - offset10).y} stroke="#cbd5e1" strokeWidth="0.5" opacity="0.1" />
 
                                 {/* Physical Louvers (External details) */}
                                 {louvers}
@@ -1076,9 +1091,9 @@ const Reception: React.FC = () => {
 
                                 {/* Interior Depths (Behind Glass) */}
                                 {!isSelected && !isGroundLobby && cornerInterior}
-                                {!isSelected && drawInterior(40, 52, 0, 0, z1 + 16, z2 - 14, true)}
-                                {!isSelected && drawInterior(60, 72, 0, 0, z1 + 16, z2 - 14, true)}
-                                {!isSelected && drawInterior(0, 0, 40, 52, z1 + 16, z2 - 14, false)}
+                                {!isSelected && drawInterior(40, 52, 0, 0, z1 + offset16, z2 - offset14, true)}
+                                {!isSelected && drawInterior(60, 72, 0, 0, z1 + offset16, z2 - offset14, true)}
+                                {!isSelected && drawInterior(0, 0, 40, 52, z1 + offset16, z2 - offset14, false)}
 
                                 {/* Ground Floor overrides corner window */}
                                 {isGroundLobby ? entranceCanopy : (
@@ -1112,9 +1127,9 @@ const Reception: React.FC = () => {
 
                                 {/* Window Frames / Mullions */}
                                 {!isGroundLobby && vMullions}
-                                <line x1={p(46, 0, z1 + 16).x} y1={p(46, 0, z1 + 16).y} x2={p(46, 0, z2 - 14).x} y2={p(46, 0, z2 - 14).y} stroke="#0f172a" strokeWidth="1" />
-                                <line x1={p(66, 0, z1 + 16).x} y1={p(66, 0, z1 + 16).y} x2={p(66, 0, z2 - 14).x} y2={p(66, 0, z2 - 14).y} stroke="#0f172a" strokeWidth="1" />
-                                <line x1={p(0, 46, z1 + 16).x} y1={p(0, 46, z1 + 16).y} x2={p(0, 46, z2 - 14).x} y2={p(0, 46, z2 - 14).y} stroke="#0f172a" strokeWidth="1" />
+                                <line x1={p(46, 0, z1 + offset16).x} y1={p(46, 0, z1 + offset16).y} x2={p(46, 0, z2 - offset14).x} y2={p(46, 0, z2 - offset14).y} stroke="#0f172a" strokeWidth="1" />
+                                <line x1={p(66, 0, z1 + offset16).x} y1={p(66, 0, z1 + offset16).y} x2={p(66, 0, z2 - offset14).x} y2={p(66, 0, z2 - offset14).y} stroke="#0f172a" strokeWidth="1" />
+                                <line x1={p(0, 46, z1 + offset16).x} y1={p(0, 46, z1 + offset16).y} x2={p(0, 46, z2 - offset14).x} y2={p(0, 46, z2 - offset14).y} stroke="#0f172a" strokeWidth="1" />
 
                                 {/* Glass Reflections OVER everything when selected for realism */}
                                 {isSelected && (
@@ -1133,8 +1148,8 @@ const Reception: React.FC = () => {
 
                                 {/* Labels */}
 
-                                <text x={p(w + 20, 0, z1 + h / 2 - 2).x} y={p(w + 20, 0, z1 + h / 2 - 2).y} fill={isSelected ? neon : '#94a3b8'} fontSize="9" fontWeight="900" fontFamily="monospace" textAnchor="end">L{floorNum}</text>
-                                <text x={p(w + 20, 0, z1 + h / 2 + 7).x} y={p(w + 20, 0, z1 + h / 2 + 7).y} fill={isFull ? '#722f37' : isHeavy ? '#8b7355' : '#b8860b'} fontSize="6.5" fontWeight="800" fontFamily="monospace" textAnchor="end" opacity={0.9}>{vacantCount > 0 ? `${vacantCount} VACANT` : 'FULL'}</text>
+                                <text x={p(w + 20, 0, z1 + h * 0.46).x} y={p(w + 20, 0, z1 + h * 0.46).y} fill={isSelected ? neon : '#94a3b8'} fontSize="9" fontWeight="900" fontFamily="monospace" textAnchor="end">L{floorNum}</text>
+                                <text x={p(w + 20, 0, z1 + h * 0.62).x} y={p(w + 20, 0, z1 + h * 0.62).y} fill={isFull ? '#722f37' : isHeavy ? '#8b7355' : '#b8860b'} fontSize="6.5" fontWeight="800" fontFamily="monospace" textAnchor="end" opacity={0.9}>{vacantCount > 0 ? `${vacantCount} VACANT` : 'FULL'}</text>
 
 
                                 {/* Edge Highlights */}
@@ -1254,6 +1269,8 @@ const Reception: React.FC = () => {
                       })}
                     </div>
                   </div>
+
+                  <div className="flex-1" />
 
 
                   {/* Building Stats */}
