@@ -5,5 +5,8 @@ class RoomsConfig(AppConfig):
     name = 'rooms'
 
     def ready(self):
-        from .sync import start_sync_thread
-        start_sync_thread()
+        try:
+            from .sync import start_sync_thread
+            start_sync_thread()
+        except Exception:
+            pass

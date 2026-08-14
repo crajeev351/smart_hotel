@@ -2,7 +2,10 @@ import os
 import time
 import datetime
 import threading
-import requests
+try:
+    import requests
+except ImportError:
+    requests = None
 from django.utils.dateparse import parse_datetime
 
 CLOUD_URL = "https://smart-hotel-mchq.onrender.com"
