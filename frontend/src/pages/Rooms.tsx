@@ -30,22 +30,32 @@ const Rooms: React.FC = () => {
     onConfirm: () => void;
   } | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError(null);
+  const fetchData = async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const response = await API.get('rooms/');
       setRooms(response.data);
     } catch (err: any) {
       console.error(err);
-      setError('Failed to fetch rooms queue.');
+      if (!silent) {
+        setError('Failed to fetch rooms queue.');
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(() => {
+      fetchData(true);
+    }, 6000);
+    return () => clearInterval(interval);
   }, []);
 
   const getRoomFloor = (roomNumber: string): number => {

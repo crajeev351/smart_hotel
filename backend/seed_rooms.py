@@ -13,14 +13,24 @@ room_types = {
 }
 
 created_count = 0
-for floor in range(1, 5):
-    # Floor 1 & 2 get 15 rooms, Floor 3 & 4 get 10 rooms
-    num_rooms = 15 if floor in [1, 2] else 10
+for floor in range(1, 9):
+    # Floor 1 & 2 get 15 rooms, Floor 3 & 4 get 10 rooms, Floor 5 & 6 get 8 rooms, Floor 7 & 8 get 6 rooms
+    if floor in [1, 2]:
+        num_rooms = 15
+    elif floor in [3, 4]:
+        num_rooms = 10
+    elif floor in [5, 6]:
+        num_rooms = 8
+    else:
+        num_rooms = 6
+
     for r_num in range(1, num_rooms + 1):
         room_number = f"{floor}{r_num:02d}"
-        if r_num <= (6 if floor in [1, 2] else 4):
+        if floor >= 7:
+            rtype = 'DELUXE'
+        elif r_num <= 4:
             rtype = 'SINGLE'
-        elif r_num <= (11 if floor in [1, 2] else 8):
+        elif r_num <= 8:
             rtype = 'DOUBLE'
         else:
             rtype = 'DELUXE'

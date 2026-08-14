@@ -45,8 +45,8 @@ const Dashboard: React.FC = () => {
 
   const role = user?.role || 'GUEST';
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
+  const fetchDashboardData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       // 1. Fetch reports analytics
       const analyticsRes = await API.get(`reports/analytics/?year=${selectedYear}&month=${selectedMonth}`);
@@ -72,12 +72,16 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchDashboardData();
+    const interval = setInterval(() => {
+      fetchDashboardData(true);
+    }, 8000);
+    return () => clearInterval(interval);
   }, [role, selectedYear, selectedMonth]);
 
   const handleSeatReservation = async (resId: number, name: string, tableId: number) => {

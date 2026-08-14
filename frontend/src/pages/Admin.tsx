@@ -125,9 +125,11 @@ const Admin: React.FC = () => {
   const [campaignTitle, setCampaignTitle] = useState('');
   const [campaignBody, setCampaignBody] = useState('');
 
-  const loadData = async () => {
-    setLoading(true);
-    setError(null);
+  const loadData = async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [roomsRes, tablesRes, menuRes, catRes, usersRes, analyticsRes] = await Promise.all([
         API.get('rooms/'),
@@ -144,14 +146,22 @@ const Admin: React.FC = () => {
       setUsers(usersRes.data);
       setAnalytics(analyticsRes.data);
     } catch (err: any) {
-      setError('Admin retrieval error: ' + err.message);
+      if (!silent) {
+        setError('Admin retrieval error: ' + err.message);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(() => {
+      loadData(true);
+    }, 8000);
+    return () => clearInterval(interval);
   }, [selectedYear, selectedMonth]);
 
   // CRUD Room

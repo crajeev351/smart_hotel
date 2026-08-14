@@ -221,8 +221,8 @@ const Reception: React.FC = () => {
   };
 
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const [usersRes, roomsRes, tablesRes, bookingsRes, tableReservationsRes] = await Promise.all([
         API.get('users/'),
@@ -237,14 +237,20 @@ const Reception: React.FC = () => {
       setBookings(bookingsRes.data);
       setTableReservations(tableReservationsRes.data);
     } catch (err: any) {
-      setError('Failed to fetch data: ' + (err.response?.data?.detail || err.message));
+      if (!silent) {
+        setError('Failed to fetch data: ' + (err.response?.data?.detail || err.message));
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(() => {
+      fetchData(true);
+    }, 6000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
