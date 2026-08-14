@@ -50,7 +50,9 @@ class UserViewSet(viewsets.ModelViewSet):
         email = serializer.validated_data.get('email', '')
         phone = serializer.validated_data.get('phone', '')
 
-        if role == 'GUEST':
+        is_admin = self.request.user and (self.request.user.role == 'ADMIN' or self.request.user.is_staff)
+
+        if role == 'GUEST' and not is_admin:
             from .models import OTPVerification
             from django.utils import timezone
             from rest_framework.exceptions import ValidationError

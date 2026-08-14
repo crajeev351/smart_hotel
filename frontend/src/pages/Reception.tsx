@@ -195,7 +195,7 @@ const Reception: React.FC = () => {
   const uniqueFloors = Array.from(new Set(rooms.map(r => getRoomFloor(r.room_number)))).sort((a, b) => a - b);
   const sortedFloors = [...uniqueFloors].sort((a, b) => a - b).slice(0, 15);
   const buildingFloorH = Math.min(58, 260 / Math.max(1, sortedFloors.length));
-  const buildingBaseCy = (490 + sortedFloors.length * buildingFloorH) / 2;
+  const buildingBaseCy = 253 + (sortedFloors.length * buildingFloorH) / 2;
 
   const handleFloorClick = (floorNum: number) => {
     setFloorTransitioning(true);
@@ -847,7 +847,7 @@ const Reception: React.FC = () => {
                   {/* SVG 3D Isometric Building — Neon Dark Design */}
                   {/* SVG Isometric Skyscraper — Exact Mockup Replica */}
                   <div className="flex items-end justify-center gap-2 sm:gap-4 relative z-10 w-full max-w-full overflow-x-auto pb-2">
-                    <div className="relative w-[240px] h-[440px] shrink-0 flex items-end justify-center">
+                    <div className="relative w-[196px] h-[360px] shrink-0 flex items-end justify-center">
                       <svg viewBox="0 0 240 440" className="w-full h-full" style={{ overflow: 'visible' }} xmlns="http://www.w3.org/2000/svg">
                         <defs>
                           <filter id="iso-glow">
