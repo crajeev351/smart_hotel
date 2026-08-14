@@ -749,7 +749,7 @@ const Reception: React.FC = () => {
             <ConciergeBell className="w-8 h-8 text-indigo-400" />
             <h2 className="text-2xl font-bold tracking-tight text-white font-sans">Reception & Check-In Panel</h2>
             <button
-              onClick={fetchData}
+              onClick={() => fetchData()}
               className="p-2 text-gray-400 hover:text-indigo-400 hover:bg-white/5 rounded-xl transition cursor-pointer"
               title="Reload Reception Metrics"
             >

@@ -488,7 +488,7 @@ const Admin: React.FC = () => {
           Administrative Control Center
         </h2>
         <button 
-          onClick={loadData}
+          onClick={() => loadData()}
           className="bg-slate-900 border border-white/5 hover:bg-slate-800 text-gray-300 px-4 py-2.5 sm:py-2 rounded-xl transition cursor-pointer text-sm sm:text-base w-full sm:w-auto"
         >
           Reload Center Data

@@ -272,7 +272,7 @@ const Rooms: React.FC = () => {
             LIVE LINK ACTIVE
           </div>
           <button
-            onClick={fetchData}
+            onClick={() => fetchData()}
             className="p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-white/5 text-gray-400 hover:bg-slate-800 transition cursor-pointer"
             title="Refresh list"
           >
