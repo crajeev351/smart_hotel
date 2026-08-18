@@ -580,6 +580,14 @@ def sync_data():
             except Exception as e:
                 print(f"[Sync] Error creating order locally: {e}")
 
+    local_orders_dict = {}
+    for lo in Order.objects.all().select_related('guest', 'table'):
+        lo_created = lo.created_at
+        if lo_created.tzinfo is None:
+            lo_created = lo_created.replace(tzinfo=datetime.timezone.utc)
+        table_num = lo.table.table_number if lo.table else None
+        local_orders_dict[(lo.guest.username, table_num, lo_created.isoformat())] = lo
+
     # 7. Sync Invoices
     local_invoices = Invoice.objects.all().select_related('guest', 'booking')
     local_invoices_dict = {}
