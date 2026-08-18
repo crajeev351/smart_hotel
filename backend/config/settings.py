@@ -87,9 +87,9 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '60/minute',       # Anonymous users (e.g. login attempts)
-        'user': '120/minute',      # Authenticated users
-        'burst': '10/minute',      # Custom burst throttle for sensitive actions (OTP/Login)
+        'anon': '300/minute',       # Anonymous users (e.g. login attempts)
+        'user': '1200/minute',      # Authenticated users (admin dashboard, real-time polling)
+        'burst': '30/minute',       # Sensitive burst actions
     }
 }
 

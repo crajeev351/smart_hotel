@@ -2,6 +2,7 @@ import os
 import time
 import datetime
 import threading
+import uuid
 try:
     import requests
 except ImportError:
@@ -16,7 +17,7 @@ def get_cloud_token():
         response = requests.post(url, json={
             "username": "Rajeev7112",
             "password": "Rajeev123!"
-        }, timeout=10)
+        }, timeout=25)
         if response.status_code == 200:
             return response.json().get("access")
         else:
@@ -28,13 +29,13 @@ def get_cloud_token():
 def fetch_cloud_data(token):
     headers = {"Authorization": f"Bearer {token}"}
     try:
-        users = requests.get(f"{CLOUD_URL}/api/users/", headers=headers, timeout=10).json()
-        rooms = requests.get(f"{CLOUD_URL}/api/rooms/", headers=headers, timeout=10).json()
-        bookings = requests.get(f"{CLOUD_URL}/api/bookings/", headers=headers, timeout=10).json()
-        tables = requests.get(f"{CLOUD_URL}/api/tables/", headers=headers, timeout=10).json()
-        reservations = requests.get(f"{CLOUD_URL}/api/table-reservations/", headers=headers, timeout=10).json()
-        orders = requests.get(f"{CLOUD_URL}/api/orders/", headers=headers, timeout=10).json()
-        invoices = requests.get(f"{CLOUD_URL}/api/invoices/", headers=headers, timeout=10).json()
+        users = requests.get(f"{CLOUD_URL}/api/users/", headers=headers, timeout=25).json()
+        rooms = requests.get(f"{CLOUD_URL}/api/rooms/", headers=headers, timeout=25).json()
+        bookings = requests.get(f"{CLOUD_URL}/api/bookings/", headers=headers, timeout=25).json()
+        tables = requests.get(f"{CLOUD_URL}/api/tables/", headers=headers, timeout=25).json()
+        reservations = requests.get(f"{CLOUD_URL}/api/table-reservations/", headers=headers, timeout=25).json()
+        orders = requests.get(f"{CLOUD_URL}/api/orders/", headers=headers, timeout=25).json()
+        invoices = requests.get(f"{CLOUD_URL}/api/invoices/", headers=headers, timeout=25).json()
         return users, rooms, bookings, tables, reservations, orders, invoices
     except Exception as e:
         print(f"[Sync] Failed to fetch cloud data: {e}")
@@ -75,7 +76,7 @@ def sync_data():
                     "is_active": l_user.is_active,
                     "password": "Rajeev123!"
                 }
-                res = requests.post(f"{CLOUD_URL}/api/users/", headers=headers, json=payload, timeout=10)
+                res = requests.post(f"{CLOUD_URL}/api/users/", headers=headers, json=payload, timeout=25)
                 if res.status_code in [200, 201]:
                     cloud_users_by_username[username] = res.json()
                     print(f"[Sync] Created user {username} on cloud.")
@@ -121,7 +122,7 @@ def sync_data():
                     "status": l_room.status,
                     "floor": l_room.floor
                 }
-                res = requests.post(f"{CLOUD_URL}/api/rooms/", headers=headers, json=payload, timeout=10)
+                res = requests.post(f"{CLOUD_URL}/api/rooms/", headers=headers, json=payload, timeout=25)
                 if res.status_code in [200, 201]:
                     cloud_rooms_by_number[r_num] = res.json()
                     print(f"[Sync] Created room {r_num} on cloud.")
@@ -143,7 +144,7 @@ def sync_data():
                 if l_room.status != c_room['status']:
                     if l_updated > c_updated:
                         try:
-                            res = requests.patch(f"{CLOUD_URL}/api/rooms/{c_room['id']}/", headers=headers, json={"status": l_room.status}, timeout=10)
+                            res = requests.patch(f"{CLOUD_URL}/api/rooms/{c_room['id']}/", headers=headers, json={"status": l_room.status}, timeout=25)
                             if res.status_code == 200:
                                 print(f"[Sync] Updated room {r_num} status on cloud to {l_room.status}.")
                         except Exception as e:
@@ -201,7 +202,7 @@ def sync_data():
                         "actual_check_in": l_booking.actual_check_in.isoformat() if l_booking.actual_check_in else None,
                         "actual_check_out": l_booking.actual_check_out.isoformat() if l_booking.actual_check_out else None
                     }
-                    res = requests.post(f"{CLOUD_URL}/api/bookings/", headers=headers, json=payload, timeout=10)
+                    res = requests.post(f"{CLOUD_URL}/api/bookings/", headers=headers, json=payload, timeout=25)
                     if res.status_code in [200, 201]:
                         print(f"[Sync] Created booking for {key} on cloud.")
                     else:
@@ -230,7 +231,7 @@ def sync_data():
                         "actual_check_in": l_booking.actual_check_in.isoformat() if l_booking.actual_check_in else None,
                         "actual_check_out": l_booking.actual_check_out.isoformat() if l_booking.actual_check_out else None
                     }
-                    res = requests.patch(f"{CLOUD_URL}/api/bookings/{c_booking['id']}/", headers=headers, json=patch_payload, timeout=10)
+                    res = requests.patch(f"{CLOUD_URL}/api/bookings/{c_booking['id']}/", headers=headers, json=patch_payload, timeout=25)
                     if res.status_code == 200:
                         print(f"[Sync] Updated cloud booking {key} status to {l_booking.status} from local.")
                 except Exception as e:
@@ -261,7 +262,7 @@ def sync_data():
     local_tables = {t.table_number: t for t in Table.objects.all()}
     cloud_tables_by_number = {t['table_number']: t for t in c_tables}
 
-    # Local -> Cloud
+    # Local -> Cloud & Bidirectional sync for Tables
     for t_num, l_table in local_tables.items():
         if t_num not in cloud_tables_by_number:
             try:
@@ -277,7 +278,7 @@ def sync_data():
                     "status": l_table.status,
                     "current_guest": c_guest_id
                 }
-                res = requests.post(f"{CLOUD_URL}/api/tables/", headers=headers, json=payload, timeout=10)
+                res = requests.post(f"{CLOUD_URL}/api/tables/", headers=headers, json=payload, timeout=25)
                 if res.status_code in [200, 201]:
                     cloud_tables_by_number[t_num] = res.json()
                     print(f"[Sync] Created table {t_num} on cloud.")
@@ -285,14 +286,49 @@ def sync_data():
                 print(f"[Sync] Error creating table {t_num} on cloud: {e}")
         else:
             c_table = cloud_tables_by_number[t_num]
-            if l_table.status != c_table['status']:
-                l_guest = None
-                if c_table.get('current_guest'):
-                    l_guest = CustomUser.objects.filter(id=c_table.get('current_guest')).first()
-                Table.objects.filter(id=l_table.id).update(status=c_table['status'], current_guest=l_guest)
-                print(f"[Sync] Updated table {t_num} locally to status {c_table['status']}.")
+            l_updated = getattr(l_table, 'updated_at', None)
+            c_updated = parse_datetime(c_table.get('updated_at')) if c_table.get('updated_at') else None
+            
+            if l_updated and c_updated:
+                if l_updated.tzinfo is None:
+                    l_updated = l_updated.replace(tzinfo=datetime.timezone.utc)
+                if c_updated.tzinfo is None:
+                    c_updated = c_updated.replace(tzinfo=datetime.timezone.utc)
+                
+                if l_table.status != c_table['status']:
+                    if l_updated >= c_updated:
+                        try:
+                            c_guest_id = None
+                            if l_table.current_guest:
+                                c_guest = cloud_users_by_username.get(l_table.current_guest.username)
+                                if c_guest:
+                                    c_guest_id = c_guest['id']
+                            res = requests.patch(f"{CLOUD_URL}/api/tables/{c_table['id']}/", headers=headers, json={"status": l_table.status, "current_guest": c_guest_id}, timeout=25)
+                            if res.status_code == 200:
+                                print(f"[Sync] Updated table {t_num} status on cloud to {l_table.status}.")
+                        except Exception as e:
+                            print(f"[Sync] Error updating table {t_num} on cloud: {e}")
+                    else:
+                        l_guest = None
+                        if c_table.get('current_guest'):
+                            l_guest = CustomUser.objects.filter(id=c_table.get('current_guest')).first()
+                        Table.objects.filter(id=l_table.id).update(status=c_table['status'], current_guest=l_guest, updated_at=c_updated)
+                        print(f"[Sync] Updated table {t_num} locally to status {c_table['status']}.")
+            else:
+                if l_table.status != c_table['status']:
+                    try:
+                        c_guest_id = None
+                        if l_table.current_guest:
+                            c_guest = cloud_users_by_username.get(l_table.current_guest.username)
+                            if c_guest:
+                                c_guest_id = c_guest['id']
+                        res = requests.patch(f"{CLOUD_URL}/api/tables/{c_table['id']}/", headers=headers, json={"status": l_table.status, "current_guest": c_guest_id}, timeout=25)
+                        if res.status_code == 200:
+                            print(f"[Sync] Updated table {t_num} status on cloud to {l_table.status}.")
+                    except Exception as e:
+                        print(f"[Sync] Error updating table {t_num} on cloud: {e}")
 
-    # Cloud -> Local
+    # Cloud -> Local for new Tables
     for t_num, c_table in cloud_tables_by_number.items():
         if t_num not in local_tables:
             try:
@@ -336,7 +372,7 @@ def sync_data():
                         "reservation_time": l_res.reservation_time.isoformat(),
                         "status": l_res.status
                     }
-                    res = requests.post(f"{CLOUD_URL}/api/table-reservations/", headers=headers, json=payload, timeout=10)
+                    res = requests.post(f"{CLOUD_URL}/api/table-reservations/", headers=headers, json=payload, timeout=25)
                     if res.status_code in [200, 201]:
                         print(f"[Sync] Created table reservation for {l_res.customer_name} on cloud.")
             except Exception as e:
@@ -351,7 +387,7 @@ def sync_data():
                     print(f"[Sync] Updated local reservation status to {c_res['status']}.")
                 elif status_priority.get(l_res.status, 0) > status_priority.get(c_res['status'], 0):
                     try:
-                        requests.patch(f"{CLOUD_URL}/api/table-reservations/{c_res['id']}/", headers=headers, json={"status": l_res.status}, timeout=10)
+                        requests.patch(f"{CLOUD_URL}/api/table-reservations/{c_res['id']}/", headers=headers, json={"status": l_res.status}, timeout=25)
                     except Exception as e:
                         print(f"[Sync] Error updating cloud reservation: {e}")
 
@@ -371,69 +407,71 @@ def sync_data():
             except Exception as e:
                 print(f"[Sync] Error creating reservation locally: {e}")
 
-    # 6. Sync Orders & OrderItems
+    # 6. Sync Orders & OrderItems (Deduplicated with ID tracking to eliminate ping-pong loops)
     local_menu_items = {item.id: item for item in MenuItem.objects.all()}
-    local_orders = Order.objects.all().select_related('guest', 'table')
-    local_orders_dict = {}
-    for o in local_orders:
-        t_num = o.table.table_number if o.table else None
-        o_created = o.created_at
-        if o_created.tzinfo is None:
-            o_created = o_created.replace(tzinfo=datetime.timezone.utc)
-        local_orders_dict[(o.guest.username, t_num, o_created.isoformat())] = o
+    local_orders = list(Order.objects.all().select_related('guest', 'table'))
 
-    cloud_orders_dict = {}
+    matched_cloud_ids = set()
+    matched_local_orders = {}  # local_order_id -> cloud_order_dict
+
+    # Pass 1: Match by sync_id if both have it
+    local_by_sync_id = {str(o.sync_id): o for o in local_orders if getattr(o, 'sync_id', None)}
     for co in c_orders:
-        co_created = parse_datetime(co['created_at'])
-        co_created_iso = co_created.isoformat() if co_created else co['created_at']
-        cloud_orders_dict[(co.get('guest_name'), co.get('table_number'), co_created_iso)] = co
+        c_sync_id = str(co.get('sync_id', '')).strip()
+        if c_sync_id and c_sync_id in local_by_sync_id:
+            lo = local_by_sync_id[c_sync_id]
+            matched_local_orders[lo.id] = co
+            matched_cloud_ids.add(co['id'])
 
-    # Align close matches within 1-minute window
-    unmatched_local = []
-    for key, l_order in list(local_orders_dict.items()):
-        if key not in cloud_orders_dict:
-            unmatched_local.append((key, l_order))
+    # Pass 2: Fuzzy match remaining unmatched by (guest_username, table_number, approx created_at)
+    for lo in local_orders:
+        if lo.id in matched_local_orders:
+            continue
+        l_guest_name = lo.guest.username if lo.guest else None
+        l_t_num = lo.table.table_number if lo.table else None
+        l_created = lo.created_at
+        if l_created.tzinfo is None:
+            l_created = l_created.replace(tzinfo=datetime.timezone.utc)
 
-    for (l_key, l_order) in unmatched_local:
-        l_username, l_t_num, l_created_iso = l_key
-        l_created = parse_datetime(l_created_iso)
         for co in c_orders:
-            co_username = co.get('guest_name')
-            co_t_num = co.get('table_number')
-            if co_username == l_username and co_t_num == l_t_num:
-                co_created = parse_datetime(co['created_at'])
-                if co_created and l_created:
-                    diff = abs((co_created - l_created).total_seconds())
-                    if diff <= 60:
-                        Order.objects.filter(id=l_order.id).update(created_at=co_created)
-                        new_key = (l_username, l_t_num, co_created.isoformat())
-                        local_orders_dict[new_key] = l_order
-                        del local_orders_dict[l_key]
-                        print(f"[Sync] Matched local order {l_order.id} with cloud order {co['id']}.")
+            if co['id'] in matched_cloud_ids:
+                continue
+            if co.get('guest_name') == l_guest_name and co.get('table_number') == l_t_num:
+                co_created = parse_datetime(co.get('created_at'))
+                if co_created:
+                    if co_created.tzinfo is None:
+                        co_created = co_created.replace(tzinfo=datetime.timezone.utc)
+                    if abs((co_created - l_created).total_seconds()) <= 120:
+                        matched_local_orders[lo.id] = co
+                        matched_cloud_ids.add(co['id'])
                         break
 
-    # Local -> Cloud
-    for key, l_order in local_orders_dict.items():
-        if key not in cloud_orders_dict:
+    # Local -> Cloud (Push unmatched local orders)
+    for lo in local_orders:
+        if lo.id not in matched_local_orders:
             try:
-                c_user = cloud_users_by_username.get(l_order.guest.username)
-                c_table = cloud_tables_by_number.get(l_order.table.table_number) if l_order.table else None
+                c_user = cloud_users_by_username.get(lo.guest.username)
+                c_table = cloud_tables_by_number.get(lo.table.table_number) if lo.table else None
                 if c_user:
                     payload = {
                         "guest": c_user['id'],
                         "table": c_table['id'] if c_table else None,
-                        "status": l_order.status,
-                        "total_amount": str(l_order.total_amount)
+                        "status": lo.status,
+                        "total_amount": str(lo.total_amount)
                     }
-                    res = requests.post(f"{CLOUD_URL}/api/orders/", headers=headers, json=payload, timeout=10)
+                    if getattr(lo, 'sync_id', None):
+                        payload["sync_id"] = str(lo.sync_id)
+                    res = requests.post(f"{CLOUD_URL}/api/orders/", headers=headers, json=payload, timeout=25)
                     if res.status_code in [200, 201]:
                         new_co = res.json()
-                        co_created = parse_datetime(new_co['created_at'])
+                        matched_cloud_ids.add(new_co['id'])
+                        matched_local_orders[lo.id] = new_co
+                        co_created = parse_datetime(new_co.get('created_at'))
                         if co_created:
-                            Order.objects.filter(id=l_order.id).update(created_at=co_created)
-                        print(f"[Sync] Created order {l_order.id} on cloud.")
-                        
-                        for l_item in l_order.items.all():
+                            Order.objects.filter(id=lo.id).update(created_at=co_created)
+                        print(f"[Sync] Created order {lo.id} on cloud.")
+
+                        for l_item in lo.items.all():
                             item_payload = {
                                 "order": new_co['id'],
                                 "menu_item": l_item.menu_item.id,
@@ -442,42 +480,43 @@ def sync_data():
                                 "status": l_item.status,
                                 "notes": l_item.notes
                             }
-                            requests.post(f"{CLOUD_URL}/api/order-items/", headers=headers, json=item_payload, timeout=10)
+                            requests.post(f"{CLOUD_URL}/api/order-items/", headers=headers, json=item_payload, timeout=25)
             except Exception as e:
-                print(f"[Sync] Error creating order {l_order.id} on cloud: {e}")
+                print(f"[Sync] Error creating order {lo.id} on cloud: {e}")
         else:
-            c_order = cloud_orders_dict[key]
+            # Sync status between matched orders
+            co = matched_local_orders[lo.id]
             status_priority = {'PENDING': 1, 'PREPARING': 2, 'READY': 3, 'SERVED': 4, 'COMPLETED': 5, 'CANCELLED': 6}
-            l_prio = status_priority.get(l_order.status, 0)
-            c_prio = status_priority.get(c_order['status'], 0)
-            
+            l_prio = status_priority.get(lo.status, 0)
+            c_prio = status_priority.get(co.get('status'), 0)
+
             if c_prio > l_prio:
-                l_order.status = c_order['status']
-                l_order.total_amount = c_order['total_amount']
-                l_order.save()
-                print(f"[Sync] Updated local order {l_order.id} status to {c_order['status']}.")
+                lo.status = co['status']
+                lo.total_amount = co['total_amount']
+                lo.save()
+                print(f"[Sync] Updated local order {lo.id} status to {co['status']}.")
             elif l_prio > c_prio:
                 try:
-                    requests.patch(f"{CLOUD_URL}/api/orders/{c_order['id']}/", headers=headers, json={"status": l_order.status, "total_amount": str(l_order.total_amount)}, timeout=10)
+                    requests.patch(f"{CLOUD_URL}/api/orders/{co['id']}/", headers=headers, json={"status": lo.status, "total_amount": str(lo.total_amount)}, timeout=25)
                 except Exception as e:
                     print(f"[Sync] Error updating cloud order: {e}")
 
-            # Sync items
-            l_items = {item.menu_item.id: item for item in l_order.items.all()}
-            c_items = {item['menu_item']: item for item in c_order.get('items', [])}
-            
+            # Sync items for matched order
+            l_items = {item.menu_item.id: item for item in lo.items.all()}
+            c_items = {item['menu_item']: item for item in co.get('items', [])}
+
             for item_id, l_item in l_items.items():
                 if item_id not in c_items:
                     try:
                         item_payload = {
-                            "order": c_order['id'],
+                            "order": co['id'],
                             "menu_item": l_item.menu_item.id,
                             "quantity": l_item.quantity,
                             "price_at_order": str(l_item.price_at_order),
                             "status": l_item.status,
                             "notes": l_item.notes
                         }
-                        requests.post(f"{CLOUD_URL}/api/order-items/", headers=headers, json=item_payload, timeout=10)
+                        requests.post(f"{CLOUD_URL}/api/order-items/", headers=headers, json=item_payload, timeout=25)
                     except Exception as e:
                         print(f"[Sync] Error creating order item on cloud: {e}")
                 else:
@@ -487,7 +526,7 @@ def sync_data():
                         OrderItem.objects.filter(id=l_item.id).update(status=c_item['status'])
                     elif item_prio.get(l_item.status, 0) > item_prio.get(c_item['status'], 0):
                         try:
-                            requests.patch(f"{CLOUD_URL}/api/order-items/{c_item['id']}/", headers=headers, json={"status": l_item.status}, timeout=10)
+                            requests.patch(f"{CLOUD_URL}/api/order-items/{c_item['id']}/", headers=headers, json={"status": l_item.status}, timeout=25)
                         except Exception as e:
                             print(f"[Sync] Error updating cloud order item: {e}")
 
@@ -497,7 +536,7 @@ def sync_data():
                         menu_item = local_menu_items.get(item_id)
                         if menu_item:
                             OrderItem.objects.create(
-                                order=l_order,
+                                order=lo,
                                 menu_item=menu_item,
                                 quantity=c_item['quantity'],
                                 price_at_order=c_item['price_at_order'],
@@ -507,24 +546,25 @@ def sync_data():
                     except Exception as e:
                         print(f"[Sync] Error creating local order item: {e}")
 
-    # Cloud -> Local
-    for key, c_order in cloud_orders_dict.items():
-        if key not in local_orders_dict:
+    # Cloud -> Local (Pull genuine unmatched cloud orders only)
+    for co in c_orders:
+        if co['id'] not in matched_cloud_ids:
             try:
-                l_user = local_users.get(key[0])
-                l_table = local_tables.get(key[1]) if key[1] else None
+                l_user = local_users.get(co.get('guest_name'))
+                l_table = local_tables.get(co.get('table_number')) if co.get('table_number') else None
                 if l_user:
                     l_order = Order.objects.create(
+                        sync_id=co.get('sync_id') or uuid.uuid4().hex,
                         guest=l_user,
                         table=l_table,
-                        status=c_order['status'],
-                        total_amount=c_order['total_amount']
+                        status=co['status'],
+                        total_amount=co['total_amount']
                     )
-                    co_created = parse_datetime(c_order['created_at'])
+                    co_created = parse_datetime(co['created_at'])
                     if co_created:
                         Order.objects.filter(id=l_order.id).update(created_at=co_created)
-                    
-                    for c_item in c_order.get('items', []):
+
+                    for c_item in co.get('items', []):
                         menu_item = local_menu_items.get(c_item['menu_item'])
                         if menu_item:
                             OrderItem.objects.create(
@@ -535,7 +575,8 @@ def sync_data():
                                 status=c_item['status'],
                                 notes=c_item.get('notes')
                             )
-                    print(f"[Sync] Created order locally for {key}.")
+                    matched_cloud_ids.add(co['id'])
+                    print(f"[Sync] Created order locally from cloud order {co['id']}.")
             except Exception as e:
                 print(f"[Sync] Error creating order locally: {e}")
 
@@ -613,7 +654,7 @@ def sync_data():
                         "total_amount": str(l_inv.total_amount),
                         "payment_status": l_inv.payment_status
                     }
-                    res = requests.post(f"{CLOUD_URL}/api/invoices/", headers=headers, json=payload, timeout=10)
+                    res = requests.post(f"{CLOUD_URL}/api/invoices/", headers=headers, json=payload, timeout=25)
                     if res.status_code in [200, 201]:
                         new_ci = res.json()
                         ci_created = parse_datetime(new_ci['created_at'])
@@ -630,7 +671,7 @@ def sync_data():
                     print(f"[Sync] Updated local invoice {l_inv.id} to PAID.")
                 elif l_inv.payment_status == 'PAID':
                     try:
-                        requests.patch(f"{CLOUD_URL}/api/invoices/{c_inv['id']}/", headers=headers, json={"payment_status": "PAID"}, timeout=10)
+                        requests.patch(f"{CLOUD_URL}/api/invoices/{c_inv['id']}/", headers=headers, json={"payment_status": "PAID"}, timeout=25)
                         print(f"[Sync] Updated cloud invoice {c_inv['id']} to PAID.")
                     except Exception as e:
                         print(f"[Sync] Error updating cloud invoice status: {e}")

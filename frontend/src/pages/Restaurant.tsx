@@ -149,33 +149,61 @@ const Restaurant: React.FC = () => {
   // Table positions absolute coordinates matching the floor layout
   const tablePositions: { [key: string]: { left: string; top: string; type: 'square' | 'circle' | 'vip' } } = {
     // 10 tables of 2 (square)
-    '101': { left: '10%', top: '18%', type: 'square' },
-    '102': { left: '22%', top: '18%', type: 'square' },
-    '103': { left: '34%', top: '18%', type: 'square' },
-    '104': { left: '46%', top: '18%', type: 'square' },
-    '105': { left: '10%', top: '44%', type: 'square' },
-    '106': { left: '22%', top: '44%', type: 'square' },
-    '107': { left: '34%', top: '44%', type: 'square' },
-    '108': { left: '46%', top: '44%', type: 'square' },
-    '109': { left: '34%', top: '70%', type: 'square' },
-    '110': { left: '46%', top: '70%', type: 'square' },
+    '101': { left: '10%', top: '93px', type: 'square' },
+    '102': { left: '22%', top: '93px', type: 'square' },
+    '103': { left: '34%', top: '93px', type: 'square' },
+    '104': { left: '46%', top: '93px', type: 'square' },
+    '105': { left: '10%', top: '228px', type: 'square' },
+    '106': { left: '22%', top: '228px', type: 'square' },
+    '107': { left: '34%', top: '228px', type: 'square' },
+    '108': { left: '46%', top: '228px', type: 'square' },
+    '109': { left: '34%', top: '364px', type: 'square' },
+    '110': { left: '46%', top: '364px', type: 'square' },
+    // NEW tables of 2
+    '111': { left: '10%', top: '364px', type: 'square' },
+    '112': { left: '22%', top: '364px', type: 'square' },
+    '113': { left: '10%', top: '500px', type: 'square' },
+    '114': { left: '22%', top: '500px', type: 'square' },
+    '115': { left: '34%', top: '500px', type: 'square' },
+    '116': { left: '46%', top: '500px', type: 'square' },
+    '117': { left: '10%', top: '636px', type: 'square' },
+    '118': { left: '22%', top: '636px', type: 'square' },
+    '119': { left: '34%', top: '636px', type: 'square' },
+    '120': { left: '46%', top: '636px', type: 'square' },
     // 10 tables of 4 (circle)
-    '201': { left: '58%', top: '22%', type: 'circle' },
-    '202': { left: '70%', top: '22%', type: 'circle' },
-    '203': { left: '82%', top: '22%', type: 'circle' },
-    '204': { left: '58%', top: '48%', type: 'circle' },
-    '205': { left: '70%', top: '48%', type: 'circle' },
-    '206': { left: '82%', top: '48%', type: 'circle' },
-    '207': { left: '58%', top: '74%', type: 'circle' },
-    '208': { left: '70%', top: '74%', type: 'circle' },
-    '209': { left: '82%', top: '74%', type: 'circle' },
-    '210': { left: '70%', top: '91%', type: 'circle' },
+    '201': { left: '58%', top: '114px', type: 'circle' },
+    '202': { left: '70%', top: '114px', type: 'circle' },
+    '203': { left: '82%', top: '114px', type: 'circle' },
+    '204': { left: '58%', top: '249px', type: 'circle' },
+    '205': { left: '70%', top: '249px', type: 'circle' },
+    '206': { left: '82%', top: '249px', type: 'circle' },
+    '207': { left: '58%', top: '384px', type: 'circle' },
+    '208': { left: '70%', top: '384px', type: 'circle' },
+    '209': { left: '82%', top: '384px', type: 'circle' },
+    '210': { left: '70%', top: '519px', type: 'circle' },
+    // NEW tables of 4
+    '211': { left: '58%', top: '519px', type: 'circle' },
+    '212': { left: '82%', top: '519px', type: 'circle' },
+    '213': { left: '58%', top: '654px', type: 'circle' },
+    '214': { left: '70%', top: '654px', type: 'circle' },
+    '215': { left: '82%', top: '654px', type: 'circle' },
+    '216': { left: '58%', top: '789px', type: 'circle' },
+    '217': { left: '70%', top: '789px', type: 'circle' },
+    '218': { left: '82%', top: '789px', type: 'circle' },
+    '219': { left: '58%', top: '924px', type: 'circle' },
+    '220': { left: '70%', top: '924px', type: 'circle' },
     // 5 tables of 6 (vip)
-    '301': { left: '94%', top: '15%', type: 'vip' },
-    '302': { left: '94%', top: '32%', type: 'vip' },
-    '303': { left: '94%', top: '49%', type: 'vip' },
-    '304': { left: '94%', top: '66%', type: 'vip' },
-    '305': { left: '94%', top: '83%', type: 'vip' },
+    '301': { left: '94%', top: '78px', type: 'vip' },
+    '302': { left: '94%', top: '166px', type: 'vip' },
+    '303': { left: '94%', top: '254px', type: 'vip' },
+    '304': { left: '94%', top: '342px', type: 'vip' },
+    '305': { left: '94%', top: '430px', type: 'vip' },
+    // NEW tables of 6
+    '306': { left: '94%', top: '518px', type: 'vip' },
+    '307': { left: '94%', top: '606px', type: 'vip' },
+    '308': { left: '94%', top: '694px', type: 'vip' },
+    '309': { left: '94%', top: '782px', type: 'vip' },
+    '310': { left: '94%', top: '870px', type: 'vip' },
   };
 
   const getTableZone = (tableNumber: string): string => {
@@ -689,36 +717,19 @@ const Restaurant: React.FC = () => {
           </div>
 
           {/* The graphical interactive floor mapping area */}
-          <div className="overflow-x-auto -mx-2 px-2"><div 
-            style={{
-              backgroundColor: '#070514',
-              backgroundImage: `
-                linear-gradient(rgba(139, 92, 246, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px)
-              `,
-              backgroundSize: '24px 24px',
-            }}
-            className="relative w-full h-[520px] rounded-xl overflow-x-auto overflow-y-hidden border border-white/5 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] min-w-[700px]"
-          >
+          <div className="overflow-x-auto overflow-y-auto -mx-2 px-2 h-[520px] rounded-xl border border-white/5 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] custom-scrollbar">
+            <div 
+              style={{
+                backgroundColor: '#070514',
+                backgroundImage: `
+                  linear-gradient(rgba(139, 92, 246, 0.04) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px)
+                `,
+                backgroundSize: '24px 24px',
+              }}
+              className="relative w-full h-[1100px] min-w-[700px]"
+            >
             {/* Area Partitions & Walls */}
-            {/* Reception (bottom-left) */}
-            <div className="absolute left-[3%] bottom-[3%] p-3 border-r border-t border-dashed border-white/10 bg-white/[0.01] rounded-tr-xl flex flex-col justify-end">
-              <span className="text-[9px] font-black text-gray-600 tracking-wider uppercase">RECEPTION</span>
-              <div className="w-16 h-8 border border-white/10 bg-slate-900/60 rounded-md mt-1 flex items-center justify-center shadow-md">
-                <span className="text-[8px] font-bold text-gray-500">Desk</span>
-              </div>
-            </div>
-
-            {/* Lunar Bar (top-right area) */}
-            <div className="absolute right-[20%] top-[3%] p-3 border-l border-b border-dashed border-white/10 bg-white/[0.01] rounded-bl-xl flex flex-col items-end">
-              <span className="text-[9px] font-black text-purple-400/50 tracking-wider uppercase">LUNAR BAR</span>
-              <div className="w-32 h-6 border-b border-l border-r border-purple-500/30 bg-purple-950/20 rounded-b-xl mt-1 flex items-center justify-around shadow-md px-2">
-                <div className="w-2 h-2 rounded-full bg-purple-500/60 shadow-[0_0_5px_#a855f7]" />
-                <div className="w-2 h-2 rounded-full bg-purple-500/60 shadow-[0_0_5px_#a855f7]" />
-                <div className="w-2 h-2 rounded-full bg-purple-500/60 shadow-[0_0_5px_#a855f7]" />
-                <div className="w-2 h-2 rounded-full bg-purple-500/60 shadow-[0_0_5px_#a855f7]" />
-              </div>
-            </div>
 
             {/* Outdoor Patio area divider (right-most) */}
             <div className="absolute right-[2%] top-[15%] bottom-[15%] border-l border-dashed border-emerald-500/20 pl-3 flex flex-col justify-center">
@@ -727,10 +738,7 @@ const Restaurant: React.FC = () => {
               <div className="absolute bottom-2 right-2 flex gap-1 text-[10px] opacity-35 text-emerald-400">🌿</div>
             </div>
 
-            {/* Area Label for Main Dining */}
-            <div className="absolute left-[35%] bottom-[8%] pointer-events-none">
-              <span className="text-[10px] font-black text-indigo-500/30 tracking-widest uppercase">MAIN DINING AREA</span>
-            </div>
+
 
             {/* Render tables mapped onto coordinate positions */}
             {tables.map(t => renderFloorTable(t))}

@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.conf import settings
 from menu.models import MenuItem
@@ -14,6 +15,7 @@ class Table(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='VACANT')
     current_guest = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='tables')
     qr_code_data = models.CharField(max_length=255, blank=True, null=True) # Data for QR generation
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Table {self.table_number}"
@@ -44,6 +46,7 @@ class Order(models.Model):
         ('CANCELLED', 'Cancelled'),
     ]
 
+    sync_id = models.CharField(max_length=64, default=uuid.uuid4, null=True, blank=True, db_index=True)
     guest = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')

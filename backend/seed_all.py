@@ -87,7 +87,8 @@ try:
     import seed_menu
     import seed_rooms
     import seed_tables
-    import seed_bookings
+    # seed_bookings removed: demo bookings should not be auto-created on every startup.
+    # Bookings are transient business data created via the Reception panel, not infrastructure.
 except Exception as e:
     print(f"Additional seeding module execution note: {e}")
 
