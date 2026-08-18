@@ -9,4 +9,4 @@ django-cors-headers
 redis
 requests
 channels
-daphne
+uvicorn[standard]
