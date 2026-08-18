@@ -249,7 +249,7 @@ const Reception: React.FC = () => {
     fetchData();
     const interval = setInterval(() => {
       fetchData(true);
-    }, 6000);
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 

@@ -31,8 +31,8 @@ const Kitchen: React.FC = () => {
 
   const [prevRawOrders, setPrevRawOrders] = useState<any[]>([]);
 
-  const fetchKitchenOrders = async () => {
-    setLoading(true);
+  const fetchKitchenOrders = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const response = await API.get('orders/');
       const active = response.data.filter((order: any) => {
@@ -67,15 +67,15 @@ const Kitchen: React.FC = () => {
       console.error(err);
       setError('KDS error: Failed to fetch live orders.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchKitchenOrders();
     const interval = setInterval(() => {
-      fetchKitchenOrders();
-    }, 5000);
+      fetchKitchenOrders(true);
+    }, 30000);
     
     const timeInterval = setInterval(() => {
       setNowTime(Date.now());
