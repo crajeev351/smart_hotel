@@ -12,7 +12,8 @@ from menu.views import (
     room_count, 
     users_by_role, 
     analytics_report,
-    reports_dashboard
+    reports_dashboard,
+    wipe_finances
 )
 from rooms.views import RoomViewSet, BookingViewSet
 from orders.views import TableViewSet, TableReservationViewSet, OrderViewSet, OrderItemViewSet, InvoiceViewSet
@@ -35,11 +36,11 @@ router.register(r'invoices', InvoiceViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # ✅ JWT Authentication
+    # JWT Authentication
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-    # ✅ API
+    # API
     path('api/', include(router.urls)),
     # Login / Logout
     path('login/', login_page, name='login'),
@@ -49,6 +50,7 @@ urlpatterns = [
     path('api/reports/room-count/', room_count),
     path('api/reports/users-by-role/', users_by_role),
     path('api/reports/analytics/', analytics_report),
+    path('api/reports/wipe-finances/', wipe_finances),
     path('reports/', reports_dashboard, name='reports'),
     path('', include('menu.urls')),
     path('', include('rooms.urls')),
@@ -60,3 +62,5 @@ from django.urls import re_path
 urlpatterns += [
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
+
+import config.signals

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -125,6 +126,11 @@ const Admin: React.FC = () => {
   const [campaignTitle, setCampaignTitle] = useState('');
   const [campaignBody, setCampaignBody] = useState('');
 
+  useWebSocket((data) => {
+    console.log('WebSocket update received:', data);
+    loadData(true);
+  });
+
   const loadData = async (silent = false) => {
     if (!silent) {
       setLoading(true);
@@ -158,10 +164,8 @@ const Admin: React.FC = () => {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(() => {
-      loadData(true);
-    }, 8000);
-    return () => clearInterval(interval);
+    
+    
   }, [selectedYear, selectedMonth]);
 
   // CRUD Room

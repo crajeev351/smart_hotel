@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -45,6 +46,12 @@ const Dashboard: React.FC = () => {
 
   const role = user?.role || 'GUEST';
 
+  
+  useWebSocket((data) => {
+    console.log('WebSocket update received:', data);
+    fetchDashboardData(true);
+  });
+
   const fetchDashboardData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
@@ -78,10 +85,8 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    const interval = setInterval(() => {
-      fetchDashboardData(true);
-    }, 8000);
-    return () => clearInterval(interval);
+    
+    
   }, [role, selectedYear, selectedMonth]);
 
   const handleSeatReservation = async (resId: number, name: string, tableId: number) => {

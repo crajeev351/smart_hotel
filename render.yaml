@@ -4,7 +4,7 @@ services:
     env: docker
     dockerContext: ./backend
     dockerfilePath: Dockerfile
-    dockerCommand: sh -c "python manage.py migrate && python seed_all.py && gunicorn --bind 0.0.0.0:8000 config.wsgi:application"
+    dockerCommand: sh -c "python manage.py migrate && daphne -b 0.0.0.0 -p 8000 config.asgi:application"
     plan: free
     envVars:
       - key: POSTGRES_DB

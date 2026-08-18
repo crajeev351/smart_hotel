@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import API from '../services/api';
@@ -330,8 +331,20 @@ const Restaurant: React.FC = () => {
     );
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+  
+  useWebSocket((data) => {
+    console.log('WebSocket update received:', data);
+    fetchData(true);
+  });
+
+  useWebSocket((data) => {
+    console.log('WebSocket update received:', data);
+    fetchData(true);
+    if (activeOrder) fetchActiveOrder(true);
+  });
+
+  const fetchData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const [menuRes, catRes, tablesRes, tableReservationsRes, usersRes] = await Promise.all([
         API.get('menu-items/'),
@@ -352,20 +365,19 @@ const Restaurant: React.FC = () => {
     }
   };
 
-  const fetchActiveOrder = async () => {
-    if (!selectedTable) return;
+  const fetchActiveOrder = async (silent = false) => {
+    if (!silent) setOrderLoading(true);
     try {
-      const response = await API.get('orders/');
-      const active = response.data.find(
-        (o: any) => o.table_number === selectedTable && o.status !== 'COMPLETED' && o.status !== 'CANCELLED'
-      );
-      if (active) {
-        setActiveOrder(active);
+      const response = await API.get(`orders/?table_number=${selectedTable}&status=IN_PROGRESS`);
+      if (response.data.length > 0) {
+        setActiveOrder(response.data[0]);
       } else {
         setActiveOrder(null);
       }
     } catch (err) {
       console.error('Error fetching active order:', err);
+    } finally {
+      if (!silent) setOrderLoading(false);
     }
   };
 
@@ -385,10 +397,8 @@ const Restaurant: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(() => {
-      fetchData();
-    }, 10000);
-    return () => clearInterval(interval);
+    
+    
   }, []);
 
   const selectedTableObj = tables.find(t => t.table_number === selectedTable);
@@ -415,13 +425,8 @@ const Restaurant: React.FC = () => {
 
   useEffect(() => {
     if (!selectedTable) return;
-    const interval = setInterval(() => {
-      fetchActiveOrder();
-      if (currentGuestId) {
-        fetchPendingInvoice(currentGuestId);
-      }
-    }, 10000);
-    return () => clearInterval(interval);
+    
+    
   }, [selectedTable, currentGuestId]);
 
   const handleAssignGuestToTable = async (tableId: number, guestId: string | null) => {
@@ -875,7 +880,7 @@ const Restaurant: React.FC = () => {
                       🥦 Vegetarian Only
                     </button>
                     <button
-                      onClick={fetchData}
+                      onClick={() => fetchData()}
                       className="p-2.5 rounded-lg bg-slate-900 border border-white/5 text-gray-400 hover:bg-slate-800 transition cursor-pointer"
                       title="Reload Catalog"
                     >
@@ -1262,7 +1267,7 @@ const Restaurant: React.FC = () => {
                       Active Dining Status
                     </h3>
                     <button 
-                      onClick={fetchActiveOrder} 
+                      onClick={() => fetchActiveOrder()} 
                       className="text-gray-500 hover:text-indigo-400 transition cursor-pointer"
                       title="Refresh Order telemetry"
                     >

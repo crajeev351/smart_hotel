@@ -154,6 +154,18 @@ def users_by_role(request):
     data = CustomUser.objects.values('role').annotate(count=Count('id'))
     return Response(data)
 
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def wipe_finances(request):
+    try:
+        from orders.models import Order, OrderItem, Invoice
+        OrderItem.objects.all().delete()
+        Order.objects.all().delete()
+        Invoice.objects.all().delete()
+        return Response({'status': 'Finances wiped successfully'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
 from orders.models import Table, Order, Invoice
 from django.db.models import Sum
 

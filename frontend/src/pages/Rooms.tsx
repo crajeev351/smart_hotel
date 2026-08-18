@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
 import API from '../services/api';
 import { RefreshCcw, Sparkles, Wrench, Brush, X, Building2, Hotel, CheckCircle2 } from 'lucide-react';
 
@@ -30,6 +31,12 @@ const Rooms: React.FC = () => {
     onConfirm: () => void;
   } | null>(null);
 
+  
+  useWebSocket((data) => {
+    console.log('WebSocket update received:', data);
+    fetchData(true);
+  });
+
   const fetchData = async (silent = false) => {
     if (!silent) {
       setLoading(true);
@@ -52,10 +59,8 @@ const Rooms: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(() => {
-      fetchData(true);
-    }, 30000);
-    return () => clearInterval(interval);
+    
+    
   }, []);
 
   const getRoomFloor = (roomNumber: string): number => {

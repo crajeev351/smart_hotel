@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { createPortal } from 'react-dom';
 import API from '../services/api';
 import { CreditCard, CheckCircle, CheckCircle2, ShieldAlert, RefreshCcw, ConciergeBell, Download, Calendar, Hotel, Sparkles, Building2, Search, Filter, X, Users, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -221,6 +222,12 @@ const Reception: React.FC = () => {
   };
 
 
+  
+  useWebSocket((data) => {
+    console.log('WebSocket update received:', data);
+    fetchData(true);
+  });
+
   const fetchData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
@@ -247,10 +254,8 @@ const Reception: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(() => {
-      fetchData(true);
-    }, 30000);
-    return () => clearInterval(interval);
+    
+    
   }, []);
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
 import API from '../services/api';
 import { ChefHat, Clock, RefreshCcw, Bell } from 'lucide-react';
 
@@ -30,6 +31,12 @@ const Kitchen: React.FC = () => {
   const [nowTime, setNowTime] = useState<number>(Date.now());
 
   const [prevRawOrders, setPrevRawOrders] = useState<any[]>([]);
+
+  
+  useWebSocket((data) => {
+    console.log('WebSocket update received:', data);
+    fetchKitchenOrders(true);
+  });
 
   const fetchKitchenOrders = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -73,16 +80,14 @@ const Kitchen: React.FC = () => {
 
   useEffect(() => {
     fetchKitchenOrders();
-    const interval = setInterval(() => {
-      fetchKitchenOrders(true);
-    }, 30000);
+    
     
     const timeInterval = setInterval(() => {
       setNowTime(Date.now());
     }, 10000);
 
     return () => {
-      clearInterval(interval);
+      
       clearInterval(timeInterval);
     };
   }, []);
