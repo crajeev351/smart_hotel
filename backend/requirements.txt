@@ -8,3 +8,5 @@ gunicorn
 django-cors-headers
 redis
 requests
+channels
+daphne
