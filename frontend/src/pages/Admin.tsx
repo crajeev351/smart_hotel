@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useWebSocket } from '../hooks/useWebSocket';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -102,6 +103,12 @@ const Admin: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   // Modals / Editors
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
@@ -250,23 +257,29 @@ const Admin: React.FC = () => {
     }
   };
 
-  const handleDeleteFloor = async (floorNum: number, floorRooms: Room[]) => {
+  const handleDeleteFloor = (floorNum: number, floorRooms: Room[]) => {
     const confirmMessage = `Are you sure you want to delete Floor L${floorNum}? This will permanently delete all ${floorRooms.length} rooms on this floor.`;
-    if (!window.confirm(confirmMessage)) return;
-
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-    try {
-      await Promise.all(floorRooms.map(room => API.delete(`rooms/${room.id}/`)));
-      setSuccess(`Floor L${floorNum} and all its rooms were deleted successfully.`);
-      loadData();
-    } catch (err: any) {
-      console.error(err);
-      setError('Failed to delete floor rooms: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Floor',
+      message: confirmMessage,
+      onConfirm: async () => {
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+        setConfirmDialog(null);
+        try {
+          await Promise.all(floorRooms.map(room => API.delete(`rooms/${room.id}/`)));
+          setSuccess(`Floor L${floorNum} and all its rooms were deleted successfully.`);
+          loadData();
+        } catch (err: any) {
+          console.error(err);
+          setError('Failed to delete floor rooms: ' + err.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   // CRUD Table
@@ -278,7 +291,7 @@ const Admin: React.FC = () => {
       setNewTable({ table_number: '', capacity: 4 });
       loadData();
     } catch (err: any) {
-      setError('Failed to add table');
+      setError(err.response?.data?.error || JSON.stringify(err.response?.data) || 'Failed to add table: ' + err.message);
     }
   };
 
@@ -327,6 +340,7 @@ const Admin: React.FC = () => {
       formData.append('price', newMenuItem.price);
       formData.append('category', newMenuItem.category);
       formData.append('is_veg', String(newMenuItem.is_veg));
+      formData.append('is_available', 'true');
       if (newMenuItemImage) {
         formData.append('image', newMenuItemImage);
       }
@@ -965,62 +979,75 @@ const Admin: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {tables.map(table => (
-                    <tr key={table.id} className="border-b border-white/5 border-white/5 hover:bg-white/[0.01]">
-                      {editingTable?.id === table.id ? (
-                        <>
-                          <td className="p-2">
-                            <input 
-                              type="text" 
-                              value={editingTable.table_number}
-                              onChange={e => setEditingTable({...editingTable, table_number: e.target.value})}
-                              className="w-20 p-1 border rounded"
-                            />
+                  {Array.from(new Set(tables.map(t => t.capacity)))
+                    .sort((a, b) => a - b)
+                    .map(capacity => (
+                      <React.Fragment key={capacity}>
+                        {/* Capacity Group Header */}
+                        <tr className="bg-slate-950 border-y border-white/10">
+                          <td colSpan={4} className="p-3 text-xs font-black uppercase text-indigo-400 tracking-widest bg-indigo-500/5">
+                            {capacity} Seater Tables
                           </td>
-                          <td className="p-2">
-                            <input 
-                              type="number" 
-                              value={editingTable.capacity}
-                              onChange={e => setEditingTable({...editingTable, capacity: parseInt(e.target.value) || 2})}
-                              className="w-20 p-1 border rounded"
-                            />
-                          </td>
-                          <td className="p-2">
-                            <select 
-                              value={editingTable.status}
-                              onChange={e => setEditingTable({...editingTable, status: e.target.value})}
-                              className="p-1 border rounded"
-                            >
-                              <option value="VACANT">Vacant</option>
-                              <option value="OCCUPIED">Occupied</option>
-                              <option value="UNDER_CLEANING">Under Cleaning</option>
-                            </select>
-                          </td>
-                          <td className="p-2 text-right space-x-1">
-                            <button onClick={() => handleUpdateTable(editingTable)} className="p-1.5 sm:p-1 bg-green-500 text-white rounded"><Save className="w-4 h-4" /></button>
-                            <button onClick={() => setEditingTable(null)} className="p-1.5 sm:p-1 bg-gray-500 text-white rounded"><X className="w-4 h-4" /></button>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="p-3 font-semibold text-white">Table {table.table_number}</td>
-                          <td className="p-3 text-gray-400">{table.capacity} Seats</td>
-                          <td className="p-3">
-                            <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${
-                              table.status === 'VACANT' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300' :
-                              table.status === 'OCCUPIED' ? 'bg-purple-100 text-purple-700' : 'bg-yellow-100 text-yellow-700'
-                            }`}>
-                              {table.status}
-                            </span>
-                          </td>
-                          <td className="p-3 text-right space-x-2">
-                            <button onClick={() => setEditingTable(table)} className="p-1.5 sm:p-1 text-indigo-400 hover:bg-indigo-500/10 border border-indigo-500/10 text-indigo-400 rounded"><Edit className="w-4 h-4" /></button>
-                            <button onClick={() => handleDeleteTable(table.id)} className="p-1.5 sm:p-1 text-red-600 hover:bg-red-50 rounded"><Trash className="w-4 h-4" /></button>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))}
+                        </tr>
+                        {/* Tables in this group */}
+                        {tables.filter(t => t.capacity === capacity).sort((a, b) => a.table_number.localeCompare(b.table_number)).map(table => (
+                          <tr key={table.id} className="border-b border-white/5 border-white/5 hover:bg-white/[0.01]">
+                            {editingTable?.id === table.id ? (
+                              <>
+                                <td className="p-2">
+                                  <input 
+                                    type="text" 
+                                    value={editingTable.table_number}
+                                    onChange={e => setEditingTable({...editingTable, table_number: e.target.value})}
+                                    className="w-20 p-1 bg-slate-900 border border-white/10 text-white rounded outline-none focus:ring-1 focus:ring-indigo-500"
+                                  />
+                                </td>
+                                <td className="p-2">
+                                  <input 
+                                    type="number" 
+                                    value={editingTable.capacity}
+                                    onChange={e => setEditingTable({...editingTable, capacity: parseInt(e.target.value) || 2})}
+                                    className="w-20 p-1 bg-slate-900 border border-white/10 text-white rounded outline-none focus:ring-1 focus:ring-indigo-500"
+                                  />
+                                </td>
+                                <td className="p-2">
+                                  <select 
+                                    value={editingTable.status}
+                                    onChange={e => setEditingTable({...editingTable, status: e.target.value})}
+                                    className="p-1 bg-slate-900 border border-white/10 text-white rounded outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
+                                  >
+                                    <option value="VACANT">Vacant</option>
+                                    <option value="OCCUPIED">Occupied</option>
+                                    <option value="UNDER_CLEANING">Under Cleaning</option>
+                                  </select>
+                                </td>
+                                <td className="p-2 text-right space-x-1">
+                                  <button onClick={() => handleUpdateTable(editingTable)} className="p-1.5 sm:p-1 bg-green-500 hover:bg-green-600 transition text-white rounded"><Save className="w-4 h-4" /></button>
+                                  <button onClick={() => setEditingTable(null)} className="p-1.5 sm:p-1 bg-slate-600 hover:bg-slate-500 transition text-white rounded"><X className="w-4 h-4" /></button>
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="p-3 font-semibold text-white">Table {table.table_number}</td>
+                                <td className="p-3 text-gray-400">{table.capacity} Seats</td>
+                                <td className="p-3">
+                                  <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${
+                                    table.status === 'VACANT' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300' :
+                                    table.status === 'OCCUPIED' ? 'bg-rose-500/10 border border-rose-500/20 text-rose-400' : 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
+                                  }`}>
+                                    {table.status}
+                                  </span>
+                                </td>
+                                <td className="p-3 text-right space-x-2">
+                                  <button onClick={() => setEditingTable(table)} className="p-1.5 sm:p-1 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 transition rounded"><Edit className="w-4 h-4" /></button>
+                                  <button onClick={() => handleDeleteTable(table.id)} className="p-1.5 sm:p-1 text-rose-500 hover:bg-rose-500/20 border border-rose-500/20 transition rounded"><Trash className="w-4 h-4" /></button>
+                                </td>
+                              </>
+                            )}
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -1562,6 +1589,41 @@ const Admin: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmDialog && confirmDialog.isOpen && createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in p-4">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-scale-in">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 to-rose-600"></div>
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center shrink-0">
+                  <Trash className="w-5 h-5 text-rose-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white leading-tight">{confirmDialog.title}</h3>
+              </div>
+              <p className="text-sm text-gray-300 leading-relaxed mb-6">
+                {confirmDialog.message}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmDialog(null)}
+                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 border border-white/5 text-gray-300 font-semibold rounded-xl transition cursor-pointer text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDialog.onConfirm}
+                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl shadow-lg shadow-rose-900/30 transition cursor-pointer text-sm"
+                >
+                  Yes, Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

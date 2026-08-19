@@ -147,65 +147,46 @@ const Restaurant: React.FC = () => {
 
   const isWaiterOrAdmin = currentUser?.role === 'WAITER' || currentUser?.role === 'ADMIN';
 
-  // Table positions absolute coordinates matching the floor layout
-  const tablePositions: { [key: string]: { left: string; top: string; type: 'square' | 'circle' | 'vip' } } = {
-    // 10 tables of 2 (square)
-    '101': { left: '10%', top: '93px', type: 'square' },
-    '102': { left: '22%', top: '93px', type: 'square' },
-    '103': { left: '34%', top: '93px', type: 'square' },
-    '104': { left: '46%', top: '93px', type: 'square' },
-    '105': { left: '10%', top: '228px', type: 'square' },
-    '106': { left: '22%', top: '228px', type: 'square' },
-    '107': { left: '34%', top: '228px', type: 'square' },
-    '108': { left: '46%', top: '228px', type: 'square' },
-    '109': { left: '34%', top: '364px', type: 'square' },
-    '110': { left: '46%', top: '364px', type: 'square' },
-    // NEW tables of 2
-    '111': { left: '10%', top: '364px', type: 'square' },
-    '112': { left: '22%', top: '364px', type: 'square' },
-    '113': { left: '10%', top: '500px', type: 'square' },
-    '114': { left: '22%', top: '500px', type: 'square' },
-    '115': { left: '34%', top: '500px', type: 'square' },
-    '116': { left: '46%', top: '500px', type: 'square' },
-    '117': { left: '10%', top: '636px', type: 'square' },
-    '118': { left: '22%', top: '636px', type: 'square' },
-    '119': { left: '34%', top: '636px', type: 'square' },
-    '120': { left: '46%', top: '636px', type: 'square' },
-    // 10 tables of 4 (circle)
-    '201': { left: '58%', top: '114px', type: 'circle' },
-    '202': { left: '70%', top: '114px', type: 'circle' },
-    '203': { left: '82%', top: '114px', type: 'circle' },
-    '204': { left: '58%', top: '249px', type: 'circle' },
-    '205': { left: '70%', top: '249px', type: 'circle' },
-    '206': { left: '82%', top: '249px', type: 'circle' },
-    '207': { left: '58%', top: '384px', type: 'circle' },
-    '208': { left: '70%', top: '384px', type: 'circle' },
-    '209': { left: '82%', top: '384px', type: 'circle' },
-    '210': { left: '70%', top: '519px', type: 'circle' },
-    // NEW tables of 4
-    '211': { left: '58%', top: '519px', type: 'circle' },
-    '212': { left: '82%', top: '519px', type: 'circle' },
-    '213': { left: '58%', top: '654px', type: 'circle' },
-    '214': { left: '70%', top: '654px', type: 'circle' },
-    '215': { left: '82%', top: '654px', type: 'circle' },
-    '216': { left: '58%', top: '789px', type: 'circle' },
-    '217': { left: '70%', top: '789px', type: 'circle' },
-    '218': { left: '82%', top: '789px', type: 'circle' },
-    '219': { left: '58%', top: '924px', type: 'circle' },
-    '220': { left: '70%', top: '924px', type: 'circle' },
-    // 5 tables of 6 (vip)
-    '301': { left: '94%', top: '78px', type: 'vip' },
-    '302': { left: '94%', top: '166px', type: 'vip' },
-    '303': { left: '94%', top: '254px', type: 'vip' },
-    '304': { left: '94%', top: '342px', type: 'vip' },
-    '305': { left: '94%', top: '430px', type: 'vip' },
-    // NEW tables of 6
-    '306': { left: '94%', top: '518px', type: 'vip' },
-    '307': { left: '94%', top: '606px', type: 'vip' },
-    '308': { left: '94%', top: '694px', type: 'vip' },
-    '309': { left: '94%', top: '782px', type: 'vip' },
-    '310': { left: '94%', top: '870px', type: 'vip' },
-  };
+  // Dynamically calculate table positions based on capacity and number
+  const tablePositions = React.useMemo(() => {
+    const positions: { [key: string]: { left: string; top: string; type: 'square' | 'circle' | 'vip' } } = {};
+    
+    // Group and sort tables
+    const cap2 = tables.filter(t => t.capacity <= 2).sort((a, b) => a.table_number.localeCompare(b.table_number));
+    const cap4 = tables.filter(t => t.capacity > 2 && t.capacity <= 4).sort((a, b) => a.table_number.localeCompare(b.table_number));
+    const cap6 = tables.filter(t => t.capacity > 4).sort((a, b) => a.table_number.localeCompare(b.table_number));
+
+    cap2.forEach((t, i) => {
+      const col = i % 4;
+      const row = Math.floor(i / 4);
+      positions[t.table_number] = {
+        left: `${10 + col * 12}%`,
+        top: `${93 + row * 135}px`,
+        type: 'square'
+      };
+    });
+
+    cap4.forEach((t, i) => {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      positions[t.table_number] = {
+        left: `${58 + col * 12}%`,
+        top: `${114 + row * 135}px`,
+        type: 'circle'
+      };
+    });
+
+    cap6.forEach((t, i) => {
+      const row = i;
+      positions[t.table_number] = {
+        left: `94%`,
+        top: `${78 + row * 88}px`,
+        type: 'vip'
+      };
+    });
+
+    return positions;
+  }, [tables]);
 
   const getTableZone = (tableNumber: string): string => {
     const num = parseInt(tableNumber);

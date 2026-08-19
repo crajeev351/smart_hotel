@@ -18,15 +18,27 @@ def broadcast_update(model_name, action):
             }
         )
 
+def trigger_sync():
+    import os
+    # Only trigger sync event if we are running locally (not on Render)
+    if not os.environ.get('POSTGRES_DB'):
+        try:
+            from rooms.sync import sync_event
+            sync_event.set()
+        except Exception as e:
+            print(f"Failed to trigger sync event: {e}")
+
 # A generic receiver factory
 def create_receivers(model_cls):
     @receiver(post_save, sender=model_cls, weak=False)
     def on_save(sender, instance, created, **kwargs):
         broadcast_update(sender.__name__, 'created' if created else 'updated')
+        trigger_sync()
 
     @receiver(post_delete, sender=model_cls, weak=False)
     def on_delete(sender, instance, **kwargs):
         broadcast_update(sender.__name__, 'deleted')
+        trigger_sync()
 
 # Connect models
 create_receivers(Room)

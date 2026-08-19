@@ -113,23 +113,29 @@ def sync_data():
     # Local -> Cloud
     for r_num, l_room in local_rooms.items():
         if r_num not in cloud_rooms_by_number:
-            try:
-                payload = {
-                    "room_number": l_room.room_number,
-                    "room_type": l_room.room_type,
-                    "price_per_night": str(l_room.price_per_night),
-                    "capacity": l_room.capacity,
-                    "status": l_room.status,
-                    "floor": l_room.floor
-                }
-                res = requests.post(f"{CLOUD_URL}/api/rooms/", headers=headers, json=payload, timeout=25)
-                if res.status_code in [200, 201]:
-                    cloud_rooms_by_number[r_num] = res.json()
-                    print(f"[Sync] Created room {r_num} on cloud.")
-                else:
-                    print(f"[Sync] Failed to create room {r_num} on cloud: {res.text}")
-            except Exception as e:
-                print(f"[Sync] Error creating room {r_num} on cloud: {e}")
+            l_created = l_room.created_at
+            if l_created.tzinfo is None:
+                l_created = l_created.replace(tzinfo=datetime.timezone.utc)
+            
+            if (datetime.datetime.now(datetime.timezone.utc) - l_created).total_seconds() > 300:
+                print(f"[Sync] Room {r_num} is missing on cloud and is old locally. Deleting locally.")
+                Room.objects.filter(id=l_room.id).delete()
+            else:
+                try:
+                    payload = {
+                        "room_number": l_room.room_number,
+                        "room_type": l_room.room_type,
+                        "price_per_night": str(l_room.price_per_night),
+                        "capacity": l_room.capacity,
+                        "status": l_room.status,
+                        "floor": l_room.floor
+                    }
+                    res = requests.post(f"{CLOUD_URL}/api/rooms/", headers=headers, json=payload, timeout=25)
+                    if res.status_code in [200, 201]:
+                        cloud_rooms_by_number[r_num] = res.json()
+                        print(f"[Sync] Created room {r_num} on cloud.")
+                except Exception as e:
+                    print(f"[Sync] Error creating room {r_num} on cloud: {e}")
         else:
             c_room = cloud_rooms_by_number[r_num]
             l_updated = l_room.updated_at
@@ -156,6 +162,20 @@ def sync_data():
     # Cloud -> Local
     for r_num, c_room in cloud_rooms_by_number.items():
         if r_num not in local_rooms:
+            c_created_str = c_room.get('created_at')
+            c_created = parse_datetime(c_created_str) if c_created_str else None
+            
+            if c_created:
+                if c_created.tzinfo is None:
+                    c_created = c_created.replace(tzinfo=datetime.timezone.utc)
+                if (datetime.datetime.now(datetime.timezone.utc) - c_created).total_seconds() > 300:
+                    print(f"[Sync] Room {r_num} is missing locally and old on cloud. Deleting on cloud.")
+                    try:
+                        requests.delete(f"{CLOUD_URL}/api/rooms/{c_room['id']}/", headers=headers, timeout=25)
+                    except Exception as e:
+                        print(f"[Sync] Error deleting room {r_num} on cloud: {e}")
+                    continue
+            
             try:
                 l_room = Room.objects.create(
                     room_number=c_room['room_number'],
@@ -165,7 +185,7 @@ def sync_data():
                     status=c_room['status'],
                     floor=c_room['floor']
                 )
-                c_updated = parse_datetime(c_room['updated_at'])
+                c_updated = parse_datetime(c_room.get('updated_at', ''))
                 if c_updated:
                     Room.objects.filter(id=l_room.id).update(updated_at=c_updated)
                 local_rooms[r_num] = l_room
@@ -265,25 +285,26 @@ def sync_data():
     # Local -> Cloud & Bidirectional sync for Tables
     for t_num, l_table in local_tables.items():
         if t_num not in cloud_tables_by_number:
-            try:
-                c_guest_id = None
-                if l_table.current_guest:
-                    c_guest = cloud_users_by_username.get(l_table.current_guest.username)
-                    if c_guest:
-                        c_guest_id = c_guest['id']
-                
-                payload = {
-                    "table_number": l_table.table_number,
-                    "capacity": l_table.capacity,
-                    "status": l_table.status,
-                    "current_guest": c_guest_id
-                }
-                res = requests.post(f"{CLOUD_URL}/api/tables/", headers=headers, json=payload, timeout=25)
-                if res.status_code in [200, 201]:
-                    cloud_tables_by_number[t_num] = res.json()
-                    print(f"[Sync] Created table {t_num} on cloud.")
-            except Exception as e:
-                print(f"[Sync] Error creating table {t_num} on cloud: {e}")
+            l_updated = l_table.updated_at
+            if l_updated.tzinfo is None:
+                l_updated = l_updated.replace(tzinfo=datetime.timezone.utc)
+            
+            if (datetime.datetime.now(datetime.timezone.utc) - l_updated).total_seconds() > 300:
+                print(f"[Sync] Table {t_num} is missing on cloud and is old locally. Deleting locally.")
+                Table.objects.filter(id=l_table.id).delete()
+            else:
+                try:
+                    payload = {
+                        "table_number": l_table.table_number,
+                        "capacity": l_table.capacity,
+                        "status": l_table.status
+                    }
+                    res = requests.post(f"{CLOUD_URL}/api/tables/", headers=headers, json=payload, timeout=25)
+                    if res.status_code in [200, 201]:
+                        cloud_tables_by_number[t_num] = res.json()
+                        print(f"[Sync] Created table {t_num} on cloud.")
+                except Exception as e:
+                    print(f"[Sync] Error creating table {t_num} on cloud: {e}")
         else:
             c_table = cloud_tables_by_number[t_num]
             l_updated = getattr(l_table, 'updated_at', None)
@@ -331,17 +352,26 @@ def sync_data():
     # Cloud -> Local for new Tables
     for t_num, c_table in cloud_tables_by_number.items():
         if t_num not in local_tables:
+            c_updated_str = c_table.get('updated_at')
+            c_updated = parse_datetime(c_updated_str) if c_updated_str else None
+            
+            if c_updated:
+                if c_updated.tzinfo is None:
+                    c_updated = c_updated.replace(tzinfo=datetime.timezone.utc)
+                if (datetime.datetime.now(datetime.timezone.utc) - c_updated).total_seconds() > 300:
+                    print(f"[Sync] Table {t_num} is missing locally and old on cloud. Deleting on cloud.")
+                    try:
+                        requests.delete(f"{CLOUD_URL}/api/tables/{c_table['id']}/", headers=headers, timeout=25)
+                    except Exception as e:
+                        print(f"[Sync] Error deleting table {t_num} on cloud: {e}")
+                    continue
+            
             try:
-                l_guest = None
-                if c_table.get('current_guest'):
-                    l_guest = CustomUser.objects.filter(id=c_table.get('current_guest')).first()
-                l_table = Table.objects.create(
+                Table.objects.create(
                     table_number=c_table['table_number'],
                     capacity=c_table['capacity'],
-                    status=c_table['status'],
-                    current_guest=l_guest
+                    status=c_table['status']
                 )
-                local_tables[t_num] = l_table
                 print(f"[Sync] Created table {t_num} locally.")
             except Exception as e:
                 print(f"[Sync] Error creating table {t_num} locally: {e}")
@@ -729,6 +759,8 @@ def sync_data():
             except Exception as e:
                 print(f"[Sync] Error creating invoice locally for {key}: {e}")
 
+sync_event = threading.Event()
+
 def sync_loop():
     time.sleep(5)
     while True:
@@ -736,7 +768,10 @@ def sync_loop():
             sync_data()
         except Exception as e:
             print(f"[Sync] Error in sync loop: {e}")
-        time.sleep(15)
+        
+        # Wait up to 15 seconds, or instantly if event is set
+        sync_event.wait(15)
+        sync_event.clear()
 
 def start_sync_thread():
     if os.environ.get('POSTGRES_DB'):
