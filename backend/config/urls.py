@@ -15,7 +15,7 @@ from menu.views import (
     reports_dashboard,
     wipe_finances
 )
-from rooms.views import RoomViewSet, BookingViewSet
+from rooms.views import RoomViewSet, BookingViewSet, delete_floor
 from orders.views import TableViewSet, TableReservationViewSet, OrderViewSet, OrderItemViewSet, InvoiceViewSet
 from accounts.views import login_page, logout_page, CustomTokenObtainPairView
 from django.conf import settings
@@ -41,6 +41,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # API
+    path('api/rooms/delete-floor/<int:floor_num>/', delete_floor, name='delete_floor'),
     path('api/', include(router.urls)),
     # Login / Logout
     path('login/', login_page, name='login'),

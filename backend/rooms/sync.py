@@ -845,8 +845,8 @@ def sync_loop():
         except Exception as e:
             print(f"[Sync] Error in sync loop: {e}")
         
-        # Wait up to 5 seconds, or instantly if event is set
-        sync_event.wait(5)
+        # Wait up to 3 seconds, or instantly if event is set
+        sync_event.wait(3)
         sync_event.clear()
 
 def start_sync_thread():

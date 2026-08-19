@@ -269,7 +269,7 @@ const Admin: React.FC = () => {
         setSuccess(null);
         setConfirmDialog(null);
         try {
-          await Promise.all(floorRooms.map(room => API.delete(`rooms/${room.id}/`)));
+          await API.delete(`rooms/delete-floor/${floorNum}/`);
           setSuccess(`Floor L${floorNum} and all its rooms were deleted successfully.`);
           loadData();
         } catch (err: any) {

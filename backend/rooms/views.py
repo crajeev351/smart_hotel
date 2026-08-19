@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
 from .models import Room, Booking
 from .serializers import RoomSerializer, BookingSerializer
 from .permissions import IsAdmin, IsReceptionistOrAdmin, IsBookingOwnerOrStaff
@@ -15,6 +16,18 @@ class RoomViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsReceptionistOrAdmin()]
         return [permissions.IsAuthenticated()]
+
+@api_view(['DELETE'])
+@permission_classes([IsReceptionistOrAdmin])
+def delete_floor(request, floor_num):
+    """Delete all rooms on a given floor in a single atomic operation."""
+    rooms = Room.objects.filter(floor=floor_num)
+    count = rooms.count()
+    if count == 0:
+        return Response({'error': f'No rooms found on floor {floor_num}.'}, status=status.HTTP_404_NOT_FOUND)
+    rooms.delete()
+    return Response({'message': f'Floor {floor_num} deleted successfully. {count} rooms removed.'}, status=status.HTTP_200_OK)
+
 
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()

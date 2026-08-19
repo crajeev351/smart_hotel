@@ -6,6 +6,11 @@ django.setup()
 
 from rooms.models import Room
 
+if Room.objects.exists():
+    print("Rooms already exist in the database. Skipping room seed to preserve admin changes.")
+    import sys
+    sys.exit(0)
+
 room_types = {
     'SINGLE': {'price': 100, 'capacity': 1},
     'DOUBLE': {'price': 150, 'capacity': 2},
@@ -13,8 +18,8 @@ room_types = {
 }
 
 created_count = 0
-for floor in range(1, 9):
-    # Floor 1 & 2 get 15 rooms, Floor 3 & 4 get 10 rooms, Floor 5 & 6 get 8 rooms, Floor 7 & 8 get 6 rooms
+for floor in range(1, 8):
+    # Floor 1 & 2 get 15 rooms, Floor 3 & 4 get 10 rooms, Floor 5 & 6 get 8 rooms, Floor 7 gets 6 rooms
     if floor in [1, 2]:
         num_rooms = 15
     elif floor in [3, 4]:
