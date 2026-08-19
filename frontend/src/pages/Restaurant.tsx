@@ -378,8 +378,8 @@ const Restaurant: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    
-    
+    const poll = setInterval(() => fetchData(true), 8000);
+    return () => clearInterval(poll);
   }, []);
 
   const selectedTableObj = tables.find(t => t.table_number === selectedTable);

@@ -36,23 +36,25 @@ def fetch_cloud_data(token):
         reservations = requests.get(f"{CLOUD_URL}/api/table-reservations/", headers=headers, timeout=25).json()
         orders = requests.get(f"{CLOUD_URL}/api/orders/", headers=headers, timeout=25).json()
         invoices = requests.get(f"{CLOUD_URL}/api/invoices/", headers=headers, timeout=25).json()
-        return users, rooms, bookings, tables, reservations, orders, invoices
+        categories = requests.get(f"{CLOUD_URL}/api/categories/", headers=headers, timeout=25).json()
+        menu_items = requests.get(f"{CLOUD_URL}/api/menu-items/", headers=headers, timeout=25).json()
+        return users, rooms, bookings, tables, reservations, orders, invoices, categories, menu_items
     except Exception as e:
         print(f"[Sync] Failed to fetch cloud data: {e}")
-        return None, None, None, None, None, None, None
+        return None, None, None, None, None, None, None, None, None
 
 def sync_data():
     from accounts.models import CustomUser
     from rooms.models import Room, Booking
     from orders.models import Table, TableReservation, Order, OrderItem, Invoice
-    from menu.models import MenuItem
+    from menu.models import MenuItem, MenuCategory
 
     token = get_cloud_token()
     if not token:
         return
 
     c_data = fetch_cloud_data(token)
-    c_users, c_rooms, c_bookings, c_tables, c_reservations, c_orders, c_invoices = c_data
+    c_users, c_rooms, c_bookings, c_tables, c_reservations, c_orders, c_invoices, c_categories, c_menu_items = c_data
     if any(item is None for item in c_data):
         return
 
@@ -625,13 +627,13 @@ def sync_data():
         inv_created = inv.created_at
         if inv_created.tzinfo is None:
             inv_created = inv_created.replace(tzinfo=datetime.timezone.utc)
-        local_invoices_dict[(inv.guest.username, inv_created.isoformat())] = inv
+        local_invoices_dict[(inv.guest.username, str(inv.total_amount), inv_created.isoformat())] = inv
 
     cloud_invoices_dict = {}
     for ci in c_invoices:
         ci_created = parse_datetime(ci['created_at'])
         ci_created_iso = ci_created.isoformat() if ci_created else ci['created_at']
-        cloud_invoices_dict[(ci.get('guest_name'), ci_created_iso)] = ci
+        cloud_invoices_dict[(ci.get('guest_name'), str(ci.get('total_amount')), ci_created_iso)] = ci
 
     # Align close matches within 1-minute window
     unmatched_local_inv = []
@@ -640,16 +642,16 @@ def sync_data():
             unmatched_local_inv.append((key, l_inv))
 
     for (l_key, l_inv) in unmatched_local_inv:
-        l_username, l_created_iso = l_key
+        l_username, l_amount, l_created_iso = l_key
         l_created = parse_datetime(l_created_iso)
         for ci in c_invoices:
-            if ci.get('guest_name') == l_username:
+            if ci.get('guest_name') == l_username and str(ci.get('total_amount')) == l_amount:
                 ci_created = parse_datetime(ci['created_at'])
                 if ci_created and l_created:
                     diff = abs((ci_created - l_created).total_seconds())
                     if diff <= 60:
                         Invoice.objects.filter(id=l_inv.id).update(created_at=ci_created)
-                        new_key = (l_username, ci_created.isoformat())
+                        new_key = (l_username, l_amount, ci_created.isoformat())
                         local_invoices_dict[new_key] = l_inv
                         del local_invoices_dict[l_key]
                         print(f"[Sync] Matched local invoice {l_inv.id} with cloud invoice {ci['id']}.")
@@ -759,6 +761,80 @@ def sync_data():
             except Exception as e:
                 print(f"[Sync] Error creating invoice locally for {key}: {e}")
 
+    # 7. Sync Menu Categories & Items
+    local_cats = {c.name: c for c in MenuCategory.objects.all()}
+    cloud_cats = {c['name']: c for c in c_categories}
+    
+    for name, l_cat in local_cats.items():
+        if name not in cloud_cats:
+            if time.time() - l_cat.updated_at.timestamp() < 300:
+                requests.post(f"{CLOUD_URL}/api/categories/", headers=headers, json={'name': name, 'display_order': l_cat.display_order, 'is_active': l_cat.is_active}, timeout=25)
+            else:
+                l_cat.delete()
+        else:
+            c_cat = cloud_cats[name]
+            c_time = parse_datetime(c_cat['updated_at']).timestamp()
+            if l_cat.updated_at.timestamp() - c_time > 5:
+                requests.patch(f"{CLOUD_URL}/api/categories/{c_cat['id']}/", headers=headers, json={'display_order': l_cat.display_order, 'is_active': l_cat.is_active}, timeout=25)
+    
+    for name, c_cat in cloud_cats.items():
+        if name not in local_cats:
+            if time.time() - parse_datetime(c_cat['updated_at']).timestamp() < 300:
+                MenuCategory.objects.create(name=name, display_order=c_cat['display_order'], is_active=c_cat['is_active'])
+            else:
+                requests.delete(f"{CLOUD_URL}/api/categories/{c_cat['id']}/", headers=headers, timeout=25)
+        else:
+            l_cat = local_cats[name]
+            c_time = parse_datetime(c_cat['updated_at']).timestamp()
+            if c_time - l_cat.updated_at.timestamp() > 5:
+                l_cat.display_order = c_cat['display_order']
+                l_cat.is_active = c_cat['is_active']
+                l_cat.save()
+
+    c_categories = requests.get(f"{CLOUD_URL}/api/categories/", headers=headers, timeout=25).json()
+    cat_map = {c['name']: c['id'] for c in c_categories}
+    l_cat_map = {c.name: c.id for c in MenuCategory.objects.all()}
+
+    local_items = {i.name: i for i in MenuItem.objects.all()}
+    cloud_items = {i['name']: i for i in c_menu_items}
+
+    for name, l_item in local_items.items():
+        if name not in cloud_items:
+            if time.time() - l_item.updated_at.timestamp() < 300:
+                cat_id = cat_map.get(l_item.category.name)
+                if cat_id:
+                    requests.post(f"{CLOUD_URL}/api/menu-items/", headers=headers, json={'name': name, 'description': l_item.description, 'price': str(l_item.price), 'is_veg': l_item.is_veg, 'is_available': l_item.is_available, 'category': cat_id}, timeout=25)
+            else:
+                l_item.delete()
+        else:
+            c_item = cloud_items[name]
+            c_time = parse_datetime(c_item['updated_at']).timestamp()
+            if l_item.updated_at.timestamp() - c_time > 5:
+                cat_id = cat_map.get(l_item.category.name)
+                if cat_id:
+                    requests.patch(f"{CLOUD_URL}/api/menu-items/{c_item['id']}/", headers=headers, json={'description': l_item.description, 'price': str(l_item.price), 'is_veg': l_item.is_veg, 'is_available': l_item.is_available, 'category': cat_id}, timeout=25)
+
+    for name, c_item in cloud_items.items():
+        if name not in local_items:
+            if time.time() - parse_datetime(c_item['updated_at']).timestamp() < 300:
+                c_cat_data = next((c for c in c_categories if c['id'] == c_item['category']), None)
+                if c_cat_data and c_cat_data['name'] in l_cat_map:
+                    MenuItem.objects.create(name=name, description=c_item['description'], price=c_item['price'], is_veg=c_item['is_veg'], is_available=c_item['is_available'], category_id=l_cat_map[c_cat_data['name']])
+            else:
+                requests.delete(f"{CLOUD_URL}/api/menu-items/{c_item['id']}/", headers=headers, timeout=25)
+        else:
+            l_item = local_items[name]
+            c_time = parse_datetime(c_item['updated_at']).timestamp()
+            if c_time - l_item.updated_at.timestamp() > 5:
+                c_cat_data = next((c for c in c_categories if c['id'] == c_item['category']), None)
+                if c_cat_data and c_cat_data['name'] in l_cat_map:
+                    l_item.description = c_item['description']
+                    l_item.price = c_item['price']
+                    l_item.is_veg = c_item['is_veg']
+                    l_item.is_available = c_item['is_available']
+                    l_item.category_id = l_cat_map[c_cat_data['name']]
+                    l_item.save()
+
 sync_event = threading.Event()
 
 def sync_loop():
@@ -769,8 +845,8 @@ def sync_loop():
         except Exception as e:
             print(f"[Sync] Error in sync loop: {e}")
         
-        # Wait up to 15 seconds, or instantly if event is set
-        sync_event.wait(15)
+        # Wait up to 5 seconds, or instantly if event is set
+        sync_event.wait(5)
         sync_event.clear()
 
 def start_sync_thread():
