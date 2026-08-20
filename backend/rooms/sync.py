@@ -798,28 +798,99 @@ def sync_data():
     local_items = {i.name: i for i in MenuItem.objects.all()}
     cloud_items = {i['name']: i for i in c_menu_items}
 
+    def get_local_image_path(image_field):
+        if not image_field or not image_field.name:
+            return None
+        clean = str(image_field.name).lstrip('/\\')
+        try:
+            if hasattr(image_field, 'path') and os.path.exists(image_field.path):
+                return image_field.path
+        except Exception:
+            pass
+        from django.conf import settings
+        p = os.path.join(settings.MEDIA_ROOT, clean)
+        return p if os.path.exists(p) else None
+
     for name, l_item in local_items.items():
         if name not in cloud_items:
             if time.time() - l_item.updated_at.timestamp() < 300:
                 cat_id = cat_map.get(l_item.category.name)
                 if cat_id:
-                    requests.post(f"{CLOUD_URL}/api/menu-items/", headers=headers, json={'name': name, 'description': l_item.description, 'price': str(l_item.price), 'is_veg': l_item.is_veg, 'is_available': l_item.is_available, 'category': cat_id}, timeout=25)
+                    img_path = get_local_image_path(l_item.image)
+                    if img_path:
+                        try:
+                            with open(img_path, 'rb') as img_f:
+                                files = {'image': (os.path.basename(img_path), img_f, 'image/jpeg')}
+                                payload = {
+                                    'name': name,
+                                    'description': l_item.description or '',
+                                    'price': str(l_item.price),
+                                    'is_veg': str(l_item.is_veg).lower(),
+                                    'is_available': str(l_item.is_available).lower(),
+                                    'category': cat_id,
+                                }
+                                requests.post(f"{CLOUD_URL}/api/menu-items/", headers=headers, data=payload, files=files, timeout=25)
+                        except Exception as e:
+                            print(f"[Sync] Error uploading menu item with image: {e}")
+                            requests.post(f"{CLOUD_URL}/api/menu-items/", headers=headers, json={'name': name, 'description': l_item.description, 'price': str(l_item.price), 'is_veg': l_item.is_veg, 'is_available': l_item.is_available, 'category': cat_id}, timeout=25)
+                    else:
+                        requests.post(f"{CLOUD_URL}/api/menu-items/", headers=headers, json={'name': name, 'description': l_item.description, 'price': str(l_item.price), 'is_veg': l_item.is_veg, 'is_available': l_item.is_available, 'category': cat_id}, timeout=25)
             else:
                 l_item.delete()
         else:
             c_item = cloud_items[name]
             c_time = parse_datetime(c_item['updated_at']).timestamp()
-            if l_item.updated_at.timestamp() - c_time > 5:
+            img_path = get_local_image_path(l_item.image)
+            missing_cloud_image = bool(img_path and not c_item.get('image'))
+            if l_item.updated_at.timestamp() - c_time > 5 or missing_cloud_image:
                 cat_id = cat_map.get(l_item.category.name)
                 if cat_id:
-                    requests.patch(f"{CLOUD_URL}/api/menu-items/{c_item['id']}/", headers=headers, json={'description': l_item.description, 'price': str(l_item.price), 'is_veg': l_item.is_veg, 'is_available': l_item.is_available, 'category': cat_id}, timeout=25)
+                    if img_path:
+                        try:
+                            with open(img_path, 'rb') as img_f:
+                                files = {'image': (os.path.basename(img_path), img_f, 'image/jpeg')}
+                                payload = {
+                                    'description': l_item.description or '',
+                                    'price': str(l_item.price),
+                                    'is_veg': str(l_item.is_veg).lower(),
+                                    'is_available': str(l_item.is_available).lower(),
+                                    'category': cat_id,
+                                }
+                                requests.patch(f"{CLOUD_URL}/api/menu-items/{c_item['id']}/", headers=headers, data=payload, files=files, timeout=25)
+                        except Exception as e:
+                            print(f"[Sync] Error patching menu item with image: {e}")
+                            requests.patch(f"{CLOUD_URL}/api/menu-items/{c_item['id']}/", headers=headers, json={'description': l_item.description, 'price': str(l_item.price), 'is_veg': l_item.is_veg, 'is_available': l_item.is_available, 'category': cat_id}, timeout=25)
+                    else:
+                        requests.patch(f"{CLOUD_URL}/api/menu-items/{c_item['id']}/", headers=headers, json={'description': l_item.description, 'price': str(l_item.price), 'is_veg': l_item.is_veg, 'is_available': l_item.is_available, 'category': cat_id}, timeout=25)
 
     for name, c_item in cloud_items.items():
         if name not in local_items:
+            if is_menu_item_recently_deleted(name):
+                print(f"[Sync] Skipping recreation of recently deleted item: {name}")
+                try:
+                    requests.delete(f"{CLOUD_URL}/api/menu-items/{c_item['id']}/", headers=headers, timeout=5)
+                except Exception as e:
+                    pass
+                continue
+
             if time.time() - parse_datetime(c_item['updated_at']).timestamp() < 300:
                 c_cat_data = next((c for c in c_categories if c['id'] == c_item['category']), None)
                 if c_cat_data and c_cat_data['name'] in l_cat_map:
-                    MenuItem.objects.create(name=name, description=c_item['description'], price=c_item['price'], is_veg=c_item['is_veg'], is_available=c_item['is_available'], category_id=l_cat_map[c_cat_data['name']])
+                    new_item = MenuItem.objects.create(name=name, description=c_item['description'], price=c_item['price'], is_veg=c_item['is_veg'], is_available=c_item['is_available'], category_id=l_cat_map[c_cat_data['name']])
+                    if c_item.get('image') and isinstance(c_item['image'], str):
+                        img_val = c_item['image']
+                        if img_val.startswith('http://') or img_val.startswith('https://'):
+                            try:
+                                img_res = requests.get(img_val, timeout=10)
+                                if img_res.status_code == 200:
+                                    from django.core.files.base import ContentFile
+                                    fname = os.path.basename(img_val.split('?')[0])
+                                    new_item.image.save(fname, ContentFile(img_res.content), save=True)
+                            except Exception as e:
+                                print(f"[Sync] Could not download cloud image for {name}: {e}")
+                        elif img_val.startswith('/menu_images/'):
+                            new_item.image = img_val
+                            new_item.save(update_fields=['image'])
             else:
                 requests.delete(f"{CLOUD_URL}/api/menu-items/{c_item['id']}/", headers=headers, timeout=25)
         else:
@@ -833,7 +904,59 @@ def sync_data():
                     l_item.is_veg = c_item['is_veg']
                     l_item.is_available = c_item['is_available']
                     l_item.category_id = l_cat_map[c_cat_data['name']]
+                    if not l_item.image and c_item.get('image') and isinstance(c_item['image'], str):
+                        img_val = c_item['image']
+                        if img_val.startswith('http://') or img_val.startswith('https://'):
+                            try:
+                                img_res = requests.get(img_val, timeout=10)
+                                if img_res.status_code == 200:
+                                    from django.core.files.base import ContentFile
+                                    fname = os.path.basename(img_val.split('?')[0])
+                                    l_item.image.save(fname, ContentFile(img_res.content), save=False)
+                            except Exception as e:
+                                pass
+                        elif img_val.startswith('/menu_images/'):
+                            l_item.image = img_val
                     l_item.save()
+
+recently_deleted_lock = threading.Lock()
+recently_deleted_menu_items = {} # name -> timestamp
+
+def register_deleted_menu_item(name):
+    with recently_deleted_lock:
+        recently_deleted_menu_items[name] = time.time()
+
+def is_menu_item_recently_deleted(name):
+    now = time.time()
+    with recently_deleted_lock:
+        expired = [k for k, v in recently_deleted_menu_items.items() if now - v > 60]
+        for k in expired:
+            del recently_deleted_menu_items[k]
+        return name in recently_deleted_menu_items
+
+def propagate_delete_to_cloud(name):
+    if not requests:
+        return
+    token = get_cloud_token()
+    if not token:
+        print(f"[Sync] propagate_delete_to_cloud: Failed to get cloud token.")
+        return
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        response = requests.get(f"{CLOUD_URL}/api/menu-items/", headers=headers, timeout=10)
+        if response.status_code == 200:
+            cloud_items = response.json()
+            for item in cloud_items:
+                if item.get('name') == name:
+                    del_res = requests.delete(f"{CLOUD_URL}/api/menu-items/{item['id']}/", headers=headers, timeout=10)
+                    if del_res.status_code in [200, 204]:
+                        print(f"[Sync] Propagated delete for menu item '{name}' (ID {item['id']}) to cloud.")
+                    else:
+                        print(f"[Sync] Failed to propagate delete for '{name}' to cloud: {del_res.status_code} - {del_res.text}")
+        else:
+            print(f"[Sync] propagate_delete_to_cloud: Failed to fetch cloud items: {response.status_code}")
+    except Exception as e:
+        print(f"[Sync] Exception while propagating delete for '{name}' to cloud: {e}")
 
 sync_event = threading.Event()
 

@@ -23,3 +23,19 @@ class MenuItem(models.Model):
 
     def __str__(self):
         return self.name
+
+# Propagate deletions to cloud
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+import os
+import threading
+
+@receiver(post_delete, sender=MenuItem)
+def propagate_menu_item_deletion(sender, instance, **kwargs):
+    if not os.environ.get('POSTGRES_DB'):
+        try:
+            from rooms.sync import propagate_delete_to_cloud, register_deleted_menu_item
+            register_deleted_menu_item(instance.name)
+            threading.Thread(target=propagate_delete_to_cloud, args=(instance.name,), daemon=True).start()
+        except Exception as e:
+            print(f"Error in propagate_menu_item_deletion signal: {e}")

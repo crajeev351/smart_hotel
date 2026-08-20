@@ -200,14 +200,28 @@ const Admin: React.FC = () => {
   };
 
   const handleDeleteRoom = async (id: number) => {
-    if (!window.confirm('Delete this room?')) return;
-    try {
-      await API.delete(`rooms/${id}/`);
-      setSuccess('Room deleted');
-      loadData();
-    } catch (err: any) {
-      setError('Delete failed: ' + err.message);
-    }
+    const room = rooms.find(r => r.id === id);
+    const roomNum = room ? room.room_number : 'this room';
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Room',
+      message: `Are you sure you want to delete Room "${roomNum}"? This action cannot be undone.`,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+          await API.delete(`rooms/${id}/`);
+          setSuccess('Room deleted');
+          loadData();
+        } catch (err: any) {
+          setError('Delete failed: ' + (err.message || 'Unknown error'));
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   // Helper to extract floor number
@@ -307,14 +321,28 @@ const Admin: React.FC = () => {
   };
 
   const handleDeleteTable = async (id: number) => {
-    if (!window.confirm('Delete this table?')) return;
-    try {
-      await API.delete(`tables/${id}/`);
-      setSuccess('Table deleted');
-      loadData();
-    } catch (err: any) {
-      setError('Delete failed');
-    }
+    const table = tables.find(t => t.id === id);
+    const tableNum = table ? table.table_number : 'this table';
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Table',
+      message: `Are you sure you want to delete Table "${tableNum}"? This action cannot be undone.`,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+          await API.delete(`tables/${id}/`);
+          setSuccess('Table deleted');
+          loadData();
+        } catch (err: any) {
+          setError('Delete failed: ' + (err.message || 'Unknown error'));
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   // CRUD Category
@@ -345,22 +373,27 @@ const Admin: React.FC = () => {
         formData.append('image', newMenuItemImage);
       }
 
-      await API.post('menu-items/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      await API.post('menu-items/', formData);
 
       setSuccess('Menu item added');
       setNewMenuItem({ name: '', description: '', price: '', category: '', is_veg: true });
       setNewMenuItemImage(null);
       const fileInput = document.getElementById('new-menu-item-image') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
-      loadData();
-    } catch (err) {
-      setError('Failed to add menu item');
+      await loadData();
+    } catch (err: any) {
+      const detail = err.response?.data;
+      if (detail && typeof detail === 'object') {
+        const messages = Object.entries(detail)
+          .map(([field, msgs]: [string, any]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+          .join(' | ');
+        setError('Failed to add menu item — ' + messages);
+      } else {
+        setError('Failed to add menu item: ' + (err.message || 'Unknown error'));
+      }
     }
   };
+
 
   const handleUpdateMenuItem = async (item: MenuItem) => {
     try {
@@ -374,30 +407,49 @@ const Admin: React.FC = () => {
         formData.append('image', editingMenuItemImage);
       }
 
-      await API.patch(`menu-items/${item.id}/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      await API.patch(`menu-items/${item.id}/`, formData);
 
       setSuccess('Menu item updated');
       setEditingMenuItem(null);
       setEditingMenuItemImage(null);
-      loadData();
-    } catch (err) {
-      setError('Update failed');
+      await loadData();
+    } catch (err: any) {
+      const detail = err.response?.data;
+      if (detail && typeof detail === 'object') {
+        const messages = Object.entries(detail)
+          .map(([field, msgs]: [string, any]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+          .join(' | ');
+        setError('Update failed — ' + messages);
+      } else {
+        setError('Update failed: ' + (err.message || 'Unknown error'));
+      }
     }
   };
 
+
   const handleDeleteMenuItem = async (id: number) => {
-    if (!window.confirm('Delete this menu item?')) return;
-    try {
-      await API.delete(`menu-items/${id}/`);
-      setSuccess('Menu item deleted');
-      loadData();
-    } catch (err) {
-      setError('Delete failed');
-    }
+    const item = menuItems.find(m => m.id === id);
+    const itemName = item ? item.name : 'this menu item';
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Menu Item',
+      message: `Are you sure you want to delete "${itemName}"? This action cannot be undone.`,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+          await API.delete(`menu-items/${id}/`);
+          setSuccess('Menu item deleted');
+          loadData();
+        } catch (err: any) {
+          setError('Delete failed: ' + (err.message || 'Unknown error'));
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   // User Administration
@@ -434,14 +486,26 @@ const Admin: React.FC = () => {
       setError('You cannot delete your own account while logged in.');
       return;
     }
-    if (!window.confirm(`Are you sure you want to delete user "${name || 'Unnamed'}"? This action is permanent and will cascade to all bookings and orders for this user.`)) return;
-    try {
-      await API.delete(`users/${id}/`);
-      setSuccess('User account deleted successfully');
-      loadData();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete user');
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete User Account',
+      message: `Are you sure you want to delete user "${name || 'Unnamed'}"? This action is permanent and will cascade to all bookings and orders for this user.`,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+          await API.delete(`users/${id}/`);
+          setSuccess('User account deleted successfully');
+          loadData();
+        } catch (err: any) {
+          setError(err.response?.data?.error || 'Failed to delete user: ' + (err.message || 'Unknown error'));
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   const handleUpdateUserCredentials = async (e: React.FormEvent) => {

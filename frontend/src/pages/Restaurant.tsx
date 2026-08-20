@@ -74,16 +74,34 @@ export const getMenuItemImage = (item: any): string => {
     if (lowerName.includes('pinacolada') || lowerName.includes('pina colada') || lowerCat.includes('drink')) {
       return 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Pi%C3%B1a_Colada.jpg';
     }
-    if (lowerName.includes('jamun') || lowerName.includes('cake') || lowerCat.includes('dessert')) {
+    if (lowerName.includes('jamun') || lowerName.includes('kulfi') || lowerName.includes('cake') || lowerCat.includes('dessert')) {
       return 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Gulab-jamun-wallpaper-1.jpg';
     }
-    if (lowerName.includes('paneer') || lowerName.includes('naan') || lowerCat.includes('main')) {
+    if (lowerName.includes('paneer') || lowerName.includes('naan')) {
       return 'https://upload.wikimedia.org/wikipedia/commons/a/ad/Shahi_panner.jpg';
+    }
+    if (lowerName.includes('dal') || lowerName.includes('roti') || lowerName.includes('makhani')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Dal_Makhani_%28Dal_Makhni%29.jpg/640px-Dal_Makhani_%28Dal_Makhni%29.jpg';
+    }
+    if (lowerName.includes('biryani') || lowerName.includes('rice')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Dum_biryani_in_handi.jpg/640px-Dum_biryani_in_handi.jpg';
+    }
+    if (lowerName.includes('vada') || lowerName.includes('pav') || lowerCat.includes('snack')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Vada_Pav-Indian_street_food.JPG/640px-Vada_Pav-Indian_street_food.JPG';
+    }
+    if (lowerName.includes('pizza')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/a/a3/Eq_it-na_pizza-margherita_sep2005_sml.jpg';
+    }
+    if (lowerName.includes('spring roll') || lowerName.includes('roll')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Spring_rolls_at_Pho_Hoa.jpg/640px-Spring_rolls_at_Pho_Hoa.jpg';
     }
     if (lowerName.includes('coffee')) {
       return 'https://upload.wikimedia.org/wikipedia/commons/e/e4/Latte_and_dark_coffee.jpg';
     }
-    return 'https://upload.wikimedia.org/wikipedia/commons/5/55/Chocolate_fudge_cake.jpg';
+    if (lowerCat.includes('main')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/a/ad/Shahi_panner.jpg';
+    }
+    return 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cheeseburger.jpg';
   };
 
   if (item.image && typeof item.image === 'string' && item.image.trim() !== '') {
