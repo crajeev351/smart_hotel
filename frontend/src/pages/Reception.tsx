@@ -2737,32 +2737,91 @@ const Reception: React.FC = () => {
                   <div className="border border-white/5 rounded-xl overflow-hidden text-xs sm:text-sm">
                     <div className="bg-slate-950/40 p-3 grid grid-cols-3 font-bold text-gray-300 border-b border-white/5">
                       <div>Charge Item</div>
-                      <div className="text-center">Details / Subtotal</div>
-                      <div className="text-right">Amount</div>
+                      <div className="text-center">Details / Breakdown</div>
+                      <div className="text-right">Amount (₹)</div>
                     </div>
 
-                    <div className="p-3 grid grid-cols-3 border-b border-white/5 text-gray-400">
-                      <div className="font-semibold text-white">Room Lodging</div>
-                      <div className="text-center">Stay nights charges</div>
-                      <div className="text-right font-bold text-white">${parseFloat(currentInvoice.room_charges).toFixed(2)}</div>
+                    {/* Room Lodging Details */}
+                    {parseFloat(currentInvoice.room_charges || 0) > 0 && (
+                      <>
+                        <div className="p-3.5 grid grid-cols-3 border-b border-white/5 text-gray-300 bg-slate-900/20">
+                          <div className="font-bold text-white flex items-center gap-1.5">
+                            🏨 Room Lodging
+                          </div>
+                          <div className="text-center text-gray-400">
+                            {currentInvoice.booking_details ? (
+                              <span>Room {currentInvoice.booking_details.room_number} ({currentInvoice.booking_details.room_type}) • {currentInvoice.booking_details.nights} night(s) @ ₹{parseFloat(currentInvoice.booking_details.price_per_night || 0).toFixed(2)}</span>
+                            ) : (
+                              <span>Stay accommodation charges</span>
+                            )}
+                          </div>
+                          <div className="text-right font-black text-white font-mono">₹{parseFloat(currentInvoice.room_charges).toFixed(2)}</div>
+                        </div>
+                        <div className="px-3.5 py-2 grid grid-cols-3 border-b border-white/5 text-gray-400 bg-white/[0.01] text-[11px]">
+                          <div className="pl-4 text-gray-400 font-medium">↳ Room Stay GST (12%)</div>
+                          <div className="text-center text-gray-500">6% CGST + 6% SGST</div>
+                          <div className="text-right font-bold text-gray-300 font-mono">₹{(parseFloat(currentInvoice.room_charges) * 0.12).toFixed(2)}</div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Food & Dining Details */}
+                    {parseFloat(currentInvoice.food_charges || 0) > 0 && (
+                      <>
+                        <div className="p-3.5 grid grid-cols-3 border-b border-white/5 text-gray-300 bg-slate-900/20">
+                          <div className="font-bold text-white flex items-center gap-1.5">
+                            🍽️ Restaurant & Food
+                          </div>
+                          <div className="text-center text-gray-400">
+                            <span>Billed food & beverage orders</span>
+                          </div>
+                          <div className="text-right font-black text-white font-mono">₹{parseFloat(currentInvoice.food_charges).toFixed(2)}</div>
+                        </div>
+
+                        {/* Itemized Food List */}
+                        {currentInvoice.itemized_items && currentInvoice.itemized_items.length > 0 && (
+                          <div className="px-3.5 py-2.5 border-b border-white/5 bg-slate-950/30 space-y-1.5">
+                            <div className="text-[10px] font-black text-indigo-400 uppercase tracking-wider pl-4">Itemized Dishes:</div>
+                            {currentInvoice.itemized_items.map((item: any) => (
+                              <div key={item.id} className="grid grid-cols-3 text-xs pl-4 text-gray-300">
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.is_veg ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                                  <span className="truncate">{item.name}</span>
+                                </div>
+                                <div className="text-center text-gray-400 font-mono text-[11px]">
+                                  {item.quantity} x ₹{parseFloat(item.unit_price || 0).toFixed(2)}
+                                </div>
+                                <div className="text-right font-bold text-white font-mono text-[11px]">
+                                  ₹{parseFloat(item.total_price || 0).toFixed(2)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="px-3.5 py-2 grid grid-cols-3 border-b border-white/5 text-gray-400 bg-white/[0.01] text-[11px]">
+                          <div className="pl-4 text-gray-400 font-medium">↳ Restaurant Food GST (5%)</div>
+                          <div className="text-center text-gray-500">2.5% CGST + 2.5% SGST</div>
+                          <div className="text-right font-bold text-gray-300 font-mono">₹{(parseFloat(currentInvoice.food_charges) * 0.05).toFixed(2)}</div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Total GST */}
+                    <div className="p-3.5 grid grid-cols-3 border-b border-white/5 text-gray-400 bg-slate-900/30">
+                      <div className="font-bold text-indigo-300">Total GST Taxes</div>
+                      <div className="text-center text-xs text-gray-400">Government taxes & fees</div>
+                      <div className="text-right font-black text-indigo-300 font-mono">₹{parseFloat(currentInvoice.tax_amount).toFixed(2)}</div>
                     </div>
 
-                    <div className="p-3 grid grid-cols-3 border-b border-white/5 text-gray-400">
-                      <div className="font-semibold text-white">Food & Restaurant</div>
-                      <div className="text-center">Active dining orders</div>
-                      <div className="text-right font-bold text-white">${parseFloat(currentInvoice.food_charges).toFixed(2)}</div>
-                    </div>
-
-                    <div className="p-3 grid grid-cols-3 border-b border-white/5 text-gray-400 bg-slate-900/10">
-                      <div className="font-semibold text-white">Taxes</div>
-                      <div className="text-center">10% tax rate</div>
-                      <div className="text-right font-bold text-white">${parseFloat(currentInvoice.tax_amount).toFixed(2)}</div>
-                    </div>
-
-                    <div className="p-4 grid grid-cols-3 font-bold text-white text-lg bg-indigo-500/5">
-                      <div className="text-base tracking-tight">Total Price</div>
+                    {/* Grand Total */}
+                    <div className="p-4 grid grid-cols-3 font-bold text-white text-lg bg-indigo-500/10 border-t border-indigo-500/20">
+                      <div className="text-base tracking-tight flex items-center gap-2">
+                        <span>Total Payable</span>
+                        <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full font-bold uppercase">Net Settle</span>
+                      </div>
                       <div></div>
-                      <div className="text-right text-indigo-400 font-black">${parseFloat(currentInvoice.total_amount).toFixed(2)}</div>
+                      <div className="text-right text-indigo-400 font-black text-xl font-mono">₹{parseFloat(currentInvoice.total_amount).toFixed(2)}</div>
                     </div>
                   </div>
 

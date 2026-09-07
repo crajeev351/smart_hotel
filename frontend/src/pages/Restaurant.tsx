@@ -163,7 +163,8 @@ const Restaurant: React.FC = () => {
     }
   }, []);
 
-  const isWaiterOrAdmin = currentUser?.role === 'WAITER' || currentUser?.role === 'ADMIN';
+  const isStaff = !currentUser || currentUser?.role !== 'GUEST';
+  const isWaiterOrAdmin = isStaff;
 
   // Dynamically calculate table positions based on capacity and number
   const tablePositions = React.useMemo(() => {
@@ -334,12 +335,7 @@ const Restaurant: React.FC = () => {
   useWebSocket((data) => {
     console.log('WebSocket update received:', data);
     fetchData(true);
-  });
-
-  useWebSocket((data) => {
-    console.log('WebSocket update received:', data);
-    fetchData(true);
-    if (activeOrder) fetchActiveOrder(true);
+    if (selectedTable) fetchActiveOrder(true, selectedTable);
   });
 
   const fetchData = async (silent = false) => {
@@ -364,17 +360,28 @@ const Restaurant: React.FC = () => {
     }
   };
 
-  const fetchActiveOrder = async (silent = false) => {
+  const fetchActiveOrder = async (silent = false, tableNum?: string) => {
+    const targetTable = tableNum !== undefined ? tableNum : selectedTable;
+    if (!targetTable) {
+      setActiveOrder(null);
+      return;
+    }
     if (!silent) setOrderLoading(true);
     try {
-      const response = await API.get(`orders/?table_number=${selectedTable}&status=IN_PROGRESS`);
-      if (response.data.length > 0) {
-        setActiveOrder(response.data[0]);
+      const response = await API.get(`orders/?table_number=${targetTable}&status=IN_PROGRESS`);
+      if (response.data && response.data.length > 0) {
+        const match = response.data.find((o: any) => 
+          o.table_number === targetTable && 
+          Array.isArray(o.items) && 
+          o.items.some((i: any) => i.status !== 'CANCELLED')
+        );
+        setActiveOrder(match || null);
       } else {
         setActiveOrder(null);
       }
     } catch (err) {
       console.error('Error fetching active order:', err);
+      setActiveOrder(null);
     } finally {
       if (!silent) setOrderLoading(false);
     }
@@ -402,10 +409,11 @@ const Restaurant: React.FC = () => {
 
   const selectedTableObj = tables.find(t => t.table_number === selectedTable);
   const currentGuestId = selectedTableObj?.current_guest;
+  const hasAssignedGuest = Boolean(currentGuestId || currentUser?.role === 'GUEST');
 
   useEffect(() => {
     if (selectedTable) {
-      fetchActiveOrder();
+      fetchActiveOrder(false, selectedTable);
       setSearchParams({ table: selectedTable });
     } else {
       setActiveOrder(null);
@@ -537,10 +545,12 @@ const Restaurant: React.FC = () => {
     setSuccess(null);
     try {
       await API.post(`invoices/${generatedInvoice.id}/pay-invoice/`);
-      setSuccess('Invoice paid successfully. Table session closed.');
+      setSuccess('Invoice paid successfully. Table session closed and table is now vacant.');
       setGeneratedInvoice(null);
+      setActiveOrder(null);
       setSelectedTable('');
-      fetchData();
+      setSearchParams({});
+      await fetchData();
     } catch (err: any) {
       setError('Failed to process invoice payment: ' + (err.response?.data?.error || err.message));
     } finally {
@@ -554,8 +564,8 @@ const Restaurant: React.FC = () => {
       setSuccess(null);
       await API.patch(`order-items/${itemId}/`, { status: newStatus });
       setSuccess(`Dish marked as ${newStatus.toLowerCase()}.`);
-      fetchActiveOrder();
-      fetchData();
+      fetchActiveOrder(true, selectedTable);
+      fetchData(true);
     } catch (err: any) {
       setError('Failed to update dish status: ' + (err.response?.data?.error || err.message));
     }
@@ -569,7 +579,7 @@ const Restaurant: React.FC = () => {
       await API.patch(`orders/${orderId}/`, { status: 'CANCELLED' });
       setSuccess("Order cancelled successfully.");
       setActiveOrder(null);
-      fetchData();
+      fetchData(true);
     } catch (err: any) {
       setError('Failed to cancel order: ' + (err.response?.data?.error || err.message));
     }
@@ -582,10 +592,12 @@ const Restaurant: React.FC = () => {
     setSuccess(null);
     try {
       await API.post(`invoices/${generatedInvoice.id}/charge-to-room/`);
-      setSuccess('Charges added to room bill. Table session closed.');
+      setSuccess('Charges added to hotel room bill successfully. Table session closed and table is now vacant.');
       setGeneratedInvoice(null);
+      setActiveOrder(null);
       setSelectedTable('');
-      fetchData();
+      setSearchParams({});
+      await fetchData();
     } catch (err: any) {
       setError('Failed to charge to room: ' + (err.response?.data?.error || err.message));
     } finally {
@@ -625,6 +637,11 @@ const Restaurant: React.FC = () => {
       setError('Please select a table number first');
       return;
     }
+    const tbl = tables.find(t => t.table_number === selectedTable);
+    if (!tbl?.current_guest && currentUser?.role !== 'GUEST') {
+      setError(`Table ${selectedTable} has no assigned guest. Please assign or register a guest before sending orders to the kitchen.`);
+      return;
+    }
     if (cart.length === 0) return;
 
     setOrderLoading(true);
@@ -638,7 +655,6 @@ const Restaurant: React.FC = () => {
     }));
 
     try {
-      const tbl = tables.find(t => t.table_number === selectedTable);
       const payload: any = {
         table_number: selectedTable,
         items: itemsPayload
@@ -652,8 +668,8 @@ const Restaurant: React.FC = () => {
       setSuccess('Order placed successfully! Sent to kitchen.');
       setCart([]);
       setItemNotes({});
-      fetchActiveOrder();
-      fetchData();
+      fetchActiveOrder(false, selectedTable);
+      fetchData(true);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to place order.');
     } finally {
@@ -673,7 +689,7 @@ const Restaurant: React.FC = () => {
   });
 
   const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.menuItem.price) * item.quantity), 0);
-  const tax = subtotal * 0.10;
+  const tax = subtotal * 0.05;
   const total = subtotal + tax;
 
   const getStatusIcon = (status: string) => {
@@ -980,41 +996,52 @@ const Restaurant: React.FC = () => {
               <div className="lg:col-span-4 flex flex-col gap-6">
                 
                 {/* Dine-In Billing & Checkout Section */}
-                {isWaiterOrAdmin && (
+                {isStaff && (
                   (() => {
-                    const tbl = tables.find(t => t.table_number === selectedTable);
-                     if (!tbl || (tbl.status !== 'VACANT' && tbl.status !== 'OCCUPIED')) return null;
+                    const tbl = tables.find(t => t.table_number === selectedTable) || {
+                      id: 0,
+                      table_number: selectedTable,
+                      capacity: 4,
+                      status: 'VACANT',
+                      current_guest: null
+                    };
 
                     if (!tbl.current_guest) {
                       return (
-                        <div className="glass-panel rounded-2xl p-4 space-y-4 border border-white/5 bg-slate-950/10 shrink-0">
-                          <h3 className="font-bold text-white flex items-center gap-2 text-xs uppercase tracking-wider">
-                            <Users className="w-4 h-4 text-indigo-400" />
-                            Assign Dine-In Guest
-                          </h3>
-                          <p className="text-[11px] text-gray-400">
-                            To track orders and generate a bill, assign a guest to this table.
+                        <div className="glass-panel rounded-2xl p-4 space-y-4 border border-amber-500/30 bg-amber-500/[0.04] shadow-[0_0_20px_rgba(245,158,11,0.08)] shrink-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-amber-300 flex items-center gap-2 text-xs uppercase tracking-wider">
+                              <Users className="w-4 h-4 text-amber-400" />
+                              Assign Guest Required
+                            </h3>
+                            <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                              Required to Order
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-300">
+                            Assign a seated guest to <strong className="text-white font-mono">Table {selectedTable}</strong> before taking and sending food orders to the kitchen.
                           </p>
                           <div className="flex gap-2">
                             <select
                               value={assigningGuestId}
                               onChange={e => setAssigningGuestId(e.target.value)}
-                              className="flex-grow p-2 bg-slate-950 text-xs text-gray-200 border border-white/5 rounded-lg outline-none cursor-pointer"
+                              className="flex-grow p-2 bg-slate-950 text-xs text-gray-200 border border-white/10 rounded-lg outline-none cursor-pointer focus:border-amber-400"
                             >
-                              <option value="">Select Guest</option>
+                              <option value="">-- Select Registered Guest --</option>
                               {guests.map(g => (
                                 <option key={g.id} value={g.id}>
-                                  {g.name || g.username}
+                                  {g.name || g.username} {g.phone ? `(${g.phone})` : ''}
                                 </option>
                               ))}
                             </select>
                             <button
                               onClick={() => {
-                                if (assigningGuestId) {
+                                if (assigningGuestId && tbl.id) {
                                   handleAssignGuestToTable(tbl.id, assigningGuestId);
                                 }
                               }}
-                              className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition cursor-pointer"
+                              disabled={!assigningGuestId || !tbl.id}
+                              className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition cursor-pointer disabled:opacity-50"
                             >
                               Assign
                             </button>
@@ -1075,6 +1102,20 @@ const Restaurant: React.FC = () => {
                       );
                     }
 
+                    const guestName = (tbl as any).current_guest_name || 
+                                      (tbl as any).current_guest_username || 
+                                      guests.find(g => g.id === tbl.current_guest)?.name || 
+                                      guests.find(g => g.id === tbl.current_guest)?.username || 
+                                      'Assigned Guest';
+
+                    const guestEmail = (tbl as any).current_guest_email || 
+                                       guests.find(g => g.id === tbl.current_guest)?.email || '';
+
+                    const isStayGuest = (tbl as any).current_guest_type === 'STAY_IN' || 
+                                        (tbl as any).current_guest_type === 'BOTH' || 
+                                        guests.find(g => g.id === tbl?.current_guest)?.guest_type === 'STAY_IN' || 
+                                        guests.find(g => g.id === tbl?.current_guest)?.guest_type === 'BOTH';
+
                     return (
                       <div className="glass-panel rounded-2xl p-4 space-y-4 border border-white/5 bg-slate-950/10 shrink-0">
                         <div className="flex items-center justify-between pb-3 border-b border-white/5">
@@ -1082,26 +1123,24 @@ const Restaurant: React.FC = () => {
                             <Users className="w-4 h-4 text-emerald-400" />
                             Assigned Guest Details
                           </h3>
-                          <button
-                            onClick={() => handleAssignGuestToTable(tbl.id, null)}
-                            className="text-rose-400 hover:text-rose-300 text-[10px] font-bold cursor-pointer"
-                          >
-                            Unassign
-                          </button>
+                          {tbl.id > 0 && (
+                            <button
+                              onClick={() => handleAssignGuestToTable(tbl.id, null)}
+                              className="text-rose-400 hover:text-rose-300 text-[10px] font-bold cursor-pointer"
+                            >
+                              Unassign
+                            </button>
+                          )}
                         </div>
                         <div className="text-xs space-y-1">
                           <p className="font-bold text-white text-sm">
-                            {(() => {
-                              const g = guests.find(g => g.id === tbl.current_guest);
-                              return g ? (g.name || g.username) : 'Loading Guest...';
-                            })()}
+                            {guestName}
                           </p>
-                          <p className="text-gray-400 text-[10px] truncate">
-                            {(() => {
-                              const g = guests.find(g => g.id === tbl.current_guest);
-                              return g ? g.email : '';
-                            })()}
-                          </p>
+                          {guestEmail && (
+                            <p className="text-gray-400 text-[10px] truncate">
+                              {guestEmail}
+                            </p>
+                          )}
                           <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider mt-1">
                             Dine-In Billing
                           </p>
@@ -1116,20 +1155,58 @@ const Restaurant: React.FC = () => {
                             {billingLoading ? 'Generating Bill...' : 'Generate Dine-In Bill'}
                           </button>
                         ) : (
-                          <div className="space-y-3.5 border-t border-white/5 pt-3">
+                          <div className="space-y-3 border-t border-white/5 pt-3">
+                            {/* Itemized Food List */}
+                            <div className="space-y-1.5 border-b border-white/5 pb-2.5 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
+                              <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1 flex justify-between">
+                                <span>Ordered Items</span>
+                                <span>Amount</span>
+                              </div>
+                              {(() => {
+                                const items = (generatedInvoice.itemized_items && generatedInvoice.itemized_items.length > 0)
+                                  ? generatedInvoice.itemized_items
+                                  : (activeOrder?.items?.filter(i => i.status !== 'CANCELLED').map(i => ({
+                                      id: i.id,
+                                      name: i.menu_item_details?.name || 'Dish',
+                                      quantity: i.quantity,
+                                      unit_price: i.menu_item_details?.price || '0',
+                                      total_price: (i.quantity * parseFloat(i.menu_item_details?.price || '0')).toFixed(2),
+                                      is_veg: i.menu_item_details?.is_veg
+                                    })) || []);
+
+                                if (!items.length) {
+                                  return <p className="text-[10px] text-gray-500 italic">No food items billed.</p>;
+                                }
+
+                                return items.map((item: any) => (
+                                  <div key={item.id} className="flex justify-between items-center text-xs text-gray-300">
+                                    <div className="flex items-center gap-1.5 truncate max-w-[170px]">
+                                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.is_veg ? 'bg-emerald-400 shadow-[0_0_4px_#34d399]' : 'bg-rose-400 shadow-[0_0_4px_#f43f5e]'}`} />
+                                      <span className="truncate text-white font-medium text-[11px]">{item.name} <span className="text-indigo-400 font-bold font-mono">x{item.quantity}</span></span>
+                                    </div>
+                                    <span className="font-bold text-white text-[11px] shrink-0 font-mono">
+                                      ₹{parseFloat(item.total_price || (item.quantity * parseFloat(item.unit_price || 0))).toFixed(2)}
+                                    </span>
+                                  </div>
+                                ));
+                              })()}
+                            </div>
+
                             <div className="flex justify-between text-xs text-gray-400">
-                              <span>Food Charges:</span>
-                              <span className="text-white font-bold">₹{parseFloat(generatedInvoice.food_charges).toFixed(2)}</span>
+                              <span>Food Subtotal:</span>
+                              <span className="text-white font-bold font-mono">₹{parseFloat(generatedInvoice.food_charges || 0).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-xs text-gray-400">
-                              <span>Taxes (10%):</span>
-                              <span className="text-white font-bold">₹{parseFloat(generatedInvoice.tax_amount).toFixed(2)}</span>
+                              <span className="flex items-center gap-1">
+                                GST on Food <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-1 py-0.2 rounded font-bold">5%</span>
+                              </span>
+                              <span className="text-white font-bold font-mono">₹{parseFloat(generatedInvoice.tax_amount || (parseFloat(generatedInvoice.food_charges || 0) * 0.05)).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm font-bold border-t border-white/5 pt-2 text-white">
                               <span>Total Bill Amount:</span>
-                              <span className="text-indigo-400 font-black text-base">₹{parseFloat(generatedInvoice.total_amount).toFixed(2)}</span>
+                              <span className="text-indigo-400 font-black text-base font-mono">₹{parseFloat(generatedInvoice.total_amount || 0).toFixed(2)}</span>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 pt-1">
                               <div className="grid grid-cols-2 gap-2">
                                 <button
                                   onClick={() => setGeneratedInvoice(null)}
@@ -1145,23 +1222,15 @@ const Restaurant: React.FC = () => {
                                   {billingLoading ? 'Processing...' : 'Pay & Checkout'}
                                 </button>
                               </div>
-                              {(() => {
-                                const tbl = tables.find(t => t.table_number === selectedTable);
-                                const g = guests.find(g => g.id === tbl?.current_guest);
-                                const isStayGuest = g?.guest_type === 'STAY_IN' || g?.guest_type === 'BOTH';
-                                if (isStayGuest) {
-                                  return (
-                                    <button
-                                      onClick={handleChargeToRoom}
-                                      disabled={billingLoading}
-                                      className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition cursor-pointer"
-                                    >
-                                      {billingLoading ? 'Processing...' : 'Charge to Hotel Room Bill'}
-                                    </button>
-                                  );
-                                }
-                                return null;
-                              })()}
+                              {isStayGuest && (
+                                <button
+                                  onClick={handleChargeToRoom}
+                                  disabled={billingLoading}
+                                  className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition cursor-pointer"
+                                >
+                                  {billingLoading ? 'Processing...' : 'Charge to Hotel Room Bill'}
+                                </button>
+                              )}
                             </div>
                           </div>
                         )}
@@ -1232,13 +1301,23 @@ const Restaurant: React.FC = () => {
                   </div>
 
                   <div className="border-t border-white/5 pt-4 space-y-4">
+                    {!hasAssignedGuest && (
+                      <div className="bg-amber-500/10 border border-amber-500/25 rounded-xl p-3 flex items-start gap-2.5 text-amber-300">
+                        <Users className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-xs font-bold text-amber-200">Table Not Assigned</p>
+                          <p className="text-[11px] text-amber-300/80 mt-0.5">Please assign or register a guest above before sending this order to the kitchen.</p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-2 text-xs text-gray-400">
                       <div className="flex justify-between">
                         <span>Subtotal</span>
                         <span className="text-white">₹{subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Kitchen Service Tax (10%)</span>
+                        <span>GST on Food (5%)</span>
                         <span className="text-white">₹{tax.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between font-black text-white border-t border-white/5 pt-2 text-sm">
@@ -1249,11 +1328,11 @@ const Restaurant: React.FC = () => {
 
                     <button
                       onClick={handlePlaceOrder}
-                      disabled={cart.length === 0 || orderLoading || !selectedTable}
+                      disabled={cart.length === 0 || orderLoading || !selectedTable || !hasAssignedGuest}
                       className="w-full glowing-btn-indigo text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md transition disabled:opacity-50 text-xs cursor-pointer uppercase tracking-wider"
                     >
                       <Send className="w-3 h-3" />
-                      {orderLoading ? 'Placing Order...' : 'Send Order to Kitchen'}
+                      {orderLoading ? 'Placing Order...' : (!hasAssignedGuest ? 'Assign Guest First to Order' : 'Send Order to Kitchen')}
                     </button>
                   </div>
                 </div>
@@ -1266,7 +1345,7 @@ const Restaurant: React.FC = () => {
                       Active Dining Status
                     </h3>
                     <button 
-                      onClick={() => fetchActiveOrder()} 
+                      onClick={() => fetchActiveOrder(false, selectedTable)} 
                       className="text-gray-500 hover:text-indigo-400 transition cursor-pointer"
                       title="Refresh Order telemetry"
                     >
@@ -1274,7 +1353,7 @@ const Restaurant: React.FC = () => {
                     </button>
                   </div>
 
-                  {activeOrder ? (
+                  {activeOrder && Array.isArray(activeOrder.items) && activeOrder.items.some(i => i.status !== 'CANCELLED') ? (
                     <div className="space-y-3 max-h-[180px] sm:max-h-[220px] overflow-y-auto pr-1">
                       <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-wider border-b border-white/5 pb-2 mb-2">
                         <div className="flex items-center gap-2">
@@ -1286,12 +1365,12 @@ const Restaurant: React.FC = () => {
                             Cancel Order
                           </button>
                         </div>
-                        <span className="text-indigo-400">Total: ₹{parseFloat(activeOrder.total_amount).toFixed(2)}</span>
+                        <span className="text-indigo-400">Total: ₹{parseFloat(activeOrder.total_amount || 0).toFixed(2)}</span>
                       </div>
                       {activeOrder.items.map(item => (
                         <div key={item.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs border-b border-white/[0.03] pb-2 gap-2">
                           <div className="min-w-0 flex-1">
-                            <p className="font-bold text-white truncate">{item.menu_item_details.name} <span className="text-indigo-400">x{item.quantity}</span></p>
+                            <p className="font-bold text-white truncate">{item.menu_item_details?.name || 'Dish'} <span className="text-indigo-400">x{item.quantity}</span></p>
                             {item.notes && <p className="text-[10px] text-gray-500 italic mt-0.5">Instructions: {item.notes}</p>}
                           </div>
                           <div className="flex flex-wrap items-center gap-2 shrink-0">

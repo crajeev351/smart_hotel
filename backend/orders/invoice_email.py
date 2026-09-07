@@ -53,6 +53,13 @@ def generate_invoice_email(invoice):
         </div>
         """
 
+    # GST calculation breakdown
+    price_per_night = float(booking.room.price_per_night or 0) if booking and booking.room else 0.0
+    room_tax_rate = 18.0 if price_per_night > 7500 else 12.0
+    food_tax_rate = 5.0
+    room_tax = round(room_charges * (room_tax_rate / 100.0), 2) if room_charges > 0 else 0.0
+    food_tax = round(food_charges * (food_tax_rate / 100.0), 2) if food_charges > 0 else 0.0
+
     # Food & Beverage Itemized breakdown if food orders exist
     food_items_html = ""
     food_items_text = ""
@@ -60,7 +67,7 @@ def generate_invoice_email(invoice):
         food_item_rows = []
         food_item_text_list = []
         for order in invoice.orders.all():
-            for item in order.items.filter(status='SERVED'):
+            for item in order.items.exclude(status='CANCELLED'):
                 item_name = item.menu_item.name
                 qty = item.quantity
                 price = float(item.price_at_order)
@@ -68,14 +75,14 @@ def generate_invoice_email(invoice):
                 food_item_rows.append(f"""
                 <tr>
                     <td style="padding: 6px 18px 6px 28px; color: #64748b; font-size: 13px;">
-                        ↳ {qty}x {escape(item_name)}
+                        ↳ {qty}x {escape(item_name)} (@ ₹{price:.2f})
                     </td>
                     <td align="right" style="padding: 6px 18px; color: #475569; font-size: 13px;">
-                        ${sub:.2f}
+                        ₹{sub:.2f}
                     </td>
                 </tr>
                 """)
-                food_item_text_list.append(f"  * {qty}x {item_name} @ ${price:.2f} = ${sub:.2f}")
+                food_item_text_list.append(f"  * {qty}x {item_name} @ ₹{price:.2f} = ₹{sub:.2f}")
         
         if food_item_rows:
             food_items_html = "".join(food_item_rows)
@@ -99,12 +106,14 @@ Payment Status    : PAID (Confirmed)
 --------------------------------------------------
 """
     if room_charges > 0:
-        text_message += f"Room Charges            : ${room_charges:.2f}\n"
+        text_message += f"Room Lodging Charges    : ₹{room_charges:.2f}\n"
+        text_message += f"Room GST ({room_tax_rate:.0f}%)           : ₹{room_tax:.2f}\n"
     if food_charges > 0:
-        text_message += f"Food & Beverage Charges : ${food_charges:.2f}\n"
-    text_message += f"Taxes & Fees (10%)      : ${tax_amount:.2f}\n"
+        text_message += f"Food & Beverage Charges : ₹{food_charges:.2f}\n"
+        text_message += f"Restaurant GST (5%)     : ₹{food_tax:.2f}\n"
+    text_message += f"Total Taxes (GST)       : ₹{tax_amount:.2f}\n"
     text_message += f"--------------------------------------------------\n"
-    text_message += f"TOTAL AMOUNT PAID       : ${total_amount:.2f}\n"
+    text_message += f"TOTAL AMOUNT PAID       : ₹{total_amount:.2f}\n"
     text_message += f"==================================================\n\n"
     text_message += f"We hope your stay or dining experience was extraordinary. Please keep this email as your official digital invoice.\n\n"
     text_message += f"Warm regards,\nSmart Hotel & Resort Management\n24/7 Concierge Support | support@smarthotel.com\n"
@@ -191,10 +200,18 @@ Payment Status    : PAID (Confirmed)
         html_message += f"""
                     <tr style="border-top: 1px solid #e2e8f0;">
                       <td style="padding: 14px 18px; font-size: 14px; color: #1e293b; font-weight: 600;">
-                        🏨 Room & Lodging Accommodation
+                        🏨 Room Lodging Accommodation
                       </td>
                       <td align="right" style="padding: 14px 18px; font-size: 14px; color: #0f172a; font-weight: 700;">
-                        ${room_charges:.2f}
+                        ₹{room_charges:.2f}
+                      </td>
+                    </tr>
+                    <tr style="background-color: #fafafa;">
+                      <td style="padding: 6px 18px 6px 28px; font-size: 12px; color: #64748b;">
+                        ↳ Room Stay GST ({room_tax_rate:.0f}%)
+                      </td>
+                      <td align="right" style="padding: 6px 18px; font-size: 12px; color: #64748b; font-weight: 600;">
+                        ₹{room_tax:.2f}
                       </td>
                     </tr>
         """
@@ -206,19 +223,27 @@ Payment Status    : PAID (Confirmed)
                         🍽️ Food & Beverage Dining
                       </td>
                       <td align="right" style="padding: 14px 18px; font-size: 14px; color: #0f172a; font-weight: 700;">
-                        ${food_charges:.2f}
+                        ₹{food_charges:.2f}
                       </td>
                     </tr>
                     {food_items_html}
+                    <tr style="background-color: #fafafa;">
+                      <td style="padding: 6px 18px 6px 28px; font-size: 12px; color: #64748b;">
+                        ↳ Restaurant Food GST (5%)
+                      </td>
+                      <td align="right" style="padding: 6px 18px; font-size: 12px; color: #64748b; font-weight: 600;">
+                        ₹{food_tax:.2f}
+                      </td>
+                    </tr>
         """
 
     html_message += f"""
                     <tr style="border-top: 1px solid #e2e8f0; background-color: #fafafa;">
-                      <td style="padding: 12px 18px; font-size: 14px; color: #64748b;">
-                        Government Taxes & Fees (10%)
+                      <td style="padding: 12px 18px; font-size: 14px; color: #64748b; font-weight: 600;">
+                        Total GST Taxes & Government Levies
                       </td>
-                      <td align="right" style="padding: 12px 18px; font-size: 14px; color: #475569; font-weight: 600;">
-                        ${tax_amount:.2f}
+                      <td align="right" style="padding: 12px 18px; font-size: 14px; color: #475569; font-weight: 700;">
+                        ₹{tax_amount:.2f}
                       </td>
                     </tr>
                     <tr style="border-top: 2px solid #0f172a; background: #f8fafc;">
@@ -226,7 +251,7 @@ Payment Status    : PAID (Confirmed)
                         TOTAL PAID
                       </td>
                       <td align="right" style="padding: 18px; font-size: 24px; font-weight: 900; color: #4f46e5;">
-                        ${total_amount:.2f}
+                        ₹{total_amount:.2f}
                       </td>
                     </tr>
                   </tbody>

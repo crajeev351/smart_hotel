@@ -37,3 +37,10 @@ class IsBookingOwnerOrStaff(permissions.BasePermission):
             return True
         return obj.guest == request.user
 
+class IsRoomStaffOrAdmin(permissions.BasePermission):
+    """
+    Allows access to Janitors, Receptionists, and Admins to inspect and update room cleaning/availability status.
+    """
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.role in ['ADMIN', 'RECEPTION', 'JANITOR']
+

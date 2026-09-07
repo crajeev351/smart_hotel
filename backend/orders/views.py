@@ -12,6 +12,8 @@ from menu.models import MenuItem
 from accounts.email_utils import send_configured_mail
 from .invoice_email import generate_invoice_email
 
+from django.db import transaction
+
 User = get_user_model()
 
 class TableViewSet(viewsets.ModelViewSet):
@@ -64,6 +66,26 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        queryset = Order.objects.all().order_by('-created_at')
+        table_number = self.request.query_params.get('table_number')
+        status_param = self.request.query_params.get('status')
+        guest_id = self.request.query_params.get('guest')
+
+        if table_number:
+            queryset = queryset.filter(table__table_number=table_number)
+        if guest_id:
+            queryset = queryset.filter(guest_id=guest_id)
+        if status_param:
+            if status_param == 'IN_PROGRESS':
+                queryset = queryset.filter(
+                    status__in=['PENDING', 'PREPARING', 'READY', 'SERVED'],
+                    items__status__in=['PENDING', 'PREPARING', 'READY', 'SERVED']
+                ).distinct()
+            else:
+                queryset = queryset.filter(status=status_param)
+        return queryset
+
     def perform_create(self, serializer):
         serializer.save(guest=self.request.user)
 
@@ -81,6 +103,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                     table.save()
 
     @action(detail=False, methods=['post'], url_path='place-order')
+    @transaction.atomic
     def place_order(self, request):
         table_number = request.data.get('table_number')
         guest_id = request.data.get('guest_id')
@@ -90,6 +113,22 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Response({'error': 'table_number is required'}, status=status.HTTP_400_BAD_REQUEST)
         if not items:
             return Response({'error': 'items list is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Pre-validate menu items
+        validated_items = []
+        for item in items:
+            menu_item_id = item.get('menu_item_id')
+            quantity = int(item.get('quantity', 1))
+            notes = item.get('notes', '')
+            try:
+                menu_item = MenuItem.objects.get(id=menu_item_id)
+            except MenuItem.DoesNotExist:
+                return Response({'error': f'Menu item {menu_item_id} not found.'}, status=status.HTTP_400_BAD_REQUEST)
+            validated_items.append({
+                'menu_item': menu_item,
+                'quantity': quantity,
+                'notes': notes
+            })
 
         # Get table
         table = get_object_or_404(Table, table_number=table_number)
@@ -104,10 +143,23 @@ class OrderViewSet(viewsets.ModelViewSet):
         # Get guest
         if guest_id:
             guest = get_object_or_404(User, id=guest_id)
+            if table.current_guest != guest:
+                table.current_guest = guest
+                table.status = 'OCCUPIED'
+                table.save()
         elif table.current_guest:
             guest = table.current_guest
-        else:
+        elif request.user.is_authenticated and request.user.role == 'GUEST':
             guest = request.user
+            if not table.current_guest:
+                table.current_guest = guest
+                table.status = 'OCCUPIED'
+                table.save()
+        else:
+            return Response(
+                {'error': f'Table {table.table_number} is not assigned to any guest. Please assign a guest to the table before placing an order.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Dynamic guest type update: If guest is STAY_IN and has active booking, update to BOTH
         active_booking = Booking.objects.filter(guest=guest, status='CHECKED_IN').first()
@@ -133,18 +185,13 @@ class OrderViewSet(viewsets.ModelViewSet):
             table.save()
 
         # Create order items
-        for item in items:
-            menu_item_id = item.get('menu_item_id')
-            quantity = int(item.get('quantity', 1))
-            notes = item.get('notes', '')
-
-            menu_item = get_object_or_404(MenuItem, id=menu_item_id)
+        for v in validated_items:
             OrderItem.objects.create(
                 order=active_order,
-                menu_item=menu_item,
-                quantity=quantity,
-                price_at_order=menu_item.price,
-                notes=notes
+                menu_item=v['menu_item'],
+                quantity=v['quantity'],
+                price_at_order=v['menu_item'].price,
+                notes=v['notes']
             )
 
         # Recalculate total
@@ -166,14 +213,11 @@ class OrderItemViewSet(viewsets.ModelViewSet):
         # Recalculate order total excluding cancelled items
         total = sum(i.quantity * i.price_at_order for i in order.items.exclude(status='CANCELLED'))
         order.total_amount = total
-        order.save()
 
-        # If all items in this order are cancelled, cancel the order itself
-        if not order.items.exclude(status='CANCELLED').exists():
+        # Synchronize order status with active items
+        active_items = order.items.exclude(status='CANCELLED')
+        if not active_items.exists():
             order.status = 'CANCELLED'
-            order.save()
-
-            # Reset table status if needed
             table = order.table
             if table:
                 other_active = Order.objects.filter(table=table, status__in=['PENDING', 'PREPARING', 'READY', 'SERVED']).exclude(pk=order.pk)
@@ -181,6 +225,15 @@ class OrderItemViewSet(viewsets.ModelViewSet):
                     table.status = 'VACANT'
                     table.current_guest = None
                     table.save()
+        elif all(i.status == 'SERVED' for i in active_items):
+            order.status = 'SERVED'
+        elif any(i.status == 'READY' for i in active_items):
+            order.status = 'READY'
+        elif any(i.status == 'PREPARING' for i in active_items):
+            order.status = 'PREPARING'
+        else:
+            order.status = 'PENDING'
+        order.save()
 
 class InvoiceViewSet(viewsets.ModelViewSet):
     queryset = Invoice.objects.all()
@@ -209,25 +262,24 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         # 1. Booking charges (only for general hotel checkout, not dine-in)
         booking = Booking.objects.filter(guest=guest, status='CHECKED_IN').first()
         room_charges = 0.00
+        room_tax = 0.00
         if booking and billing_type != 'DINE_IN':
             from datetime import date
-            # Nights calculation based on actual stay duration
             today = date.today()
             delta = today - booking.check_in_date
-            # Check-in day is counted as day 1. 
-            # If today == check_in_date, delta.days is 0, so max(1, 0+1) -> 1 day charge
-            # If today is 1 day after check_in_date, delta.days is 1 -> 2 days charge
-            # Wait, standard hotel billing: checkout on same day = 1 night (or day charge). 
-            # Checkout next day = 1 night. But user says "first day = 100, secound day = 200".
-            # So if check-in is 10th, checkout on 10th (first day) -> 1 day.
-            # Checkout on 11th (second day) -> 2 days.
             nights = max(1, delta.days + 1)
-            room_charges = float(booking.room.price_per_night) * nights
+            price_per_night = float(booking.room.price_per_night)
+            room_charges = price_per_night * nights
             booking.total_price = room_charges
             booking.save()
 
-        # 2. Food charges (only count dishes that have been SERVED)
-        # For dine-in, calculate based on all active orders linked to the table the guest is sitting at
+            # Room GST rate: 12% standard, 18% if room tariff > ₹7,500/night
+            room_tax_rate = 0.18 if price_per_night > 7500 else 0.12
+            room_tax = round(room_charges * room_tax_rate, 2)
+
+        # 2. Food charges
+        # For dine-in: table orders
+        # For general checkout: ALL orders from this guest during this stay (including room-charged orders and active orders)
         if billing_type == 'DINE_IN':
             table = Table.objects.filter(current_guest=guest).first()
             if table:
@@ -235,16 +287,30 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             else:
                 active_orders = Order.objects.filter(guest=guest, status__in=['PENDING', 'PREPARING', 'READY', 'SERVED'])
         else:
-            active_orders = Order.objects.filter(guest=guest, status__in=['PENDING', 'PREPARING', 'READY', 'SERVED'])
+            # Hotel checkout: include all orders linked to this guest's stay (active, served, or completed from room charges)
+            if booking:
+                booking_invoices = Invoice.objects.filter(booking=booking)
+                invoice_orders = Order.objects.filter(invoices__in=booking_invoices)
+                guest_orders = Order.objects.filter(guest=guest, created_at__date__gte=booking.check_in_date).exclude(status='CANCELLED')
+                active_orders = (invoice_orders | guest_orders).distinct()
+            else:
+                active_orders = Order.objects.filter(guest=guest).exclude(status='CANCELLED')
 
         food_charges = 0.00
         for o in active_orders:
-            food_charges += sum(float(i.quantity * i.price_at_order) for i in o.items.filter(status='SERVED'))
+            items_to_bill = o.items.exclude(status='CANCELLED')
+            for itm in items_to_bill:
+                if itm.status != 'SERVED' and itm.status != 'COMPLETED':
+                    itm.status = 'SERVED'
+                    itm.save()
+            food_charges += sum(float(i.quantity * i.price_at_order) for i in items_to_bill)
 
-        # 3. Calculate tax (10%)
-        subtotal = float(room_charges) + float(food_charges)
-        tax_amount = subtotal * 0.10
-        total_amount = subtotal + tax_amount
+        # Food GST rate: 5% GST on restaurant food orders
+        food_tax = round(food_charges * 0.05, 2)
+
+        # 3. Calculate total tax and grand total
+        tax_amount = round(room_tax + food_tax, 2)
+        total_amount = round(float(room_charges) + float(food_charges) + tax_amount, 2)
 
         # Delete any existing pending invoice of the same billing_type for this guest before creating the new one
         Invoice.objects.filter(
@@ -267,13 +333,12 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
         if active_orders.exists():
             invoice.orders.set(active_orders)
-            for order in active_orders:
-                # Cancel any non-served items when billing is generated
-                order.items.exclude(status='SERVED').update(status='CANCELLED')
-                order.status = 'SERVED'
-                if billing_type == 'DINE_IN':
+            if billing_type == 'DINE_IN':
+                for order in active_orders:
+                    order.items.exclude(status='SERVED').update(status='CANCELLED')
+                    order.status = 'SERVED'
                     order.guest = guest
-                order.save()
+                    order.save()
 
         serializer = self.get_serializer(invoice)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -299,155 +364,23 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             room.status = 'MAINTENANCE' # Maintenance represents Under Cleaning in current choices
             room.save()
 
-            # Mark all pending dine-in invoices for this booking as PAID
+            # Mark all pending dine-in / room-charge invoices for this booking as PAID
             Invoice.objects.filter(booking=booking, payment_status='PENDING').update(payment_status='PAID')
 
         # Update orders to COMPLETED
         for order in invoice.orders.all():
-            # Cancel any non-served items
             order.items.exclude(status='SERVED').update(status='CANCELLED')
             order.status = 'COMPLETED'
             if order.table:
                 table = order.table
-                table.status = 'UNDER_CLEANING'
+                table.status = 'VACANT'
                 table.current_guest = None
                 table.save()
                 order.table = None
             order.save()
 
-
-class InvoiceViewSet(viewsets.ModelViewSet):
-    queryset = Invoice.objects.all()
-    serializer_class = InvoiceSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        queryset = Invoice.objects.all()
-        guest_id = self.request.query_params.get('guest')
-        payment_status = self.request.query_params.get('payment_status')
-        if guest_id:
-            queryset = queryset.filter(guest_id=guest_id)
-        if payment_status:
-            queryset = queryset.filter(payment_status=payment_status)
-        return queryset
-
-    @action(detail=False, methods=['post'], url_path='generate-bill')
-    def generate_bill(self, request):
-        guest_id = request.data.get('guest_id')
-        billing_type = request.data.get('billing_type', 'CHECKOUT')
-        if not guest_id:
-            return Response({'error': 'guest_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        guest = get_object_or_404(User, id=guest_id)
-
-        # 1. Booking charges (only for general hotel checkout, not dine-in)
-        booking = Booking.objects.filter(guest=guest, status='CHECKED_IN').first()
-        room_charges = 0.00
-        if booking and billing_type != 'DINE_IN':
-            from datetime import date
-            # Nights calculation based on actual stay duration
-            today = date.today()
-            delta = today - booking.check_in_date
-            # Check-in day is counted as day 1. 
-            # If today == check_in_date, delta.days is 0, so max(1, 0+1) -> 1 day charge
-            # If today is 1 day after check_in_date, delta.days is 1 -> 2 days charge
-            # Wait, standard hotel billing: checkout on same day = 1 night (or day charge). 
-            # Checkout next day = 1 night. But user says "first day = 100, secound day = 200".
-            # So if check-in is 10th, checkout on 10th (first day) -> 1 day.
-            # Checkout on 11th (second day) -> 2 days.
-            nights = max(1, delta.days + 1)
-            room_charges = float(booking.room.price_per_night) * nights
-            booking.total_price = room_charges
-            booking.save()
-
-        # 2. Food charges (only count dishes that have been SERVED)
-        # For dine-in, calculate based on all active orders linked to the table the guest is sitting at
-        if billing_type == 'DINE_IN':
-            table = Table.objects.filter(current_guest=guest).first()
-            if table:
-                active_orders = Order.objects.filter(table=table, status__in=['PENDING', 'PREPARING', 'READY', 'SERVED'])
-            else:
-                active_orders = Order.objects.filter(guest=guest, status__in=['PENDING', 'PREPARING', 'READY', 'SERVED'])
-        else:
-            active_orders = Order.objects.filter(guest=guest, status__in=['PENDING', 'PREPARING', 'READY', 'SERVED'])
-
-        food_charges = 0.00
-        for o in active_orders:
-            food_charges += sum(float(i.quantity * i.price_at_order) for i in o.items.filter(status='SERVED'))
-
-        # 3. Calculate tax (10%)
-        subtotal = float(room_charges) + float(food_charges)
-        tax_amount = subtotal * 0.10
-        total_amount = subtotal + tax_amount
-
-        # Delete any existing pending invoice of the same billing_type for this guest before creating the new one
-        Invoice.objects.filter(
-            guest=guest,
-            guest_type_at_billing=billing_type,
-            payment_status='PENDING'
-        ).delete()
-
-        # Create invoice
-        invoice = Invoice.objects.create(
-            guest=guest,
-            booking=booking if billing_type != 'DINE_IN' else None,
-            guest_type_at_billing=billing_type,
-            room_charges=room_charges,
-            food_charges=food_charges,
-            tax_amount=tax_amount,
-            total_amount=total_amount,
-            payment_status='PENDING'
-        )
-
-        if active_orders.exists():
-            invoice.orders.set(active_orders)
-            for order in active_orders:
-                # Cancel any non-served items when billing is generated
-                order.items.exclude(status='SERVED').update(status='CANCELLED')
-                order.status = 'SERVED'
-                if billing_type == 'DINE_IN':
-                    order.guest = guest
-                order.save()
-
-        serializer = self.get_serializer(invoice)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @action(detail=True, methods=['post'], url_path='pay-invoice')
-    def pay_invoice(self, request, pk=None):
-        invoice = self.get_object()
-        if invoice.payment_status == 'PAID':
-            return Response({'error': 'Invoice is already paid'}, status=status.HTTP_400_BAD_REQUEST)
-
-        invoice.payment_status = 'PAID'
-        invoice.save()
-
-        # Update Booking if any
-        if invoice.booking:
-            booking = invoice.booking
-            booking.status = 'CHECKED_OUT'
-            booking.actual_check_out = timezone.now()
-            booking.save()
-
-            # Room status transitions to UNDER_CLEANING
-            room = booking.room
-            room.status = 'MAINTENANCE' # Maintenance represents Under Cleaning in current choices
-            room.save()
-
-            # Mark all pending dine-in invoices for this booking as PAID
-            Invoice.objects.filter(booking=booking, payment_status='PENDING').update(payment_status='PAID')
-
-        # Update orders to COMPLETED
-        for order in invoice.orders.all():
-            # Cancel any non-served items
-            order.items.exclude(status='SERVED').update(status='CANCELLED')
-            order.status = 'COMPLETED'
-            if order.table:
-                table = order.table
-                table.status = 'UNDER_CLEANING'
-                table.current_guest = None
-                table.save()
-                order.table = None
-            order.save()
+        # Also ensure any table still assigned to the guest is freed
+        Table.objects.filter(current_guest=invoice.guest).update(status='VACANT', current_guest=None)
 
         # Send Invoice via Email
         email_sent = False
@@ -491,26 +424,26 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         if not booking:
             return Response({'error': 'Guest does not have an active room check-in to charge to.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Link invoice to booking
+        # Link invoice to booking and mark as ROOM_CHARGE
         invoice.booking = booking
+        invoice.guest_type_at_billing = 'ROOM_CHARGE'
         invoice.payment_status = 'PENDING'
         invoice.save()
 
         # Release the table so it can be used again
         for order in invoice.orders.all():
-            # Cancel any non-served items
             order.items.exclude(status='SERVED').update(status='CANCELLED')
-            # Keep order status as SERVED so it stays in reception check-out calculations
-            order.status = 'SERVED'
+            order.status = 'COMPLETED'
             if order.table:
                 table = order.table
-                table.status = 'UNDER_CLEANING'
+                table.status = 'VACANT'
                 table.current_guest = None
                 table.save()
-
-                # Unlink order from table so table is vacant
                 order.table = None
             order.save()
+
+        # Free all tables assigned to this guest
+        Table.objects.filter(current_guest=invoice.guest).update(status='VACANT', current_guest=None)
 
         serializer = self.get_serializer(invoice)
         return Response(serializer.data, status=status.HTTP_200_OK)

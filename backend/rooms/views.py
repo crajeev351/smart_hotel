@@ -5,16 +5,19 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from .models import Room, Booking
 from .serializers import RoomSerializer, BookingSerializer
-from .permissions import IsAdmin, IsReceptionistOrAdmin, IsBookingOwnerOrStaff
+from .permissions import IsAdmin, IsReceptionistOrAdmin, IsBookingOwnerOrStaff, IsRoomStaffOrAdmin
 
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
 
     def get_permissions(self):
-        # Only receptionist or admin can write (create/update/delete) rooms
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        # Only receptionist or admin can create or destroy rooms
+        if self.action in ['create', 'destroy']:
             return [IsReceptionistOrAdmin()]
+        # Janitors, Receptionists, and Admins can update room cleaning and availability statuses
+        if self.action in ['update', 'partial_update']:
+            return [IsRoomStaffOrAdmin()]
         return [permissions.IsAuthenticated()]
 
 @api_view(['DELETE'])

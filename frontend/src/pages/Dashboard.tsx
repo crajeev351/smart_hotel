@@ -85,8 +85,8 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    
-    
+    const poll = setInterval(() => fetchDashboardData(true), 6000);
+    return () => clearInterval(poll);
   }, [role, selectedYear, selectedMonth]);
 
   const handleSeatReservation = async (resId: number, name: string, tableId: number) => {
@@ -142,9 +142,10 @@ const Dashboard: React.FC = () => {
 
   // --- RENDERING ADMIN DASHBOARD ---
   const renderAdminDashboard = () => {
-    const occupancyCircleRadius = 40;
+    const occupancyCircleRadius = 46;
     const occupancyCircumference = 2 * Math.PI * occupancyCircleRadius;
-    const occupancyOffset = stats ? occupancyCircumference - (stats.occupancy_rate / 100) * occupancyCircumference : occupancyCircumference;
+    const currentRate = Math.min(100, Math.max(0, stats?.occupancy_rate ?? 0));
+    const occupancyOffset = stats ? occupancyCircumference - (currentRate / 100) * occupancyCircumference : occupancyCircumference;
 
     return (
       <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in">
@@ -321,19 +322,32 @@ const Dashboard: React.FC = () => {
               <h3 className="text-xs font-bold tracking-widest text-gray-400 uppercase">
                 Hotel Occupancy Load
               </h3>
-              <div className="relative flex items-center justify-center my-4 sm:my-6">
-                <svg className="w-28 h-28 sm:w-36 sm:h-36 transform -rotate-90">
-                  <circle cx="56" cy="56" r={occupancyCircleRadius} className="stroke-slate-900" strokeWidth="6" fill="transparent" />
-                  <circle cx="56" cy="56" r={occupancyCircleRadius} className="stroke-indigo-500 transition-all duration-1000 ease-out" strokeWidth="6" fill="transparent" strokeDasharray={occupancyCircumference} strokeDashoffset={loading ? occupancyCircumference : occupancyOffset} strokeLinecap="round" />
+              <div className="relative w-36 h-36 sm:w-40 sm:h-40 mx-auto my-3 flex items-center justify-center">
+                <svg viewBox="0 0 120 120" className="w-full h-full transform -rotate-90">
+                  <circle cx="60" cy="60" r={occupancyCircleRadius} className="stroke-slate-900" strokeWidth="8" fill="transparent" />
+                  <circle 
+                    cx="60" 
+                    cy="60" 
+                    r={occupancyCircleRadius} 
+                    className="stroke-indigo-500 transition-all duration-1000 ease-out" 
+                    strokeWidth="8" 
+                    fill="transparent" 
+                    strokeDasharray={occupancyCircumference} 
+                    strokeDashoffset={loading ? occupancyCircumference : occupancyOffset} 
+                    strokeLinecap="round" 
+                  />
                 </svg>
-                {/* Fallback support for original dimensions on larger screens if svg changes */}
-                <div className="absolute flex flex-col items-center">
-                  <span className="text-2xl sm:text-3xl font-black text-white">{loading ? '...' : `${stats?.occupancy_rate}%`}</span>
-                  <span className="text-[9px] sm:text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-0.5">Occupancy</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                  <span className="text-2xl sm:text-3xl font-black text-white leading-none">
+                    {loading ? '...' : `${stats?.occupancy_rate ?? 0}%`}
+                  </span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-1">
+                    Occupancy
+                  </span>
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] sm:text-xs text-gray-400 font-semibold text-indigo-400">Live analytics streaming</p>
+                <p className="text-[10px] sm:text-xs text-indigo-400 font-semibold">Live analytics streaming</p>
               </div>
             </div>
           </div>
@@ -422,12 +436,25 @@ const Dashboard: React.FC = () => {
           <div className="lg:col-span-5 space-y-4 sm:space-y-6">
             <div className="glass-panel p-4 sm:p-6 rounded-2xl flex flex-col items-center justify-between text-center min-h-[200px] sm:min-h-[220px]">
               <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Available Lodging Capacity</h4>
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 my-4 flex items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="56" cy="56" r="40" className="stroke-slate-900" strokeWidth="6" fill="transparent" />
-                  <circle cx="56" cy="56" r="40" className="stroke-emerald-400" strokeWidth="6" fill="transparent" strokeDasharray={2 * Math.PI * 40} strokeDashoffset={2 * Math.PI * 40 - (vacantPercent / 100) * 2 * Math.PI * 40} strokeLinecap="round" />
+              <div className="relative w-32 h-32 sm:w-36 sm:h-36 mx-auto my-3 flex items-center justify-center">
+                <svg viewBox="0 0 120 120" className="w-full h-full transform -rotate-90">
+                  <circle cx="60" cy="60" r={46} className="stroke-slate-900" strokeWidth="8" fill="transparent" />
+                  <circle 
+                    cx="60" 
+                    cy="60" 
+                    r={46} 
+                    className="stroke-emerald-400 transition-all duration-1000 ease-out" 
+                    strokeWidth="8" 
+                    fill="transparent" 
+                    strokeDasharray={2 * Math.PI * 46} 
+                    strokeDashoffset={2 * Math.PI * 46 - (vacantPercent / 100) * 2 * Math.PI * 46} 
+                    strokeLinecap="round" 
+                  />
                 </svg>
-                <span className="absolute text-xl sm:text-2xl font-black text-white">{loading ? '...' : `${vacantPercent}%`}</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                  <span className="text-2xl sm:text-3xl font-black text-white leading-none">{loading ? '...' : `${vacantPercent}%`}</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-1">Vacant</span>
+                </div>
               </div>
               <p className="text-[10px] text-gray-500">Percentage of rooms clean and ready for registration.</p>
             </div>
@@ -442,7 +469,10 @@ const Dashboard: React.FC = () => {
     const vacantTables = tables.filter(t => t.status === 'VACANT').length;
     const occupiedTables = tables.filter(t => t.status === 'OCCUPIED').length;
     const cleaningTables = tables.filter(t => t.status === 'UNDER_CLEANING').length;
-    const activeOrders = orders.filter(o => o.status === 'PLACED' || o.status === 'COOKING').length;
+    const activeOrders = orders.filter(o => 
+      o.status !== 'CANCELLED' && o.status !== 'COMPLETED' &&
+      (o.status === 'PENDING' || o.status === 'PREPARING' || o.status === 'READY' || (o.items && o.items.some((i: any) => i.status !== 'SERVED' && i.status !== 'CANCELLED')))
+    ).length;
     const totalGuests = tables.filter(t => t.status === 'OCCUPIED').reduce((acc, t) => acc + (t.capacity || 2), 0);
 
     return (
@@ -596,11 +626,21 @@ const Dashboard: React.FC = () => {
     );
   };
 
-  // --- RENDERING KITCHEN DASHBOARD ---
   const renderKitchenDashboard = () => {
-    const placedOrders = orders.filter(o => o.status === 'PLACED').length;
-    const cookingOrders = orders.filter(o => o.status === 'COOKING').length;
-    const completedOrdersToday = orders.filter(o => o.status === 'SERVED' || o.status === 'COMPLETED').length;
+    const placedOrders = orders.filter(o => 
+      o.status !== 'CANCELLED' && o.status !== 'COMPLETED' &&
+      (o.status === 'PENDING' || (o.items && o.items.some((i: any) => i.status === 'PENDING')))
+    ).length;
+
+    const cookingOrders = orders.filter(o => 
+      o.status !== 'CANCELLED' && o.status !== 'COMPLETED' &&
+      (o.status === 'PREPARING' || o.status === 'READY' || (o.items && o.items.some((i: any) => i.status === 'PREPARING' || i.status === 'READY')))
+    ).length;
+
+    const completedOrdersToday = orders.filter(o => 
+      o.status === 'SERVED' || o.status === 'COMPLETED' || 
+      (o.items && o.items.length > 0 && o.items.every((i: any) => i.status === 'SERVED' || i.status === 'CANCELLED'))
+    ).length;
 
     return (
       <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in">
