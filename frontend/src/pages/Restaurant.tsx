@@ -1365,7 +1365,7 @@ const Restaurant: React.FC = () => {
                             Cancel Order
                           </button>
                         </div>
-                        <span className="text-indigo-400">Total: ₹{parseFloat(activeOrder.total_amount || 0).toFixed(2)}</span>
+                        <span className="text-indigo-400">Total: ₹{parseFloat(activeOrder.total_amount || '0').toFixed(2)}</span>
                       </div>
                       {activeOrder.items.map(item => (
                         <div key={item.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs border-b border-white/[0.03] pb-2 gap-2">

@@ -50,6 +50,25 @@ interface Invoice {
   tax_amount: string;
   total_amount: string;
   payment_status: string;
+  booking_details?: {
+    room_number: string;
+    room_type: string;
+    nights: number;
+    price_per_night: string;
+  };
+  itemized_items?: Array<{
+    id: number;
+    name: string;
+    quantity: number;
+    unit_price: string;
+    total_price: string;
+    is_veg: boolean;
+  }>;
+  tax_breakdown?: {
+    room_stay_gst: number;
+    food_gst: number;
+    total_gst: number;
+  };
 }
 
 const Reception: React.FC = () => {
@@ -2742,7 +2761,7 @@ const Reception: React.FC = () => {
                     </div>
 
                     {/* Room Lodging Details */}
-                    {parseFloat(currentInvoice.room_charges || 0) > 0 && (
+                    {parseFloat(currentInvoice.room_charges || '0') > 0 && (
                       <>
                         <div className="p-3.5 grid grid-cols-3 border-b border-white/5 text-gray-300 bg-slate-900/20">
                           <div className="font-bold text-white flex items-center gap-1.5">
@@ -2750,23 +2769,23 @@ const Reception: React.FC = () => {
                           </div>
                           <div className="text-center text-gray-400">
                             {currentInvoice.booking_details ? (
-                              <span>Room {currentInvoice.booking_details.room_number} ({currentInvoice.booking_details.room_type}) • {currentInvoice.booking_details.nights} night(s) @ ₹{parseFloat(currentInvoice.booking_details.price_per_night || 0).toFixed(2)}</span>
+                              <span>Room {currentInvoice.booking_details.room_number} ({currentInvoice.booking_details.room_type}) • {currentInvoice.booking_details.nights} night(s) @ ₹{parseFloat(currentInvoice.booking_details.price_per_night || '0').toFixed(2)}</span>
                             ) : (
                               <span>Stay accommodation charges</span>
                             )}
                           </div>
-                          <div className="text-right font-black text-white font-mono">₹{parseFloat(currentInvoice.room_charges).toFixed(2)}</div>
+                          <div className="text-right font-black text-white font-mono">₹{parseFloat(currentInvoice.room_charges || '0').toFixed(2)}</div>
                         </div>
                         <div className="px-3.5 py-2 grid grid-cols-3 border-b border-white/5 text-gray-400 bg-white/[0.01] text-[11px]">
                           <div className="pl-4 text-gray-400 font-medium">↳ Room Stay GST (12%)</div>
                           <div className="text-center text-gray-500">6% CGST + 6% SGST</div>
-                          <div className="text-right font-bold text-gray-300 font-mono">₹{(parseFloat(currentInvoice.room_charges) * 0.12).toFixed(2)}</div>
+                          <div className="text-right font-bold text-gray-300 font-mono">₹{(parseFloat(currentInvoice.room_charges || '0') * 0.12).toFixed(2)}</div>
                         </div>
                       </>
                     )}
 
                     {/* Food & Dining Details */}
-                    {parseFloat(currentInvoice.food_charges || 0) > 0 && (
+                    {parseFloat(currentInvoice.food_charges || '0') > 0 && (
                       <>
                         <div className="p-3.5 grid grid-cols-3 border-b border-white/5 text-gray-300 bg-slate-900/20">
                           <div className="font-bold text-white flex items-center gap-1.5">
@@ -2775,7 +2794,7 @@ const Reception: React.FC = () => {
                           <div className="text-center text-gray-400">
                             <span>Billed food & beverage orders</span>
                           </div>
-                          <div className="text-right font-black text-white font-mono">₹{parseFloat(currentInvoice.food_charges).toFixed(2)}</div>
+                          <div className="text-right font-black text-white font-mono">₹{parseFloat(currentInvoice.food_charges || '0').toFixed(2)}</div>
                         </div>
 
                         {/* Itemized Food List */}
@@ -2789,10 +2808,10 @@ const Reception: React.FC = () => {
                                   <span className="truncate">{item.name}</span>
                                 </div>
                                 <div className="text-center text-gray-400 font-mono text-[11px]">
-                                  {item.quantity} x ₹{parseFloat(item.unit_price || 0).toFixed(2)}
+                                  {item.quantity} x ₹{parseFloat(item.unit_price || '0').toFixed(2)}
                                 </div>
                                 <div className="text-right font-bold text-white font-mono text-[11px]">
-                                  ₹{parseFloat(item.total_price || 0).toFixed(2)}
+                                  ₹{parseFloat(item.total_price || '0').toFixed(2)}
                                 </div>
                               </div>
                             ))}
@@ -2802,7 +2821,7 @@ const Reception: React.FC = () => {
                         <div className="px-3.5 py-2 grid grid-cols-3 border-b border-white/5 text-gray-400 bg-white/[0.01] text-[11px]">
                           <div className="pl-4 text-gray-400 font-medium">↳ Restaurant Food GST (5%)</div>
                           <div className="text-center text-gray-500">2.5% CGST + 2.5% SGST</div>
-                          <div className="text-right font-bold text-gray-300 font-mono">₹{(parseFloat(currentInvoice.food_charges) * 0.05).toFixed(2)}</div>
+                          <div className="text-right font-bold text-gray-300 font-mono">₹{(parseFloat(currentInvoice.food_charges || '0') * 0.05).toFixed(2)}</div>
                         </div>
                       </>
                     )}
