@@ -194,13 +194,43 @@ class OrderViewSet(viewsets.ModelViewSet):
                 notes=v['notes']
             )
 
-        # Recalculate total
-        total = sum(i.quantity * i.price_at_order for i in active_order.items.all())
+        # Invalidate any existing pending DINE_IN invoice for this guest since a new order/item is added
+        Invoice.objects.filter(
+            guest=guest,
+            guest_type_at_billing='DINE_IN',
+            payment_status='PENDING'
+        ).delete()
+
+        # Recalculate total excluding cancelled items
+        total = sum(i.quantity * i.price_at_order for i in active_order.items.exclude(status='CANCELLED'))
         active_order.total_amount = total
+
+        # Synchronize order status
+        active_items = active_order.items.exclude(status='CANCELLED')
+        if any(i.status == 'PENDING' for i in active_items):
+            active_order.status = 'PENDING'
+        elif any(i.status == 'PREPARING' for i in active_items):
+            active_order.status = 'PREPARING'
+        elif any(i.status == 'READY' for i in active_items):
+            active_order.status = 'READY'
+        elif all(i.status == 'SERVED' for i in active_items):
+            active_order.status = 'SERVED'
         active_order.save()
 
         serializer = self.get_serializer(active_order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='serve-all')
+    def serve_all(self, request, pk=None):
+        order = self.get_object()
+        active_items = order.items.exclude(status='CANCELLED')
+        if not active_items.exists():
+            return Response({'error': 'No active food items found to serve.'}, status=status.HTTP_400_BAD_REQUEST)
+        active_items.update(status='SERVED')
+        order.status = 'SERVED'
+        order.save()
+        serializer = self.get_serializer(order)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class OrderItemViewSet(viewsets.ModelViewSet):
     queryset = OrderItem.objects.all()
@@ -253,7 +283,10 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='generate-bill')
     def generate_bill(self, request):
         guest_id = request.data.get('guest_id')
+        table_number = request.data.get('table_number')
         billing_type = request.data.get('billing_type', 'CHECKOUT')
+        force_serve = request.data.get('force_serve', False)
+
         if not guest_id:
             return Response({'error': 'guest_id is required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -277,40 +310,110 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             room_tax_rate = 0.18 if price_per_night > 7500 else 0.12
             room_tax = round(room_charges * room_tax_rate, 2)
 
+        paid_order_ids = Order.objects.filter(invoices__payment_status='PAID').values_list('id', flat=True)
+
         # 2. Food charges
-        # For dine-in: table orders
-        # For general checkout: ALL orders from this guest during this stay (including room-charged orders and active orders)
         if billing_type == 'DINE_IN':
-            table = Table.objects.filter(current_guest=guest).first()
-            if table:
-                active_orders = Order.objects.filter(table=table, status__in=['PENDING', 'PREPARING', 'READY', 'SERVED'])
-            else:
-                active_orders = Order.objects.filter(guest=guest, status__in=['PENDING', 'PREPARING', 'READY', 'SERVED'])
+            table = None
+            if table_number:
+                table = Table.objects.filter(table_number=table_number).first()
+            if not table:
+                table = Table.objects.filter(current_guest=guest).first()
+
+            if not table:
+                return Response(
+                    {'error': 'Table could not be identified for dine-in billing.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            active_orders = Order.objects.filter(
+                table=table, 
+                status__in=['PENDING', 'PREPARING', 'READY', 'SERVED']
+            ).exclude(id__in=paid_order_ids)
+
+            if not active_orders.exists():
+                return Response(
+                    {'error': f'No active unpaid food orders found for Table {table.table_number}.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Check all items
+            all_active_items = []
+            for o in active_orders:
+                all_active_items.extend(list(o.items.exclude(status='CANCELLED')))
+
+            if not all_active_items:
+                return Response(
+                    {'error': f'No active food items found on Table {table.table_number} to bill.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Ensure food has been served to the customer
+            unserved = [i for i in all_active_items if i.status != 'SERVED']
+            if unserved:
+                if not force_serve:
+                    return Response(
+                        {
+                            'error': f'Food must be served to customer before generating the bill ({len(unserved)} dish(es) still in preparation or ready).'
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                else:
+                    for itm in unserved:
+                        itm.status = 'SERVED'
+                        itm.save()
+
+            food_charges = sum(float(i.quantity * i.price_at_order) for i in all_active_items)
+            food_tax = round(food_charges * 0.05, 2)
         else:
-            # Hotel checkout: include all orders linked to this guest's stay (active, served, or completed from room charges)
+            # Hotel checkout: ONLY include orders that are NOT ALREADY PAID
             if booking:
-                booking_invoices = Invoice.objects.filter(booking=booking)
-                invoice_orders = Order.objects.filter(invoices__in=booking_invoices)
-                guest_orders = Order.objects.filter(guest=guest, created_at__date__gte=booking.check_in_date).exclude(status='CANCELLED')
-                active_orders = (invoice_orders | guest_orders).distinct()
+                booking_pending_invoices = Invoice.objects.filter(
+                    booking=booking, 
+                    payment_status='PENDING', 
+                    guest_type_at_billing='ROOM_CHARGE'
+                )
+                invoice_orders = Order.objects.filter(invoices__in=booking_pending_invoices)
+                guest_orders = Order.objects.filter(
+                    guest=guest, 
+                    created_at__date__gte=booking.check_in_date,
+                    status__in=['PENDING', 'PREPARING', 'READY', 'SERVED']
+                )
+                active_orders = (invoice_orders | guest_orders).exclude(id__in=paid_order_ids).distinct()
             else:
-                active_orders = Order.objects.filter(guest=guest).exclude(status='CANCELLED')
+                active_orders = Order.objects.filter(
+                    guest=guest, 
+                    status__in=['PENDING', 'PREPARING', 'READY', 'SERVED']
+                ).exclude(id__in=paid_order_ids).distinct()
 
-        food_charges = 0.00
-        for o in active_orders:
-            items_to_bill = o.items.exclude(status='CANCELLED')
-            for itm in items_to_bill:
-                if itm.status != 'SERVED' and itm.status != 'COMPLETED':
-                    itm.status = 'SERVED'
-                    itm.save()
-            food_charges += sum(float(i.quantity * i.price_at_order) for i in items_to_bill)
+            # If there is no active booking and no unpaid orders, there is nothing to bill!
+            if not booking and not active_orders.exists():
+                return Response(
+                    {'error': f'Guest {guest.name or guest.username} has no active stay or pending orders. All bills have already been paid and settled.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        # Food GST rate: 5% GST on restaurant food orders
-        food_tax = round(food_charges * 0.05, 2)
+            food_charges = 0.00
+            for o in active_orders:
+                items_to_bill = o.items.exclude(status='CANCELLED')
+                for itm in items_to_bill:
+                    if itm.status != 'SERVED' and itm.status != 'COMPLETED':
+                        itm.status = 'SERVED'
+                        itm.save()
+                food_charges += sum(float(i.quantity * i.price_at_order) for i in items_to_bill)
+
+            # Food GST rate: 5% GST on restaurant food orders
+            food_tax = round(food_charges * 0.05, 2)
 
         # 3. Calculate total tax and grand total
         tax_amount = round(room_tax + food_tax, 2)
         total_amount = round(float(room_charges) + float(food_charges) + tax_amount, 2)
+
+        if total_amount == 0 and not active_orders.exists() and not booking:
+            return Response(
+                {'error': f'Guest {guest.name or guest.username} has zero balance. Everything is paid.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Delete any existing pending invoice of the same billing_type for this guest before creating the new one
         Invoice.objects.filter(
@@ -335,7 +438,6 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             invoice.orders.set(active_orders)
             if billing_type == 'DINE_IN':
                 for order in active_orders:
-                    order.items.exclude(status='SERVED').update(status='CANCELLED')
                     order.status = 'SERVED'
                     order.guest = guest
                     order.save()
@@ -396,7 +498,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             else:
                 email_body, html_body = generate_invoice_email(invoice)
                 send_configured_mail(
-                    subject=f'Smart Hotel Payment Receipt - INV-{invoice.id}',
+                    subject=f'Imperium Hotel Payment Receipt - INV-{invoice.id}',
                     message=email_body,
                     recipient_list=[recipient_email],
                     html_message=html_body,

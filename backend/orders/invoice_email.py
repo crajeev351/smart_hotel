@@ -91,7 +91,7 @@ def generate_invoice_email(invoice):
     # Build plain text message
     text_message = f"""Dear {guest_name},
 
-Thank you for choosing Smart Hotel & Resort. Your payment has been successfully received and processed.
+Thank you for choosing Imperium Hotel & Resort. Your payment has been successfully received and processed.
 
 ==================================================
               OFFICIAL PAYMENT RECEIPT
@@ -116,7 +116,7 @@ Payment Status    : PAID (Confirmed)
     text_message += f"TOTAL AMOUNT PAID       : ₹{total_amount:.2f}\n"
     text_message += f"==================================================\n\n"
     text_message += f"We hope your stay or dining experience was extraordinary. Please keep this email as your official digital invoice.\n\n"
-    text_message += f"Warm regards,\nSmart Hotel & Resort Management\n24/7 Concierge Support | support@smarthotel.com\n"
+    text_message += f"Warm regards,\nImperium Hotel Management\n24/7 Concierge Support | concierge@imperiumhotel.com\n"
 
     # Build High-End Responsive HTML Message
     html_message = f"""<!DOCTYPE html>
@@ -137,12 +137,12 @@ Payment Status    : PAID (Confirmed)
           
           <!-- HERO BRAND HEADER -->
           <tr>
-            <td style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%); padding: 36px 32px; text-align: center; border-bottom: 1px solid rgba(99, 102, 241, 0.3);">
-              <div style="display: inline-block; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(165, 180, 252, 0.3); border-radius: 999px; padding: 6px 16px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #a5b4fc; margin-bottom: 12px;">
-                ✨ Smart Hotel & Resort
+            <td style="background: linear-gradient(135deg, #171717 0%, #221c11 50%, #332810 100%); padding: 36px 32px; text-align: center; border-bottom: 1px solid rgba(196, 154, 50, 0.3);">
+              <div style="display: inline-block; background: rgba(196, 154, 50, 0.15); border: 1px solid rgba(196, 154, 50, 0.4); border-radius: 999px; padding: 6px 16px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #C49A32; margin-bottom: 12px;">
+                ✨ Imperium Hotel & Resort
               </div>
               <h1 style="margin: 8px 0 4px; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">Payment Receipt</h1>
-              <p style="margin: 0; font-size: 14px; color: #94a3b8;">Receipt Reference: <span style="color: #a5b4fc; font-weight: 700;">{escape(invoice_id)}</span></p>
+              <p style="margin: 0; font-size: 14px; color: #94a3b8;">Receipt Reference: <span style="color: #C49A32; font-weight: 700;">{escape(invoice_id)}</span></p>
               
               <!-- PAID BADGE -->
               <div style="margin-top: 20px; display: inline-block;">
@@ -161,7 +161,7 @@ Payment Status    : PAID (Confirmed)
               <!-- GREETING -->
               <h2 style="margin: 0 0 12px; font-size: 20px; font-weight: 700; color: #0f172a;">Dear {escape(guest_name)},</h2>
               <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.6; color: #475569;">
-                Thank you for choosing <strong>Smart Hotel</strong>. We have received your payment in full. Below is your detailed digital receipt for your records.
+                Thank you for choosing <strong>Imperium Hotel</strong>. We have received your payment in full. Below is your detailed digital receipt for your records.
               </p>
               
               <!-- METRICS GRID TABLE -->
@@ -173,7 +173,7 @@ Payment Status    : PAID (Confirmed)
                   </td>
                   <td width="33%" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; text-align: center;">
                     <div style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">Category</div>
-                    <div style="font-size: 13px; font-weight: 700; color: #6366f1;">{escape(guest_type)}</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #C49A32;">{escape(guest_type)}</div>
                   </td>
                   <td width="33%" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; text-align: center;">
                     <div style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">Status</div>
@@ -250,7 +250,7 @@ Payment Status    : PAID (Confirmed)
                       <td style="padding: 18px; font-size: 16px; font-weight: 800; color: #0f172a;">
                         TOTAL PAID
                       </td>
-                      <td align="right" style="padding: 18px; font-size: 24px; font-weight: 900; color: #4f46e5;">
+                      <td align="right" style="padding: 18px; font-size: 24px; font-weight: 900; color: #C49A32;">
                         ₹{total_amount:.2f}
                       </td>
                     </tr>
@@ -259,7 +259,7 @@ Payment Status    : PAID (Confirmed)
               </div>
               
               <!-- INTERACTIVE ACTION CTA BOX -->
-              <div style="background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%); border: 1px solid #c7d2fe; border-radius: 14px; padding: 22px; text-align: center; margin-bottom: 28px;">
+              <div style="background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%); border: 1px solid rgba(196, 154, 50, 0.4); border-radius: 14px; padding: 22px; text-align: center; margin-bottom: 28px;">
                 <h3 style="margin: 0 0 6px; font-size: 16px; font-weight: 700; color: #1e1b4b;">How was your experience?</h3>
                 <p style="margin: 0 0 16px; font-size: 13px; color: #4338ca;">We'd love to hear your feedback on your stay or meal with us.</p>
                 
@@ -267,7 +267,7 @@ Payment Status    : PAID (Confirmed)
                   <a href="https://smart-hotel-frontend.onrender.com" target="_blank" style="display: inline-block; background: #4f46e5; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 700; padding: 10px 22px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3); margin: 4px;">
                     ⭐ Rate Your Experience
                   </a>
-                  <a href="https://smart-hotel-frontend.onrender.com" target="_blank" style="display: inline-block; background: #ffffff; color: #4f46e5; border: 1px solid #c7d2fe; text-decoration: none; font-size: 13px; font-weight: 700; padding: 10px 22px; border-radius: 8px; margin: 4px;">
+                  <a href="https://smart-hotel-frontend.onrender.com" target="_blank" style="display: inline-block; background: #ffffff; color: #C49A32; border: 1px solid rgba(196, 154, 50, 0.4); text-decoration: none; font-size: 13px; font-weight: 700; padding: 10px 22px; border-radius: 8px; margin: 4px;">
                     🛎️ View Hotel Services
                   </a>
                 </div>
@@ -279,7 +279,7 @@ Payment Status    : PAID (Confirmed)
               
               <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
                 <p style="margin: 0; font-size: 14px; font-weight: 700; color: #0f172a;">Warm regards,</p>
-                <p style="margin: 2px 0 0; font-size: 14px; color: #4f46e5; font-weight: 600;">Smart Hotel & Resort Management Team</p>
+                <p style="margin: 2px 0 0; font-size: 14px; color: #C49A32; font-weight: 600;">Imperium Hotel Management Team</p>
               </div>
 
             </td>
@@ -288,9 +288,9 @@ Payment Status    : PAID (Confirmed)
           <!-- FOOTER -->
           <tr>
             <td style="background-color: #0f172a; padding: 24px 32px; text-align: center; color: #64748b; font-size: 12px; line-height: 1.5;">
-              <p style="margin: 0 0 6px; color: #94a3b8; font-weight: 600;">Smart Hotel Hospitality Management System</p>
+              <p style="margin: 0 0 6px; color: #94a3b8; font-weight: 600;">Imperium Hotel Management System</p>
               <p style="margin: 0;">This email was sent to <span style="color: #cbd5e1;">{escape(guest.email or guest.username)}</span> for transaction {escape(invoice_id)}.</p>
-              <p style="margin: 8px 0 0; font-size: 11px; color: #475569;">© 2026 Smart Hotel Inc. All rights reserved.</p>
+              <p style="margin: 8px 0 0; font-size: 11px; color: #475569;">© 2026 Imperium Hotel Inc. All rights reserved.</p>
             </td>
           </tr>
           

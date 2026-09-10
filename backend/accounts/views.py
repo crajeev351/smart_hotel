@@ -123,7 +123,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         # Send Email
         try:
-            subject = "Smart Hotel Check-In Verification Code"
+            subject = "Imperium Hotel Check-In Verification Code"
             message = f"""Dear Guest,
 
 To complete your registration and room check-in, please provide the receptionist with the following verification code:
@@ -133,7 +133,7 @@ Verification Code: {otp}
 This code is valid for 10 minutes.
 
 Best regards,
-Smart Hotel Management Team"""
+Imperium Hotel Management Team"""
             send_configured_mail(
                 subject=subject,
                 message=message,
@@ -239,7 +239,7 @@ Smart Hotel Management Team"""
             for recipient in emails:
                 try:
                     msg = MIMEMultipart()
-                    msg['From'] = f'Smart Hotel <{sender_email}>'
+                    msg['From'] = f'Imperium Hotel <{sender_email}>'
                     msg['To'] = recipient
                     msg['Subject'] = title
                     msg['Reply-To'] = sender_email
@@ -332,7 +332,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 user.save()
 
                 try:
-                    subject = "Smart Hotel - Login Verification OTP"
+                    subject = "Imperium Hotel - Login Verification OTP"
                     message = f"Dear {user.name or user.username},\n\nYour verification code: {otp}\n\nValid for 5 minutes."
                     send_configured_mail(
                         subject=subject,

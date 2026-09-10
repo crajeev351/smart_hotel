@@ -119,15 +119,15 @@ const Kitchen: React.FC = () => {
   const getItemStatusStyle = (status: string) => {
     switch (status) {
       case 'PENDING': 
-        return 'border-l-4 border-slate-500 bg-slate-950/40 text-gray-300';
+        return 'border-l-4 border-[#6E6A63] bg-[#F8F6F1]/60 text-[#171717]/80';
       case 'PREPARING': 
-        return 'border-l-4 border-amber-500 bg-amber-500/5 text-amber-200';
+        return 'border-l-4 border-amber-500 bg-amber-50 text-amber-700';
       case 'READY': 
-        return 'border-l-4 border-emerald-500 bg-emerald-500/5 text-emerald-200';
+        return 'border-l-4 border-emerald-500 bg-emerald-50 text-emerald-700';
       case 'SERVED': 
-        return 'border-l-4 border-indigo-500 bg-indigo-500/5 text-indigo-200';
+        return 'border-l-4 border-[#C49A32] bg-[#C49A32]/5 text-[#C49A32]';
       default: 
-        return 'border-l-4 border-slate-700 bg-slate-900/40 text-gray-400';
+        return 'border-l-4 border-[#6E6A63]/50 bg-[#F8F6F1]/60 text-[#6E6A63]';
     }
   };
 
@@ -141,8 +141,8 @@ const Kitchen: React.FC = () => {
             <ChefHat className="w-6 h-6 sm:w-8 sm:h-8" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight">Kitchen Display System (KDS)</h1>
-            <p className="text-gray-400 text-xs sm:text-sm mt-0.5 sm:mt-1">Live order orchestration, cooking telemetry, and service handoff.</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#171717] tracking-tight">Kitchen Display System (KDS)</h1>
+            <p className="text-[#6E6A63] text-xs sm:text-sm mt-0.5 sm:mt-1">Live order orchestration, cooking telemetry, and service handoff.</p>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ const Kitchen: React.FC = () => {
           </div>
           <button 
             onClick={() => fetchKitchenOrders()}
-            className="p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-white/5 text-gray-400 hover:bg-slate-800 transition cursor-pointer"
+            className="p-2 sm:p-2.5 rounded-xl bg-[#F8F6F1] border border-black/5 text-[#6E6A63] hover:bg-[#F8F6F1] transition cursor-pointer"
             title="Refresh Orders queue"
           >
             <RefreshCcw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
@@ -167,15 +167,15 @@ const Kitchen: React.FC = () => {
           {alerts.map((alert, idx) => (
             <div 
               key={idx} 
-              className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 p-4 rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.15)] flex items-center justify-between animate-fade-in font-bold text-base"
+              className="bg-[#C49A32]/10 backdrop-blur-md border border-[#C49A32]/30 text-[#C49A32] p-4 rounded-xl shadow-[0_0_20px_rgba(196,154,50,0.15)] flex items-center justify-between animate-fade-in font-bold text-base"
             >
               <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-indigo-400 animate-bounce" />
+                <Bell className="w-5 h-5 text-[#C49A32] animate-bounce" />
                 <span>{alert}</span>
               </div>
               <button 
                 onClick={() => setAlerts(prev => prev.filter(a => a !== alert))}
-                className="text-gray-400 hover:text-white transition cursor-pointer text-sm font-bold"
+                className="text-[#6E6A63] hover:text-[#171717] transition cursor-pointer text-sm font-bold"
               >
                 ✕
               </button>
@@ -185,7 +185,7 @@ const Kitchen: React.FC = () => {
       )}
 
       {error && (
-        <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-sm">
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-sm">
           {error}
         </div>
       )}
@@ -202,20 +202,20 @@ const Kitchen: React.FC = () => {
               className={`glass-panel rounded-2xl overflow-hidden flex flex-col justify-between border transition duration-300 ${
                 isWarning 
                   ? 'border-rose-500/50 shadow-[0_0_25px_rgba(244,63,94,0.15)]' 
-                  : 'border-white/5 hover:border-white/10'
+                  : 'border-black/5 hover:border-black/10'
               }`}
             >
               <div>
                 {/* Header */}
-                <div className={`p-4 border-b border-white/5 flex justify-between items-center ${
-                  isWarning ? 'bg-rose-500/10' : 'bg-slate-900/50'
+                <div className={`p-4 border-b border-black/5 flex justify-between items-center ${
+                  isWarning ? 'bg-rose-50' : 'bg-[#F8F6F1]/80'
                 }`}>
                   <div>
-                    <h3 className="text-lg font-black text-white">Table {order.table_number || '?'}</h3>
-                    <p className="text-[10px] text-gray-500 mt-0.5">Order #{order.id} • {order.guest_name}</p>
+                    <h3 className="text-lg font-black text-[#171717]">Table {order.table_number || '?'}</h3>
+                    <p className="text-[10px] text-[#6E6A63]/80 mt-0.5">Order #{order.id} • {order.guest_name}</p>
                   </div>
                   <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold ${
-                    isWarning ? 'bg-rose-500/20 text-rose-300 animate-pulse' : 'bg-slate-950 text-gray-400'
+                    isWarning ? 'bg-rose-500/20 text-rose-600 animate-pulse' : 'bg-[#F8F6F1] text-[#6E6A63]'
                   }`}>
                     <Clock className="w-3.5 h-3.5" />
                     <span>{elapsed}m</span>
@@ -227,19 +227,19 @@ const Kitchen: React.FC = () => {
                   {order.items.map(item => (
                     <div 
                       key={item.id} 
-                      className={`p-3.5 rounded-xl border border-white/[0.04] text-xs space-y-2.5 ${getItemStatusStyle(item.status)}`}
+                      className={`p-3.5 rounded-xl border border-black/5 text-xs space-y-2.5 ${getItemStatusStyle(item.status)}`}
                     >
                       <div className="flex justify-between items-start font-bold">
-                        <span className="text-white text-sm">
+                        <span className="text-[#171717] text-sm">
                           {item.quantity} x {item.menu_item_details.name}
                         </span>
-                        <span className="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-950 border border-white/10">
+                        <span className="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-white border border-black/10 font-bold">
                           {item.status}
                         </span>
                       </div>
 
                       {item.notes && (
-                        <p className="text-[10px] text-rose-300 bg-rose-500/10 p-2 rounded-lg font-semibold border border-rose-500/20">
+                        <p className="text-[10px] text-rose-600 bg-rose-50 p-2 rounded-lg font-semibold border border-rose-200">
                           ⚠️ instructions: {item.notes}
                         </p>
                       )}
@@ -249,7 +249,7 @@ const Kitchen: React.FC = () => {
                         {item.status === 'PENDING' && (
                           <button
                             onClick={() => updateItemStatus(item.id, 'PREPARING', item.menu_item_details.name, order.table_number)}
-                            className="flex-grow py-2 glowing-btn-indigo hover:from-indigo-600 hover:to-indigo-500 text-white rounded-lg font-bold text-[10px] tracking-wider uppercase transition cursor-pointer"
+                            className="flex-grow py-2.5 bg-[#C49A32] hover:bg-[#b08828] text-white rounded-lg font-bold text-[10px] tracking-wider uppercase transition cursor-pointer shadow-sm"
                           >
                             Start Preparing
                           </button>
@@ -257,7 +257,7 @@ const Kitchen: React.FC = () => {
                         {item.status === 'PREPARING' && (
                           <button
                             onClick={() => updateItemStatus(item.id, 'READY', item.menu_item_details.name, order.table_number)}
-                            className="flex-grow py-2 glowing-btn-emerald hover:from-emerald-600 hover:to-emerald-500 text-white rounded-lg font-bold text-[10px] tracking-wider uppercase transition cursor-pointer"
+                            className="flex-grow py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[10px] tracking-wider uppercase transition cursor-pointer shadow-sm"
                           >
                             Mark Ready (Alert)
                           </button>
@@ -272,9 +272,9 @@ const Kitchen: React.FC = () => {
         })}
         
         {orders.length === 0 && (
-          <div className="col-span-full py-20 text-center glass-panel rounded-2xl text-gray-500 flex flex-col items-center justify-center">
+          <div className="col-span-full py-20 text-center glass-panel rounded-2xl text-[#6E6A63]/80 flex flex-col items-center justify-center">
             <ChefHat className="w-16 h-16 mb-4 text-slate-700 stroke-1" />
-            <p className="text-lg font-extrabold text-white">Kitchen Log Clear!</p>
+            <p className="text-lg font-extrabold text-[#171717]">Kitchen Log Clear!</p>
             <p className="text-sm mt-1">No pending or preparation order requests in KDS.</p>
           </div>
         )}

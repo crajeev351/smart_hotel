@@ -30,11 +30,11 @@ def _send_resend_mail(*, subject, message, recipient_list, html_message=None):
         logger.warning('No valid recipient emails provided for Resend email: %s', subject)
         return 0
 
-    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', '') or 'Smart Hotel <onboarding@resend.dev>'
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', '') or 'Imperium Hotel <onboarding@resend.dev>'
     # If DEFAULT_FROM_EMAIL is unverified or using fallback domain like smarthotel.com / example.com,
     # fallback to onboarding@resend.dev which works on Resend out-of-the-box.
     if any(unverified in from_email.lower() for unverified in ['smarthotel.com', 'example.com', 'localhost']):
-        from_email = 'Smart Hotel <onboarding@resend.dev>'
+        from_email = 'Imperium Hotel <onboarding@resend.dev>'
 
     payload = {
         'from': from_email,
@@ -120,7 +120,7 @@ def send_configured_mail(*, subject, message, recipient_list, html_message=None)
             'SMTP email is missing EMAIL_HOST_USER or EMAIL_HOST_PASSWORD.'
         )
 
-    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', '') or settings.EMAIL_HOST_USER or 'Smart Hotel <onboarding@resend.dev>'
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', '') or settings.EMAIL_HOST_USER or 'Imperium Hotel <onboarding@resend.dev>'
     if html_message:
         email = EmailMultiAlternatives(
             subject=subject,

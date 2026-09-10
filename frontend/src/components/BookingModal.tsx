@@ -117,7 +117,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, onClose, onSuccess })
                   required
                   value={selectedGuestId}
                   onChange={(e) => setSelectedGuestId(e.target.value)}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#C49A32] outline-none"
                 >
                   <option value="">-- Choose Guest --</option>
                   {guests.map((g) => (
@@ -144,10 +144,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, onClose, onSuccess })
                   required 
                   value={checkIn}
                   onChange={(e) => setCheckIn(e.target.value)}
-                  className="w-full p-2 pr-9 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-2 pr-9 border rounded-lg focus:ring-2 focus:ring-[#C49A32] outline-none"
                 />
                 <Calendar 
-                  className="w-4 h-4 text-blue-500 absolute right-2.5 top-2.5 cursor-pointer hover:text-blue-600 transition"
+                  className="w-4 h-4 text-[#C49A32] absolute right-2.5 top-2.5 cursor-pointer hover:text-[#C49A32] transition"
                   onClick={() => checkInRef.current?.showPicker()}
                 />
               </div>
@@ -161,10 +161,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, onClose, onSuccess })
                   required 
                   value={checkOut}
                   onChange={(e) => setCheckOut(e.target.value)}
-                  className="w-full p-2 pr-9 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-2 pr-9 border rounded-lg focus:ring-2 focus:ring-[#C49A32] outline-none"
                 />
                 <Calendar 
-                  className="w-4 h-4 text-blue-500 absolute right-2.5 top-2.5 cursor-pointer hover:text-blue-600 transition"
+                  className="w-4 h-4 text-[#C49A32] absolute right-2.5 top-2.5 cursor-pointer hover:text-[#C49A32] transition"
                   onClick={() => checkOutRef.current?.showPicker()}
                 />
               </div>
@@ -182,7 +182,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ room, onClose, onSuccess })
             <button 
               type="submit" 
               disabled={loading || (isStaff && !selectedGuestId)}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-[#C49A32] text-white rounded-lg hover:bg-[#b08a2d] transition disabled:opacity-50"
             >
               {loading ? 'Booking...' : 'Confirm Booking'}
             </button>

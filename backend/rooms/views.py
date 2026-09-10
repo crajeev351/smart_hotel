@@ -46,7 +46,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.role == 'GUEST':
             return Booking.objects.filter(guest=user)
-        elif user.role in ['ADMIN', 'RECEPTION']:
+        elif user.role in ['ADMIN', 'RECEPTION', 'WAITER', 'KITCHEN']:
             return Booking.objects.all()
         else:
             return Booking.objects.none()

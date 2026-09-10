@@ -22,6 +22,7 @@ const Rooms: React.FC = () => {
   const [roomFilter, setRoomFilter] = useState<'all' | 'maintenance' | 'occupied' | 'vacant'>('maintenance');
   const [roomPage, setRoomPage] = useState<number>(0);
   const [floorTransitioning, setFloorTransitioning] = useState(false);
+  const [cleaningRoomId, setCleaningRoomId] = useState<number | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -85,19 +86,23 @@ const Rooms: React.FC = () => {
   };
 
   const handleCleanRoom = async (roomId: number, roomNumber: string) => {
+    setCleaningRoomId(roomId);
     try {
       setError(null);
       await API.patch(`rooms/${roomId}/`, { status: 'AVAILABLE' });
       setSuccess(`Room ${roomNumber} has been cleaned and marked AVAILABLE.`);
 
-      // Update local state
+      // Update local state immediately
       setRooms(prev => prev.map(r => r.id === roomId ? { ...r, status: 'AVAILABLE' } : r));
+      await fetchData(true);
 
       setTimeout(() => {
         setSuccess(null);
       }, 4000);
     } catch (err: any) {
-      setError(`Failed to clean room ${roomNumber}: ` + (err.response?.data?.detail || err.message));
+      setError(`Failed to clean room ${roomNumber}: ` + (err.response?.data?.detail || err.response?.data?.error || err.message));
+    } finally {
+      setCleaningRoomId(null);
     }
   };
 
@@ -148,28 +153,28 @@ const Rooms: React.FC = () => {
           align-items: stretch;
           min-height: 480px;
           max-height: 520px;
-          background: radial-gradient(circle at 50% 15%, #0d1222 0%, #010307 100%);
+          background: linear-gradient(180deg, #F8F6F1 0%, #F1EFE9 100%);
           overflow-y: auto;
           overflow-x: hidden;
           position: relative;
           border-radius: 1.25rem;
           padding: 2.5rem 1.25rem;
-          box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
-          border: 1px solid rgba(255,255,255,0.03);
+          box-shadow: inset 0 0 30px rgba(0,0,0,0.03);
+          border: 1px solid rgba(0,0,0,0.06);
           transform-style: preserve-3d;
         }
         .lobby-corridor-container::-webkit-scrollbar {
           width: 5px;
         }
         .lobby-corridor-container::-webkit-scrollbar-track {
-          background: rgba(255,255,255,0.01);
+          background: rgba(0,0,0,0.02);
         }
         .lobby-corridor-container::-webkit-scrollbar-thumb {
-          background: rgba(236,72,153,0.25);
+          background: rgba(196,154,50,0.35);
           border-radius: 9px;
         }
         .lobby-corridor-container::-webkit-scrollbar-thumb:hover {
-          background: rgba(236,72,153,0.4);
+          background: rgba(196,154,50,0.6);
         }
         .corridor-floor {
           position: absolute;
@@ -179,17 +184,17 @@ const Rooms: React.FC = () => {
           transform: translateX(-50%) rotateX(75deg);
           transform-origin: top center;
           width: 140px;
-          background: linear-gradient(180deg, rgba(236,72,153,0.04) 0%, rgba(236,72,153,0.15) 100%);
-          border-left: 2px dashed rgba(236,72,153,0.25);
-          border-right: 2px dashed rgba(236,72,153,0.25);
-          box-shadow: 0 0 40px rgba(236,72,153,0.08);
+          background: linear-gradient(180deg, rgba(196,154,50,0.05) 0%, rgba(196,154,50,0.16) 100%);
+          border-left: 2px dashed rgba(196,154,50,0.35);
+          border-right: 2px dashed rgba(196,154,50,0.35);
+          box-shadow: 0 0 30px rgba(196,154,50,0.08);
           pointer-events: none;
           z-index: 0;
         }
         .corridor-floor-lines {
           position: absolute;
           inset: 0;
-          background: linear-gradient(0deg, transparent 29px, rgba(236,72,153,0.04) 30px);
+          background: linear-gradient(0deg, transparent 29px, rgba(196,154,50,0.08) 30px);
           background-size: 100% 30px;
         }
         .corridor-wall-left {
@@ -230,7 +235,7 @@ const Rooms: React.FC = () => {
           inset: 0;
           border-radius: 16px;
           padding: 0.75rem;
-          box-shadow: 0 10px 24px rgba(0,0,0,0.6);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.06);
           z-index: 2;
           transform-style: preserve-3d;
           transition: all 0.35s ease;
@@ -244,7 +249,7 @@ const Rooms: React.FC = () => {
           bottom: 6px;
           width: 14px;
           z-index: 1;
-          box-shadow: inset -2px 0 10px rgba(0,0,0,0.8);
+          box-shadow: inset -2px 0 6px rgba(0,0,0,0.12);
           transition: all 0.35s ease;
         }
         .corridor-wall-left .room-cabinet-side {
@@ -262,23 +267,23 @@ const Rooms: React.FC = () => {
       {/* Header Panel */}
       <div className="glass-panel p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
         <div className="flex items-center gap-3 sm:gap-4">
-          <div className="p-2.5 sm:p-3 bg-pink-500/10 rounded-2xl border border-pink-500/20 text-pink-400 shadow-[0_0_15px_rgba(244,63,94,0.1)]">
+          <div className="p-2.5 sm:p-3 bg-[#C49A32]/10 rounded-2xl border border-pink-500/20 text-[#C49A32] shadow-[0_0_15px_rgba(244,63,94,0.1)]">
             <Brush className="w-6 h-6 sm:w-8 sm:h-8" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight">Janitorial Dispatch Map</h1>
-            <p className="text-gray-400 text-xs sm:text-sm mt-0.5 sm:mt-1">3D structure mapping, live floor cleaning dispatch, and room maintenance status.</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#171717] tracking-tight">Janitorial Dispatch Map</h1>
+            <p className="text-[#6E6A63] text-xs sm:text-sm mt-0.5 sm:mt-1">3D structure mapping, live floor cleaning dispatch, and room maintenance status.</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
-          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/20 text-[10px] sm:text-xs font-bold text-pink-400">
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-[#C49A32]/10 border border-pink-500/20 text-[10px] sm:text-xs font-bold text-[#C49A32]">
             <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-pink-400 animate-pulse" />
             LIVE LINK ACTIVE
           </div>
           <button
             onClick={() => fetchData()}
-            className="p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-white/5 text-gray-400 hover:bg-slate-800 transition cursor-pointer"
+            className="p-2 sm:p-2.5 rounded-xl bg-[#F8F6F1] border border-black/5 text-[#6E6A63] hover:bg-[#F8F6F1] transition cursor-pointer"
             title="Refresh list"
           >
             <RefreshCcw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
@@ -291,8 +296,8 @@ const Rooms: React.FC = () => {
         <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-amber-500/20 bg-amber-500/[0.02] flex items-center justify-between col-span-1">
           <div className="space-y-1">
             <p className="text-[10px] sm:text-xs font-bold text-amber-500 uppercase tracking-widest">Total Pending Cleans</p>
-            <p className="text-2xl sm:text-3xl font-black text-white">{totalDirtyRooms}</p>
-            <p className="text-[10px] text-gray-500">Requires Sweeping & Sanitizing</p>
+            <p className="text-2xl sm:text-3xl font-black text-[#171717]">{totalDirtyRooms}</p>
+            <p className="text-[10px] text-[#6E6A63]/80">Requires Sweeping & Sanitizing</p>
           </div>
           <div className="p-2.5 sm:p-3 bg-amber-500/10 rounded-xl text-amber-400">
             <Wrench className="w-6 h-6 sm:w-7 sm:h-7" />
@@ -301,29 +306,29 @@ const Rooms: React.FC = () => {
 
         <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-pink-500/20 bg-pink-500/[0.02] flex items-center justify-between col-span-1">
           <div className="space-y-1">
-            <p className="text-[10px] sm:text-xs font-bold text-pink-400 uppercase tracking-widest">Clean & Available Rooms</p>
-            <p className="text-2xl sm:text-3xl font-black text-white">{rooms.filter(r => r.status === 'AVAILABLE').length}</p>
-            <p className="text-[10px] text-gray-500">Ready for Guest Check-in</p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#C49A32] uppercase tracking-widest">Clean & Available Rooms</p>
+            <p className="text-2xl sm:text-3xl font-black text-[#171717]">{rooms.filter(r => r.status === 'AVAILABLE').length}</p>
+            <p className="text-[10px] text-[#6E6A63]/80">Ready for Guest Check-in</p>
           </div>
-          <div className="p-2.5 sm:p-3 bg-pink-500/10 rounded-xl text-pink-400">
-            <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-pink-400" />
+          <div className="p-2.5 sm:p-3 bg-[#C49A32]/10 rounded-xl text-[#C49A32]">
+            <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-[#C49A32]" />
           </div>
         </div>
 
-        <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-indigo-500/20 bg-indigo-500/[0.02] flex items-center justify-between col-span-1 sm:col-span-2 lg:col-span-1">
+        <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-[#C49A32]/20 bg-[#C49A32]/[0.02] flex items-center justify-between col-span-1 sm:col-span-2 lg:col-span-1">
           <div className="space-y-1">
-            <p className="text-[10px] sm:text-xs font-bold text-indigo-400 uppercase tracking-widest">Guest Occupied Rooms</p>
-            <p className="text-2xl sm:text-3xl font-black text-white">{rooms.filter(r => r.status === 'OCCUPIED').length}</p>
-            <p className="text-[10px] text-gray-500">Guests In Stay</p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#C49A32] uppercase tracking-widest">Guest Occupied Rooms</p>
+            <p className="text-2xl sm:text-3xl font-black text-[#171717]">{rooms.filter(r => r.status === 'OCCUPIED').length}</p>
+            <p className="text-[10px] text-[#6E6A63]/80">Guests In Stay</p>
           </div>
-          <div className="p-2.5 sm:p-3 bg-indigo-500/10 rounded-xl text-indigo-400">
-            <Hotel className="w-6 h-6 sm:w-7 sm:h-7 text-indigo-400" />
+          <div className="p-2.5 sm:p-3 bg-[#C49A32]/10 rounded-xl text-[#C49A32]">
+            <Hotel className="w-6 h-6 sm:w-7 sm:h-7 text-[#C49A32]" />
           </div>
         </div>
       </div>
 
       {success && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl text-sm font-semibold flex items-center gap-2 animate-fade-in shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl text-sm font-semibold flex items-center gap-2 animate-fade-in shadow-[0_0_15px_rgba(196,154,50,0.1)]">
           <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
           {success}
         </div>
@@ -335,11 +340,11 @@ const Rooms: React.FC = () => {
       )}
 
       {/* ═══ 3D DISPATCH PANEL: Building Left | Map Right ═══ */}
-      <div className="glass-panel rounded-2xl border border-white/5 overflow-hidden">
+      <div className="glass-panel rounded-2xl border border-black/5 overflow-hidden">
         <div className="flex flex-col lg:flex-row min-h-[520px]">
 
           {/* ═══ LEFT PANEL: Isometric Building & Level List ═══ */}
-          <div className="flex flex-col items-center w-full lg:w-[350px] shrink-0 border-b lg:border-b-0 lg:border-r border-white/5 p-3 sm:p-5 bg-[#03050d] relative overflow-hidden">
+          <div className="flex flex-col items-center w-full lg:w-[350px] shrink-0 border-b lg:border-b-0 lg:border-r border-black/5 p-3 sm:p-5 bg-[#F8F6F1] relative overflow-hidden">
             {/* Background grid */}
             <div className="absolute inset-0 pointer-events-none"
               style={{
@@ -350,7 +355,7 @@ const Rooms: React.FC = () => {
               }}
             />
 
-            <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 text-center relative z-10">
+            <div className="text-[10px] font-black text-[#6E6A63]/80 uppercase tracking-[0.2em] mb-4 text-center relative z-10">
               BUILDING STRUCTURE
             </div>
 
@@ -757,17 +762,16 @@ const Rooms: React.FC = () => {
                   return (
                     <button key={floorNum} onClick={() => handleFloorClick(floorNum)}
                       className={`w-full rounded-lg text-center px-2 py-2.5 transition-all duration-300 cursor-pointer border relative overflow-hidden flex flex-col items-center gap-1 ${isSelected
-                          ? 'bg-purple-500/15 border-purple-400/70 text-purple-200 shadow-[0_0_16px_rgba(192,132,252,0.4)]'
-                          : 'bg-white/[0.02] border-white/8 text-gray-500 hover:text-purple-300 hover:border-purple-500/40'
+                          ? 'bg-[#C49A32] border-[#C49A32] text-white shadow-md shadow-[#C49A32]/25'
+                          : 'bg-white border-black/8 text-[#6E6A63] hover:text-[#171717] hover:border-[#C49A32]/40'
                         }`}
                     >
-                      {isSelected && <div className="absolute inset-0 bg-gradient-to-b from-purple-400/10 to-transparent" />}
                       <span className="text-[11px] font-black relative z-10">L{floorNum}</span>
                       <span className={`w-1.5 h-1.5 rounded-full relative z-10 ${hasIssue
-                          ? 'bg-amber-400 animate-pulse shadow-[0_0_5px_rgba(251,191,36,0.9)]'
-                          : 'bg-purple-400 shadow-[0_0_5px_rgba(192,132,252,0.8)]'
+                          ? 'bg-rose-500'
+                          : isSelected ? 'bg-white' : 'bg-emerald-500'
                         }`} />
-                      <span className={`text-[7px] font-bold uppercase tracking-wide relative z-10 ${hasIssue ? 'text-amber-400' : 'text-purple-400/70'
+                      <span className={`text-[7px] font-bold uppercase tracking-wide relative z-10 ${isSelected ? 'text-white/90' : hasIssue ? 'text-rose-600' : 'text-emerald-700'
                         }`}>
                         {hasIssue ? `${dirtyCount}D` : 'OK'}
                       </span>
@@ -780,7 +784,7 @@ const Rooms: React.FC = () => {
           </div>
 
           {/* ═══ RIGHT PANEL: Isometric Hallway Corridor Map ═══ */}
-          <div className="flex-1 flex flex-col bg-[#03050d] relative overflow-hidden p-3.5 sm:p-5">
+          <div className="flex-1 flex flex-col bg-[#F8F6F1] relative overflow-hidden p-3.5 sm:p-5">
             {/* Background Grid */}
             <div className="absolute inset-0 pointer-events-none"
               style={{
@@ -793,9 +797,9 @@ const Rooms: React.FC = () => {
 
             {selectedFloor === null ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-10 relative z-10">
-                <Building2 className="w-16 h-16 text-pink-500/25 mb-4 animate-pulse" />
-                <h3 className="text-xl font-black text-white mb-2">Select a Level</h3>
-                <p className="text-xs text-gray-500 max-w-sm">
+                <Building2 className="w-16 h-16 text-[#C49A32]/35 mb-4" />
+                <h3 className="text-xl font-black text-[#171717] mb-2">Select a Level</h3>
+                <p className="text-xs text-[#6E6A63]/80 max-w-sm">
                   Click on any floor structure level on the building block to open the floor's 3D sanitation map.
                 </p>
               </div>
@@ -803,7 +807,7 @@ const Rooms: React.FC = () => {
               <div className="flex-1 flex items-center justify-center relative z-10">
                 <div className="text-center">
                   <div className="w-10 h-10 rounded-full border-2 border-pink-500/30 border-t-pink-400 animate-spin mx-auto mb-3" />
-                  <div className="text-[10px] font-black text-pink-400 uppercase tracking-widest">
+                  <div className="text-[10px] font-black text-[#C49A32] uppercase tracking-widest">
                     Dispatched to Level {selectedFloor}...
                   </div>
                 </div>
@@ -833,13 +837,13 @@ const Rooms: React.FC = () => {
 
               return (
                 <div className="flex-1 flex flex-col relative z-10 lobby-view">
-                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-white/5 pb-4 mb-4">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-black/5 pb-4 mb-4">
                     <div>
-                      <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-                        Selected Floor: <span className="text-white">Level L{selectedFloor}</span>
+                      <h2 className="text-sm font-bold text-[#6E6A63] uppercase tracking-widest">
+                        Selected Floor: <span className="text-[#171717]">Level L{selectedFloor}</span>
                       </h2>
                     </div>
-                    <button onClick={handleBackToBuilding} className="text-gray-400 hover:text-white text-xs font-bold flex items-center gap-1">
+                    <button onClick={handleBackToBuilding} className="text-[#6E6A63] hover:text-[#171717] text-xs font-bold flex items-center gap-1">
                       <X className="w-3.5 h-3.5" /> Back to Structure
                     </button>
                   </div>
@@ -858,8 +862,8 @@ const Rooms: React.FC = () => {
                         className={`px-3 py-1 rounded-full text-[10px] font-bold border transition ${roomFilter === f.value
                             ? f.value === 'maintenance'
                               ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                              : 'bg-pink-500/10 border-pink-500/40 text-pink-300'
-                            : 'bg-white/[0.02] border-white/5 text-gray-500 hover:text-white'
+                              : 'bg-[#C49A32]/10 border-pink-500/40 text-pink-300'
+                            : 'bg-[#F8F6F1]/50 border-black/5 text-[#6E6A63]/80 hover:text-[#171717]'
                           }`}
                       >
                         {f.label} <span className="ml-1 opacity-60">{f.count}</span>
@@ -870,7 +874,7 @@ const Rooms: React.FC = () => {
                   {/* 3D Corridor */}
                   <div className="flex-1 relative flex flex-col justify-center min-h-[380px]">
                     {filteredFloorRooms.length === 0 ? (
-                      <div className="flex items-center justify-center h-40 text-gray-500 text-xs">
+                      <div className="flex items-center justify-center h-40 text-[#6E6A63]/80 text-xs">
                         No rooms match the selected filter.
                       </div>
                     ) : (
@@ -887,21 +891,21 @@ const Rooms: React.FC = () => {
                               const isOccupied = room.status === 'OCCUPIED';
                               const isMaint = room.status === 'MAINTENANCE';
 
-                              let themeColor = 'rgba(16, 185, 129, 0.2)';
-                              let themeBg = 'linear-gradient(135deg, rgba(6, 78, 59, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                              let sideBg = '#047857';
-                              let glowDot = 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]';
+                              let themeColor = 'rgba(34, 197, 94, 0.35)';
+                              let themeBg = '#FFFFFF';
+                              let sideBg = '#E5E0D8';
+                              let glowDot = 'bg-emerald-500 shadow-sm';
 
                               if (isOccupied) {
-                                themeColor = 'rgba(168, 85, 247, 0.2)';
-                                themeBg = 'linear-gradient(135deg, rgba(88, 28, 135, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                sideBg = '#701a75';
-                                glowDot = 'bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]';
+                                themeColor = 'rgba(245, 158, 11, 0.4)';
+                                themeBg = '#FFFFFF';
+                                sideBg = '#E5E0D8';
+                                glowDot = 'bg-amber-500 shadow-sm';
                               } else if (isMaint) {
-                                themeColor = 'rgba(245, 158, 11, 0.2)';
-                                themeBg = 'linear-gradient(135deg, rgba(120, 53, 15, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                sideBg = '#b45309';
-                                glowDot = 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]';
+                                themeColor = 'rgba(239, 68, 68, 0.4)';
+                                themeBg = '#FFFFFF';
+                                sideBg = '#E5E0D8';
+                                glowDot = 'bg-rose-500 shadow-sm';
                               }
 
                               const handleRoomClick = () => {
@@ -926,26 +930,35 @@ const Rooms: React.FC = () => {
                                   <div className="room-cabinet-front" style={{ background: themeBg, borderColor: themeColor }}>
                                     <div className="flex justify-between items-start">
                                       <div>
-                                        <span className="text-base font-black text-white block">Room {room.room_number}</span>
-                                        <span className="text-[8px] text-gray-500 uppercase tracking-widest mt-0.5 block">
+                                        <span className="text-base font-black text-[#171717] block">Room {room.room_number}</span>
+                                        <span className="text-[8px] text-[#6E6A63]/80 uppercase tracking-widest mt-0.5 block">
                                           {room.room_type}
                                         </span>
                                       </div>
                                       <div className={`w-1.5 h-1.5 rounded-full mt-1 ${glowDot}`} />
                                     </div>
-                                    <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                                    <div className="flex justify-between items-center pt-2 border-t border-black/5">
                                       <span className={`text-[8.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${isMaint
-                                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.1)]'
+                                          ? 'bg-rose-50 border-rose-200 text-rose-700'
                                           : isOccupied
-                                            ? 'bg-purple-500/15 border-purple-500/30 text-purple-300'
-                                            : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                                            ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                            : 'bg-emerald-50 border-emerald-200 text-emerald-700'
                                         }`}>
-                                        {isVacant ? 'CLEAN' : room.status}
+                                        {isVacant ? 'CLEAN & VACANT' : room.status}
                                       </span>
                                       {isMaint && (
-                                        <span className="text-[8.5px] text-amber-400 font-bold uppercase hover:text-amber-300">
-                                          🧹 Clean
-                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCleanRoom(room.id, room.room_number);
+                                          }}
+                                          disabled={cleaningRoomId === room.id}
+                                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-lg text-[9px] uppercase tracking-wider transition cursor-pointer shadow-sm flex items-center gap-1 z-20"
+                                          title="Mark cleaning completed"
+                                        >
+                                          {cleaningRoomId === room.id ? 'Cleaning...' : '✓ Clean Room'}
+                                        </button>
                                       )}
                                     </div>
                                   </div>
@@ -961,21 +974,21 @@ const Rooms: React.FC = () => {
                               const isOccupied = room.status === 'OCCUPIED';
                               const isMaint = room.status === 'MAINTENANCE';
 
-                              let themeColor = 'rgba(16, 185, 129, 0.2)';
-                              let themeBg = 'linear-gradient(135deg, rgba(6, 78, 59, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                              let sideBg = '#047857';
-                              let glowDot = 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]';
+                              let themeColor = 'rgba(34, 197, 94, 0.35)';
+                              let themeBg = '#FFFFFF';
+                              let sideBg = '#E5E0D8';
+                              let glowDot = 'bg-emerald-500 shadow-sm';
 
                               if (isOccupied) {
-                                themeColor = 'rgba(168, 85, 247, 0.2)';
-                                themeBg = 'linear-gradient(135deg, rgba(88, 28, 135, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                sideBg = '#701a75';
-                                glowDot = 'bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]';
+                                themeColor = 'rgba(245, 158, 11, 0.4)';
+                                themeBg = '#FFFFFF';
+                                sideBg = '#E5E0D8';
+                                glowDot = 'bg-amber-500 shadow-sm';
                               } else if (isMaint) {
-                                themeColor = 'rgba(245, 158, 11, 0.2)';
-                                themeBg = 'linear-gradient(135deg, rgba(120, 53, 15, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                sideBg = '#b45309';
-                                glowDot = 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]';
+                                themeColor = 'rgba(239, 68, 68, 0.4)';
+                                themeBg = '#FFFFFF';
+                                sideBg = '#E5E0D8';
+                                glowDot = 'bg-rose-500 shadow-sm';
                               }
 
                               const handleRoomClick = () => {
@@ -1000,26 +1013,35 @@ const Rooms: React.FC = () => {
                                   <div className="room-cabinet-front" style={{ background: themeBg, borderColor: themeColor }}>
                                     <div className="flex justify-between items-start">
                                       <div>
-                                        <span className="text-base font-black text-white block">Room {room.room_number}</span>
-                                        <span className="text-[8px] text-gray-500 uppercase tracking-widest mt-0.5 block">
+                                        <span className="text-base font-black text-[#171717] block">Room {room.room_number}</span>
+                                        <span className="text-[8px] text-[#6E6A63]/80 uppercase tracking-widest mt-0.5 block">
                                           {room.room_type}
                                         </span>
                                       </div>
                                       <div className={`w-1.5 h-1.5 rounded-full mt-1 ${glowDot}`} />
                                     </div>
-                                    <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                                    <div className="flex justify-between items-center pt-2 border-t border-black/5">
                                       <span className={`text-[8.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${isMaint
-                                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.1)]'
+                                          ? 'bg-rose-50 border-rose-200 text-rose-700'
                                           : isOccupied
-                                            ? 'bg-purple-500/15 border-purple-500/30 text-purple-300'
-                                            : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                                            ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                            : 'bg-emerald-50 border-emerald-200 text-emerald-700'
                                         }`}>
-                                        {isVacant ? 'CLEAN' : room.status}
+                                        {isVacant ? 'CLEAN & VACANT' : room.status}
                                       </span>
                                       {isMaint && (
-                                        <span className="text-[8.5px] text-amber-400 font-bold uppercase hover:text-amber-300">
-                                          🧹 Clean
-                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCleanRoom(room.id, room.room_number);
+                                          }}
+                                          disabled={cleaningRoomId === room.id}
+                                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-lg text-[9px] uppercase tracking-wider transition cursor-pointer shadow-sm flex items-center gap-1 z-20"
+                                          title="Mark cleaning completed"
+                                        >
+                                          {cleaningRoomId === room.id ? 'Cleaning...' : '✓ Clean Room'}
+                                        </button>
                                       )}
                                     </div>
                                   </div>
@@ -1031,21 +1053,21 @@ const Rooms: React.FC = () => {
 
                         {/* Pagination */}
                         {filteredFloorRooms.length > 10 && (
-                          <div className="flex justify-between items-center pt-4 border-t border-white/5 mt-4">
+                          <div className="flex justify-between items-center pt-4 border-t border-black/5 mt-4">
                             <button
                               disabled={roomPage === 0}
                               onClick={() => setRoomPage(p => p - 1)}
-                              className="px-3.5 py-1.5 rounded bg-slate-900 border border-white/5 text-gray-400 hover:text-white text-xs font-bold disabled:opacity-40 transition cursor-pointer"
+                              className="px-3.5 py-1.5 rounded bg-[#F8F6F1] border border-black/5 text-[#6E6A63] hover:text-[#171717] text-xs font-bold disabled:opacity-40 transition cursor-pointer"
                             >
                               ← Prev Segment
                             </button>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-[#6E6A63]/80">
                               Segment {roomPage + 1} of {Math.ceil(filteredFloorRooms.length / 10)}
                             </span>
                             <button
                               disabled={(roomPage + 1) * 10 >= filteredFloorRooms.length}
                               onClick={() => setRoomPage(p => p + 1)}
-                              className="px-3.5 py-1.5 rounded bg-slate-900 border border-white/5 text-gray-400 hover:text-white text-xs font-bold disabled:opacity-40 transition cursor-pointer"
+                              className="px-3.5 py-1.5 rounded bg-[#F8F6F1] border border-black/5 text-[#6E6A63] hover:text-[#171717] text-xs font-bold disabled:opacity-40 transition cursor-pointer"
                             >
                               Next Segment →
                             </button>
@@ -1064,14 +1086,14 @@ const Rooms: React.FC = () => {
 
       {/* Confirm Dialog Modal */}
       {confirmDialog && confirmDialog.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-          <div className="glass-panel max-w-sm w-full p-6 rounded-2xl border border-white/5 space-y-6 shadow-2xl">
-            <h3 className="text-lg font-black text-white">{confirmDialog.title}</h3>
-            <p className="text-xs text-gray-400 leading-relaxed">{confirmDialog.message}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="glass-panel max-w-sm w-full p-6 rounded-2xl border border-black/5 space-y-6 shadow-2xl">
+            <h3 className="text-lg font-black text-[#171717]">{confirmDialog.title}</h3>
+            <p className="text-xs text-[#6E6A63] leading-relaxed">{confirmDialog.message}</p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmDialog(null)}
-                className="px-4 py-2 bg-slate-900 border border-white/5 text-gray-400 hover:text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                className="px-4 py-2 bg-[#F8F6F1] border border-black/5 text-[#6E6A63] hover:text-[#171717] rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 {confirmDialog.cancelText || 'Cancel'}
               </button>
@@ -1080,7 +1102,7 @@ const Rooms: React.FC = () => {
                   confirmDialog.onConfirm();
                   setConfirmDialog(null);
                 }}
-                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-lg"
+                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-[#171717] rounded-xl text-xs font-bold transition cursor-pointer shadow-lg"
               >
                 {confirmDialog.confirmText}
               </button>

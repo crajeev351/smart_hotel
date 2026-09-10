@@ -33,6 +33,7 @@ interface Table {
 
 interface Booking {
   id: number;
+  guest?: string;
   guest_name: string;
   room_number: string;
   check_in_date: string;
@@ -129,6 +130,19 @@ const Reception: React.FC = () => {
 
   // Billing states
   const [selectedBillingGuestId, setSelectedBillingGuestId] = useState('');
+  const [billingGuestSearch, setBillingGuestSearch] = useState('');
+  const [isBillingDropdownOpen, setIsBillingDropdownOpen] = useState(false);
+  const billingDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (billingDropdownRef.current && !billingDropdownRef.current.contains(event.target as Node)) {
+        setIsBillingDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // OTP Verification for check-in
   const [otpCode, setOtpCode] = useState('');
@@ -413,13 +427,14 @@ const Reception: React.FC = () => {
 
 
 
-  const handleGenerateBill = async () => {
-    if (!selectedBillingGuestId) return;
+  const handleGenerateBill = async (guestIdParam?: string) => {
+    const targetGuestId = guestIdParam || selectedBillingGuestId;
+    if (!targetGuestId) return;
     setLoading(true);
     setError(null);
     try {
       const response = await API.post('invoices/generate-bill/', {
-        guest_id: selectedBillingGuestId
+        guest_id: targetGuestId
       });
       setCurrentInvoice(response.data);
     } catch (err: any) {
@@ -442,6 +457,8 @@ const Reception: React.FC = () => {
       }
       setCurrentInvoice(null);
       setSelectedBillingGuestId('');
+      setBillingGuestSearch('');
+      setIsBillingDropdownOpen(false);
       fetchData();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to process payment');
@@ -471,7 +488,7 @@ const Reception: React.FC = () => {
       title: 'Cancel Booking',
       message: (
         <span>
-          Are you sure you want to cancel the booking for guest <strong className="text-white">"{guestName}"</strong> in Room <strong className="text-white font-mono">{roomNum}</strong>?
+          Are you sure you want to cancel the booking for guest <strong className="text-[#171717]">"{guestName}"</strong> in Room <strong className="text-[#171717] font-mono">{roomNum}</strong>?
         </span>
       ),
       confirmText: 'Yes, Cancel Booking',
@@ -601,28 +618,28 @@ const Reception: React.FC = () => {
           align-items: stretch;
           min-height: 480px;
           max-height: 520px;
-          background: radial-gradient(circle at 50% 15%, #0e1428 0%, #020409 100%);
+          background: linear-gradient(180deg, #F8F6F1 0%, #F1EFE9 100%);
           overflow-y: auto;
           overflow-x: hidden;
           position: relative;
           border-radius: 1.25rem;
           padding: 2.5rem 1.25rem;
-          box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
-          border: 1px solid rgba(255,255,255,0.03);
+          box-shadow: inset 0 0 30px rgba(0,0,0,0.03);
+          border: 1px solid rgba(0,0,0,0.06);
           transform-style: preserve-3d;
         }
         .lobby-corridor-container::-webkit-scrollbar {
           width: 5px;
         }
         .lobby-corridor-container::-webkit-scrollbar-track {
-          background: rgba(255,255,255,0.01);
+          background: rgba(0,0,0,0.02);
         }
         .lobby-corridor-container::-webkit-scrollbar-thumb {
-          background: rgba(99,102,241,0.25);
+          background: rgba(196,154,50,0.35);
           border-radius: 9px;
         }
         .lobby-corridor-container::-webkit-scrollbar-thumb:hover {
-          background: rgba(99,102,241,0.4);
+          background: rgba(196,154,50,0.6);
         }
         .corridor-floor {
           position: absolute;
@@ -632,17 +649,17 @@ const Reception: React.FC = () => {
           transform: translateX(-50%) rotateX(75deg);
           transform-origin: top center;
           width: 140px;
-          background: linear-gradient(180deg, rgba(99,102,241,0.05) 0%, rgba(99,102,241,0.2) 100%);
-          border-left: 2px dashed rgba(99,102,241,0.3);
-          border-right: 2px dashed rgba(99,102,241,0.3);
-          box-shadow: 0 0 40px rgba(99,102,241,0.1);
+          background: linear-gradient(180deg, rgba(196,154,50,0.05) 0%, rgba(196,154,50,0.16) 100%);
+          border-left: 2px dashed rgba(196,154,50,0.35);
+          border-right: 2px dashed rgba(196,154,50,0.35);
+          box-shadow: 0 0 30px rgba(196,154,50,0.08);
           pointer-events: none;
           z-index: 0;
         }
         .corridor-floor-lines {
           position: absolute;
           inset: 0;
-          background: linear-gradient(0deg, transparent 29px, rgba(99,102,241,0.06) 30px);
+          background: linear-gradient(0deg, transparent 29px, rgba(196,154,50,0.08) 30px);
           background-size: 100% 30px;
         }
         .corridor-wall-left {
@@ -684,7 +701,7 @@ const Reception: React.FC = () => {
           inset: 0;
           border-radius: 16px;
           padding: 0.55rem;
-          box-shadow: 0 12px 28px rgba(0,0,0,0.6);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.06);
           z-index: 2;
           transform-style: preserve-3d;
           transition: all 0.35s ease;
@@ -698,7 +715,7 @@ const Reception: React.FC = () => {
           bottom: 6px;
           width: 14px;
           z-index: 1;
-          box-shadow: inset -2px 0 10px rgba(0,0,0,0.8);
+          box-shadow: inset -2px 0 6px rgba(0,0,0,0.12);
           transition: all 0.35s ease;
         }
         .corridor-wall-left .room-cabinet-side {
@@ -737,7 +754,7 @@ const Reception: React.FC = () => {
           inset: 0;
           border-radius: 20px;
           padding: 1rem;
-          box-shadow: 0 10px 24px rgba(0,0,0,0.55);
+          box-shadow: 0 6px 18px rgba(0,0,0,0.06);
           z-index: 2;
           transform-style: preserve-3d;
           display: flex;
@@ -768,13 +785,13 @@ const Reception: React.FC = () => {
 
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex justify-between items-center border-b border-white/5 pb-4 print:hidden">
+        <div className="flex justify-between items-center border-b border-black/5 pb-4 print:hidden">
           <div className="flex items-center gap-3">
-            <ConciergeBell className="w-8 h-8 text-indigo-400" />
-            <h2 className="text-2xl font-bold tracking-tight text-white font-sans">Reception & Check-In Panel</h2>
+            <ConciergeBell className="w-8 h-8 text-[#C49A32]" />
+            <h2 className="text-2xl font-bold tracking-tight text-[#171717] font-sans">Reception & Check-In Panel</h2>
             <button
               onClick={() => fetchData()}
-              className="p-2 text-gray-400 hover:text-indigo-400 hover:bg-white/5 rounded-xl transition cursor-pointer"
+              className="p-2 text-[#6E6A63] hover:text-[#C49A32] hover:bg-black/3 rounded-xl transition cursor-pointer"
               title="Reload Reception Metrics"
             >
               <RefreshCcw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
@@ -796,31 +813,31 @@ const Reception: React.FC = () => {
         )}
 
         {/* Tabs */}
-        <div className="flex overflow-x-auto whitespace-nowrap scrollbar-none border border-white/5 mb-6 bg-slate-900/80 backdrop-blur-md rounded-xl p-1 shadow-sm print:hidden">
+        <div className="flex overflow-x-auto whitespace-nowrap scrollbar-none border border-black/5 mb-6 bg-white backdrop-blur-md rounded-xl p-1 shadow-sm print:hidden">
           <button
             onClick={() => { setActiveTab('checkin'); setError(null); setSuccess(null); }}
-            className={`flex-1 py-3 px-4 text-center rounded-lg text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer shrink-0 ${activeTab === 'checkin' ? 'bg-slate-700 border border-amber-500/30 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'
+            className={`flex-1 py-3 px-4 text-center rounded-lg text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer shrink-0 ${activeTab === 'checkin' ? 'bg-[#C49A32] text-white shadow-sm' : 'text-[#6E6A63] hover:text-[#171717] hover:bg-black/3'
               }`}
           >
             Guest Registration
           </button>
           <button
             onClick={() => { setActiveTab('active'); setError(null); setSuccess(null); }}
-            className={`flex-1 py-3 px-4 text-center rounded-lg text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer shrink-0 ${activeTab === 'active' ? 'bg-slate-700 border border-amber-500/30 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'
+            className={`flex-1 py-3 px-4 text-center rounded-lg text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer shrink-0 ${activeTab === 'active' ? 'bg-[#C49A32] text-white shadow-sm' : 'text-[#6E6A63] hover:text-[#171717] hover:bg-black/3'
               }`}
           >
             Active Stays
           </button>
           <button
             onClick={() => { setActiveTab('calendar'); setError(null); setSuccess(null); }}
-            className={`flex-1 py-3 px-4 text-center rounded-lg text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer shrink-0 ${activeTab === 'calendar' ? 'bg-slate-700 border border-amber-500/30 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'
+            className={`flex-1 py-3 px-4 text-center rounded-lg text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer shrink-0 ${activeTab === 'calendar' ? 'bg-[#C49A32] text-white shadow-sm' : 'text-[#6E6A63] hover:text-[#171717] hover:bg-black/3'
               }`}
           >
             Occupancy Calendar
           </button>
           <button
             onClick={() => { setActiveTab('billing'); setError(null); setSuccess(null); }}
-            className={`flex-1 py-3 px-4 text-center rounded-lg text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer shrink-0 ${activeTab === 'billing' ? 'bg-slate-700 border border-amber-500/30 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'
+            className={`flex-1 py-3 px-4 text-center rounded-lg text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer shrink-0 ${activeTab === 'billing' ? 'bg-[#C49A32] text-white shadow-sm' : 'text-[#6E6A63] hover:text-[#171717] hover:bg-black/3'
               }`}
           >
             Billing & Checkout
@@ -832,19 +849,19 @@ const Reception: React.FC = () => {
           <div className="space-y-6">
 
             {/* ═══ ISOMETRIC HOTEL BUILDING + FLOOR MAP ═══ */}
-            <div className="glass-panel rounded-2xl border border-white/5 overflow-hidden">
+            <div className="glass-panel rounded-2xl border border-black/5 overflow-hidden">
               {/* Panel Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-white/5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-black/5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                    Smart Hotel Reservation — Floor Map
+                  <h3 className="text-sm font-black text-[#171717] uppercase tracking-wider">
+                    Imperium Hotel Reservation — Floor Map
                   </h3>
                 </div>
                 <div className="flex flex-wrap gap-2 items-center">
                   <button
                     onClick={() => { setSelectedRoomId(''); setGuestType('STAY_IN'); setIsRegistering(true); }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/30 transition cursor-pointer text-[10px] font-black uppercase tracking-wider font-mono shadow-md"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#C49A32]/20 border border-[#C49A32]/40 text-[#C49A32] hover:bg-[#C49A32]/30 transition cursor-pointer text-[10px] font-black uppercase tracking-wider font-mono shadow-md"
                   >+ Register Guest</button>
                   <button
                     onClick={() => setIsReservingTable(true)}
@@ -857,7 +874,7 @@ const Reception: React.FC = () => {
               <div className="flex flex-col lg:flex-row min-h-[520px]">
 
                 {/* ═══ LEFT PANEL: Isometric Building + Floor Selector ═══ */}
-                <div className="flex flex-col items-center w-full lg:w-[350px] shrink-0 border-b lg:border-b-0 lg:border-r border-white/5 p-3 sm:p-5 bg-[#03050d] relative overflow-hidden">
+                <div className="flex flex-col items-center w-full lg:w-[350px] shrink-0 border-b lg:border-b-0 lg:border-r border-black/5 p-3 sm:p-5 bg-[#F8F6F1] relative overflow-hidden">
                   {/* Background grid */}
                   <div className="absolute inset-0 pointer-events-none"
                     style={{
@@ -868,7 +885,7 @@ const Reception: React.FC = () => {
                     }}
                   />
 
-                  <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 text-center relative z-10">
+                  <div className="text-[10px] font-black text-[#6E6A63]/80 uppercase tracking-[0.2em] mb-4 text-center relative z-10">
                     HOTEL STRUCTURE
                   </div>
 
@@ -1280,17 +1297,16 @@ const Reception: React.FC = () => {
                         return (
                           <button key={floorNum} onClick={() => handleFloorClick(floorNum)}
                             className={`w-full rounded-lg text-center px-2 py-2.5 transition-all duration-300 cursor-pointer border relative overflow-hidden flex flex-col items-center gap-1 ${isSelected
-                                ? 'bg-amber-600/15 border-emerald-400/70 text-emerald-200 shadow-md shadow-black/20'
-                                : 'bg-white/[0.02] border-white/8 text-gray-500 hover:text-emerald-300 hover:border-amber-600/40'
+                                ? 'bg-[#C49A32] border-[#C49A32] text-white shadow-md shadow-[#C49A32]/25'
+                                : 'bg-white border-black/8 text-[#6E6A63] hover:text-[#171717] hover:border-[#C49A32]/40'
                               }`}
                           >
-                            {isSelected && <div className="absolute inset-0 bg-gradient-to-b from-emerald-400/10 to-transparent" />}
                             <span className="text-[11px] font-black relative z-10">L{floorNum}</span>
                             <span className={`w-1.5 h-1.5 rounded-full relative z-10 ${isFull
-                                ? 'bg-rose-500 shadow-md shadow-black/20'
-                                : 'bg-emerald-400 animate-pulse shadow-md shadow-black/20'
+                                ? 'bg-rose-500'
+                                : isSelected ? 'bg-white' : 'bg-emerald-500'
                               }`} />
-                            <span className={`text-[7px] font-bold uppercase tracking-wide relative z-10 ${isFull ? 'text-rose-400' : 'text-amber-400/70'
+                            <span className={`text-[7px] font-bold uppercase tracking-wide relative z-10 ${isSelected ? 'text-white/90' : isFull ? 'text-rose-600' : 'text-emerald-700'
                               }`}>
                               {isFull ? 'FULL' : `${vacantCount}V`}
                             </span>
@@ -1304,24 +1320,24 @@ const Reception: React.FC = () => {
 
 
                   {/* Building Stats */}
-                  <div className="mt-auto pt-4 border-t border-white/5 w-full space-y-2 relative z-10">
+                  <div className="mt-auto pt-4 border-t border-black/5 w-full space-y-2 relative z-10">
                     <div className="flex justify-between items-center text-xs px-1">
-                      <span className="text-gray-500">Total Floors</span>
-                      <span className="text-white font-bold">{uniqueFloors.length}</span>
+                      <span className="text-[#6E6A63]/80">Total Floors</span>
+                      <span className="text-[#171717] font-bold">{uniqueFloors.length}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs px-1">
-                      <span className="text-gray-500">Total Rooms</span>
-                      <span className="text-white font-bold">{rooms.length}</span>
+                      <span className="text-[#6E6A63]/80">Total Rooms</span>
+                      <span className="text-[#171717] font-bold">{rooms.length}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs px-1">
-                      <span className="text-gray-500">Selected</span>
+                      <span className="text-[#6E6A63]/80">Selected</span>
                       <span className="text-amber-400 font-bold">{selectedFloor === 0 ? 'Lobby / Cafe' : selectedFloor !== null ? `Floor ${selectedFloor}` : 'None'}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* ═══ RIGHT PANEL: Floor Map (3D Lobby corridor / Restaurant Table Map) ═══ */}
-                <div className="flex-1 flex flex-col bg-[#03050d] relative overflow-hidden">
+                <div className="flex-1 flex flex-col bg-[#F8F6F1] relative overflow-hidden">
                   {/* Background grid */}
                   <div className="absolute inset-0 pointer-events-none"
                     style={{
@@ -1335,9 +1351,9 @@ const Reception: React.FC = () => {
                   {selectedFloor === null && !floorTransitioning ? (
                     /* ── No floor selected: Prompt to select ── */
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-10 relative z-10">
-                      <Building2 className="w-16 h-16 text-indigo-500/30 mb-4" />
-                      <h3 className="text-xl font-black text-white mb-2">Select a Floor</h3>
-                      <p className="text-sm text-gray-500 max-w-md">
+                      <Building2 className="w-16 h-16 text-[#C49A32]/30 mb-4" />
+                      <h3 className="text-xl font-black text-[#171717] mb-2">Select a Floor</h3>
+                      <p className="text-sm text-[#6E6A63]/80 max-w-md">
                         Click on a floor from the building structure view to explore room statuses.
                       </p>
                       {uniqueFloors.length === 0 && (
@@ -1384,14 +1400,14 @@ const Reception: React.FC = () => {
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                             <div className="flex items-center gap-3">
                               <button onClick={handleBackToBuilding}
-                                className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                                className="p-2 rounded-lg bg-black/3 border border-black/10 text-[#6E6A63] hover:text-[#171717] hover:bg-black/5 transition cursor-pointer"
                                 title="Back to building view"
                               >
                                 <X className="w-4 h-4" />
                               </button>
                               <div>
-                                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-                                  Selected Floor: <span className="text-white">Ground Lobby / Café</span>
+                                <h2 className="text-sm font-bold text-[#6E6A63] uppercase tracking-widest">
+                                  Selected Floor: <span className="text-[#171717]">Ground Lobby / Café</span>
                                 </h2>
                               </div>
                               {/* Mobile floor switcher */}
@@ -1399,14 +1415,14 @@ const Reception: React.FC = () => {
                                 <button onClick={() => handleFloorClick(0)}
                                   className={`px-2 py-1 rounded text-[10px] font-bold transition cursor-pointer ${selectedFloor === 0
                                       ? 'bg-amber-600/20 text-emerald-300 border border-emerald-400/40'
-                                      : 'bg-white/5 text-gray-500 border border-white/5 hover:text-amber-400'
+                                      : 'bg-black/3 text-[#6E6A63]/80 border border-black/5 hover:text-amber-400'
                                     }`}
                                 >Lobby</button>
                                 {[...uniqueFloors].sort((a, b) => b - a).map(f => (
                                   <button key={f} onClick={() => handleFloorClick(f)}
                                     className={`px-2 py-1 rounded text-[10px] font-bold transition cursor-pointer ${selectedFloor === f
                                         ? 'bg-amber-600/20 text-emerald-300 border border-emerald-400/40'
-                                        : 'bg-white/5 text-gray-500 border border-white/5 hover:text-amber-400'
+                                        : 'bg-black/3 text-[#6E6A63]/80 border border-black/5 hover:text-amber-400'
                                       }`}
                                   >L{f}</button>
                                 ))}
@@ -1415,14 +1431,14 @@ const Reception: React.FC = () => {
                             <div className="flex items-center gap-3">
                               {/* Search */}
                               <div className="relative">
-                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#6E6A63]/80" />
                                 <input type="text" placeholder="Search tables..."
                                   value={roomSearchQuery}
                                   onChange={e => setRoomSearchQuery(e.target.value)}
-                                  className="pl-8 pr-3 py-2 text-xs rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-amber-600/40 focus:bg-white/[0.05] transition w-36"
+                                  className="pl-8 pr-3 py-2 text-xs rounded-lg bg-[#F8F6F1]/60 border border-black/10 text-[#171717] placeholder-gray-600 focus:outline-none focus:border-amber-600/40 focus:bg-[#F8F6F1]/80 transition w-36"
                                 />
                               </div>
-                              <span className="text-xs font-mono text-gray-400">
+                              <span className="text-xs font-mono text-[#6E6A63]">
                                 <span className="text-amber-400 font-bold">{tables.length}</span> Tables
                               </span>
                             </div>
@@ -1434,7 +1450,7 @@ const Reception: React.FC = () => {
                             <div className="flex-1 flex flex-col min-h-0">
                               {/* Filter Pills */}
                               <div className="flex items-center gap-2 mb-4">
-                                <Filter className="w-3.5 h-3.5 text-gray-500 mr-1" />
+                                <Filter className="w-3.5 h-3.5 text-[#6E6A63]/80 mr-1" />
                                 {([
                                   { label: 'All Tables', value: 'all' as const, count: tables.length },
                                   { label: 'Vacant', value: 'vacant' as const, count: vacantTables },
@@ -1444,11 +1460,11 @@ const Reception: React.FC = () => {
                                   <button key={f.label} onClick={() => setRoomFilter(f.value)}
                                     className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all duration-200 cursor-pointer border ${roomFilter === f.value
                                         ? f.value === 'occupied'
-                                          ? 'bg-purple-500/15 text-purple-300 border-purple-500/40 shadow-md shadow-black/20'
+                                          ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-md shadow-black/20'
                                           : f.value === 'maintenance'
                                             ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-md shadow-black/20'
                                             : 'bg-amber-600/15 text-emerald-300 border-emerald-400/40 shadow-md shadow-black/20'
-                                        : 'bg-white/[0.02] text-gray-500 border-white/5 hover:text-white hover:border-white/15'
+                                        : 'bg-[#F8F6F1]/50 text-[#6E6A63]/80 border-black/5 hover:text-[#171717] hover:border-white/15'
                                       }`}
                                   >
                                     {f.label} <span className="ml-1.5 opacity-60">{f.count}</span>
@@ -1459,7 +1475,7 @@ const Reception: React.FC = () => {
                               {/* 3D Restaurant Table Map Grid */}
                               <div className="flex-1 overflow-auto pr-1">
                                 {filteredTables.length === 0 ? (
-                                  <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
+                                  <div className="flex items-center justify-center h-40 text-[#6E6A63]/80 text-sm">
                                     No tables match the current filter.
                                   </div>
                                 ) : (
@@ -1470,24 +1486,24 @@ const Reception: React.FC = () => {
                                       const isOccupied = table.status === 'OCCUPIED';
                                       const isVacant = !isReserved && !isOccupied;
 
-                                      let themeColor = 'rgba(16, 185, 129, 0.2)';
-                                      let themeBg = 'linear-gradient(135deg, rgba(6, 78, 59, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                      let sideBg = '#047857';
+                                      let themeColor = 'rgba(34, 197, 94, 0.35)';
+                                      let themeBg = '#FFFFFF';
+                                      let sideBg = '#E5E0D8';
                                       let statusLabel = 'VACANT';
-                                      let glowDot = 'bg-emerald-400 shadow-md shadow-black/20';
+                                      let glowDot = 'bg-emerald-500 shadow-sm';
 
                                       if (isOccupied) {
-                                        themeColor = 'rgba(168, 85, 247, 0.2)';
-                                        themeBg = 'linear-gradient(135deg, rgba(88, 28, 135, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                        sideBg = '#701a75';
+                                        themeColor = 'rgba(245, 158, 11, 0.4)';
+                                        themeBg = '#FFFFFF';
+                                        sideBg = '#E5E0D8';
                                         statusLabel = 'OCCUPIED';
-                                        glowDot = 'bg-purple-400 shadow-md shadow-black/20';
+                                        glowDot = 'bg-amber-500 shadow-sm';
                                       } else if (isReserved) {
-                                        themeColor = 'rgba(245, 158, 11, 0.2)';
-                                        themeBg = 'linear-gradient(135deg, rgba(120, 53, 15, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                        sideBg = '#b45309';
+                                        themeColor = 'rgba(196, 154, 50, 0.4)';
+                                        themeBg = '#FFFFFF';
+                                        sideBg = '#E5E0D8';
                                         statusLabel = 'RESERVED';
-                                        glowDot = 'bg-amber-400 shadow-md shadow-black/20';
+                                        glowDot = 'bg-[#C49A32] shadow-sm';
                                       }
 
                                       const handleTableClick = () => {
@@ -1497,7 +1513,7 @@ const Reception: React.FC = () => {
                                             title: 'Table Reserved',
                                             message: (
                                               <span>
-                                                Table <strong className="text-white font-mono">{table.table_number}</strong> is reserved for <strong className="text-white">{activeRes.customer_name}</strong> at <strong className="text-white">{new Date(activeRes.reservation_time).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong>.
+                                                Table <strong className="text-[#171717] font-mono">{table.table_number}</strong> is reserved for <strong className="text-[#171717]">{activeRes.customer_name}</strong> at <strong className="text-[#171717]">{new Date(activeRes.reservation_time).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong>.
                                               </span>
                                             ),
                                             confirmText: 'OK',
@@ -1510,7 +1526,7 @@ const Reception: React.FC = () => {
                                             title: 'Clear Table',
                                             message: (
                                               <span>
-                                                Are you sure you want to mark Table <strong className="text-white font-mono">{table.table_number}</strong> as vacant?
+                                                Are you sure you want to mark Table <strong className="text-[#171717] font-mono">{table.table_number}</strong> as vacant?
                                               </span>
                                             ),
                                             confirmText: 'Yes, Mark Vacant',
@@ -1550,10 +1566,10 @@ const Reception: React.FC = () => {
                                             {/* Top Section */}
                                             <div className="flex justify-between items-start">
                                               <div>
-                                                <span className="text-xl font-black tracking-tight text-white block">
+                                                <span className="text-xl font-black tracking-tight text-[#171717] block">
                                                   Table {table.table_number}
                                                 </span>
-                                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 block">
+                                                <span className="text-[9px] font-bold text-[#6E6A63]/80 uppercase tracking-widest mt-0.5 block">
                                                   Capacity: {table.capacity} Pax
                                                 </span>
                                               </div>
@@ -1561,9 +1577,9 @@ const Reception: React.FC = () => {
                                             </div>
 
                                             {/* Middle section */}
-                                            <div className="text-[10px] text-gray-400 py-1">
+                                            <div className="text-[10px] text-[#6E6A63] py-1">
                                               {isOccupied ? (
-                                                <span className="text-purple-300 font-medium truncate block">
+                                                <span className="text-[#C49A32] font-medium truncate block">
                                                   Seated Dine-In Guest
                                                 </span>
                                               ) : isReserved && activeRes ? (
@@ -1571,7 +1587,7 @@ const Reception: React.FC = () => {
                                                   <span className="text-amber-300 font-bold truncate block">
                                                     Reserved: {activeRes.customer_name}
                                                   </span>
-                                                  <span className="text-[8px] text-gray-500 block">
+                                                  <span className="text-[8px] text-[#6E6A63]/80 block">
                                                     {new Date(activeRes.reservation_time).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                                   </span>
                                                 </div>
@@ -1583,16 +1599,16 @@ const Reception: React.FC = () => {
                                             </div>
 
                                             {/* Bottom Section */}
-                                            <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                                            <div className="flex justify-between items-center pt-2 border-t border-black/5">
                                               <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${isOccupied
-                                                  ? 'bg-purple-500/15 border-purple-500/30 text-purple-300'
+                                                  ? 'bg-amber-50 border-amber-200 text-amber-700'
                                                   : isReserved
-                                                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
-                                                    : 'bg-amber-600/15 border-amber-600/30 text-emerald-300'
+                                                    ? 'bg-[#C49A32]/10 border-[#C49A32]/30 text-[#C49A32]'
+                                                    : 'bg-emerald-50 border-emerald-200 text-emerald-700'
                                                 }`}>
                                                 {statusLabel}
                                               </span>
-                                              <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">
+                                              <span className="text-[9px] text-[#6E6A63]/80 font-bold uppercase tracking-wider">
                                                 {isVacant ? 'Reserve' : isOccupied ? 'Clear' : 'Seat'}
                                               </span>
                                             </div>
@@ -1605,16 +1621,16 @@ const Reception: React.FC = () => {
                               </div>
 
                               {/* Summary Badges */}
-                              <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/5">
+                              <div className="flex items-center gap-3 mt-4 pt-4 border-t border-black/5">
                                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600/10 border border-amber-600/20">
                                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-md shadow-black/20" />
                                   <span className="text-xl font-black text-emerald-300">{vacantTables}</span>
                                   <span className="text-[10px] font-bold text-amber-400/70 uppercase tracking-widest">Vacant</span>
                                 </div>
-                                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                                  <div className="w-2.5 h-2.5 rounded-full bg-purple-400 shadow-md shadow-black/20" />
-                                  <span className="text-xl font-black text-purple-300">{occupiedTables}</span>
-                                  <span className="text-[10px] font-bold text-purple-400/70 uppercase tracking-widest">Occupied</span>
+                                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#C49A32]/10 border border-[#C49A32]/20">
+                                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-md shadow-black/20" />
+                                  <span className="text-xl font-black text-[#C49A32]">{occupiedTables}</span>
+                                  <span className="text-[10px] font-bold text-[#C49A32]/70 uppercase tracking-widest">Occupied</span>
                                 </div>
                                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
                                   <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-md shadow-black/20" />
@@ -1625,20 +1641,20 @@ const Reception: React.FC = () => {
                             </div>
 
                             {/* Right Panel: Lobby Concierge & Lounge Dashboard */}
-                            <div className="w-full xl:w-[280px] shrink-0 glass-panel border border-white/5 bg-indigo-500/[0.02] p-4.5 rounded-2xl flex flex-col justify-between overflow-y-auto min-h-[300px]">
+                            <div className="w-full xl:w-[280px] shrink-0 glass-panel border border-black/5 bg-[#C49A32]/[0.02] p-4.5 rounded-2xl flex flex-col justify-between overflow-y-auto min-h-[300px]">
                               <div>
-                                <h3 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-3.5 flex items-center gap-1.5 font-mono">
+                                <h3 className="text-xs font-black text-[#C49A32] uppercase tracking-widest mb-3.5 flex items-center gap-1.5 font-mono">
                                   <Users className="w-4 h-4" /> Lobby Concierge
                                 </h3>
 
                                 {/* Lounge Seating Progress Bar */}
-                                <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 mb-4">
-                                  <div className="flex justify-between items-center text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">
+                                <div className="bg-[#F8F6F1]/50 border border-black/5 rounded-xl p-3 mb-4">
+                                  <div className="flex justify-between items-center text-[10px] text-[#6E6A63]/80 font-bold uppercase tracking-wider mb-2">
                                     <span>Lounge Occupancy</span>
-                                    <span className="text-purple-400">7 / 12 Seats</span>
+                                    <span className="text-[#C49A32]">7 / 12 Seats</span>
                                   </div>
-                                  <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden">
-                                    <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full animate-pulse" style={{ width: '58%' }}></div>
+                                  <div className="w-full bg-black/3 h-2 rounded-full overflow-hidden">
+                                    <div className="bg-gradient-to-r from-[#C49A32] to-[#d4ab48] h-full rounded-full animate-pulse" style={{ width: '58%' }}></div>
                                   </div>
                                   <span className="text-[9px] text-gray-600 block mt-1.5">
                                     *Waiting area for guest arrivals & checkout processing.
@@ -1647,33 +1663,33 @@ const Reception: React.FC = () => {
 
                                 {/* Lobby Services Quick Stats */}
                                 <div className="space-y-2 mb-4">
-                                  <div className="flex justify-between items-center bg-white/[0.01] border border-white/5 rounded-xl p-2.5 hover:bg-white/[0.03] transition">
+                                  <div className="flex justify-between items-center bg-white/[0.01] border border-black/5 rounded-xl p-2.5 hover:bg-[#F8F6F1]/60 transition">
                                     <div className="flex items-center gap-2">
                                       <span className="text-lg">💼</span>
                                       <div>
-                                        <span className="text-[10px] font-bold text-gray-400 block uppercase tracking-wider">Luggage Vault</span>
-                                        <span className="text-[9px] text-gray-500 block">Active storage claims</span>
+                                        <span className="text-[10px] font-bold text-[#6E6A63] block uppercase tracking-wider">Luggage Vault</span>
+                                        <span className="text-[9px] text-[#6E6A63]/80 block">Active storage claims</span>
                                       </div>
                                     </div>
                                     <span className="text-xs font-mono font-black text-amber-400 bg-amber-600/10 px-2 py-0.5 rounded">4 Items</span>
                                   </div>
 
-                                  <div className="flex justify-between items-center bg-white/[0.01] border border-white/5 rounded-xl p-2.5 hover:bg-white/[0.03] transition">
+                                  <div className="flex justify-between items-center bg-white/[0.01] border border-black/5 rounded-xl p-2.5 hover:bg-[#F8F6F1]/60 transition">
                                     <div className="flex items-center gap-2">
                                       <span className="text-lg">🔑</span>
                                       <div>
-                                        <span className="text-[10px] font-bold text-gray-400 block uppercase tracking-wider">Valet Vault</span>
-                                        <span className="text-[9px] text-gray-500 block">Vehicles parked</span>
+                                        <span className="text-[10px] font-bold text-[#6E6A63] block uppercase tracking-wider">Valet Vault</span>
+                                        <span className="text-[9px] text-[#6E6A63]/80 block">Vehicles parked</span>
                                       </div>
                                     </div>
-                                    <span className="text-xs font-mono font-black text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">3 Keys</span>
+                                    <span className="text-xs font-mono font-black text-[#C49A32] bg-[#C49A32]/10 px-2 py-0.5 rounded">3 Keys</span>
                                   </div>
                                 </div>
                               </div>
 
                               {/* Dining Reservations Board */}
-                              <div className="flex-1 flex flex-col min-h-0 border-t border-white/5 pt-3.5 mb-4">
-                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 font-mono">
+                              <div className="flex-1 flex flex-col min-h-0 border-t border-black/5 pt-3.5 mb-4">
+                                <span className="text-[10px] font-black text-[#6E6A63]/80 uppercase tracking-widest block mb-2 font-mono">
                                   DINING BOARD
                                 </span>
                                 <div className="flex-1 overflow-y-auto space-y-1.5 max-h-[140px] pr-1">
@@ -1683,10 +1699,10 @@ const Reception: React.FC = () => {
                                     tableReservations.filter((tr: any) => tr.status === 'BOOKED').map((tr: any) => {
                                       const tableMatch = tables.find(t => t.id === tr.table);
                                       return (
-                                        <div key={tr.id} className="bg-white/[0.02] border border-white/5 rounded-lg p-2 flex justify-between items-center text-[10px] gap-2">
+                                        <div key={tr.id} className="bg-[#F8F6F1]/50 border border-black/5 rounded-lg p-2 flex justify-between items-center text-[10px] gap-2">
                                           <div className="min-w-0 flex-1">
-                                            <span className="font-bold text-white block truncate">{tr.customer_name}</span>
-                                            <span className="text-[9px] text-gray-500 block">Table {tableMatch?.table_number || tr.table} • {tr.pax || 2} Pax</span>
+                                            <span className="font-bold text-[#171717] block truncate">{tr.customer_name}</span>
+                                            <span className="text-[9px] text-[#6E6A63]/80 block">Table {tableMatch?.table_number || tr.table} • {tr.pax || 2} Pax</span>
                                           </div>
                                           <div className="flex items-center gap-2">
                                             <span className="text-[9px] font-mono text-amber-400/80">
@@ -1707,14 +1723,14 @@ const Reception: React.FC = () => {
                               </div>
 
                               {/* Quick Service Action Buttons */}
-                              <div className="border-t border-white/5 pt-3.5 space-y-2">
+                              <div className="border-t border-black/5 pt-3.5 space-y-2">
                                 <button onClick={() => { setSelectedRoomId(''); setGuestType('STAY_IN'); setIsRegistering(true); }}
                                   className="w-full py-2 bg-amber-600/10 hover:bg-amber-600/20 border border-amber-600/30 text-emerald-300 text-[10px] font-black uppercase tracking-wider font-mono rounded-xl cursor-pointer transition shadow-md shadow-black/20"
                                 >
                                   + Walk-in Check-in
                                 </button>
                                 <button onClick={() => { setReserveTableId(''); setIsReservingTable(true); }}
-                                  className="w-full py-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-[10px] font-black uppercase tracking-wider font-mono rounded-xl cursor-pointer transition"
+                                  className="w-full py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-black uppercase tracking-wider font-mono rounded-xl cursor-pointer transition"
                                 >
                                   + Table Reservation
                                 </button>
@@ -1761,14 +1777,14 @@ const Reception: React.FC = () => {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                           <div className="flex items-center gap-3">
                             <button onClick={handleBackToBuilding}
-                              className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                              className="p-2 rounded-lg bg-black/3 border border-black/10 text-[#6E6A63] hover:text-[#171717] hover:bg-black/5 transition cursor-pointer"
                               title="Back to building view"
                             >
                               <X className="w-4 h-4" />
                             </button>
                             <div>
-                              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-                                Selected Floor: <span className="text-white">Level {selectedFloor}</span>
+                              <h2 className="text-sm font-bold text-[#6E6A63] uppercase tracking-widest">
+                                Selected Floor: <span className="text-[#171717]">Level {selectedFloor}</span>
                               </h2>
                             </div>
                             {/* Mobile floor switcher */}
@@ -1777,7 +1793,7 @@ const Reception: React.FC = () => {
                                 <button key={f} onClick={() => handleFloorClick(f)}
                                   className={`px-2 py-1 rounded text-[10px] font-bold transition cursor-pointer ${selectedFloor === f
                                       ? 'bg-amber-600/20 text-emerald-300 border border-emerald-400/40'
-                                      : 'bg-white/5 text-gray-500 border border-white/5 hover:text-amber-400'
+                                      : 'bg-black/3 text-[#6E6A63]/80 border border-black/5 hover:text-amber-400'
                                     }`}
                                 >L{f}</button>
                               ))}
@@ -1786,14 +1802,14 @@ const Reception: React.FC = () => {
                           <div className="flex items-center gap-3">
                             {/* Search */}
                             <div className="relative">
-                              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+                              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#6E6A63]/80" />
                               <input type="text" placeholder="Search rooms..."
                                 value={roomSearchQuery}
                                 onChange={e => setRoomSearchQuery(e.target.value)}
-                                className="pl-8 pr-3 py-2 text-xs rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-amber-600/40 focus:bg-white/[0.05] transition w-36"
+                                className="pl-8 pr-3 py-2 text-xs rounded-lg bg-[#F8F6F1]/60 border border-black/10 text-[#171717] placeholder-gray-600 focus:outline-none focus:border-amber-600/40 focus:bg-[#F8F6F1]/80 transition w-36"
                               />
                             </div>
-                            <span className="text-xs font-mono text-gray-400">
+                            <span className="text-xs font-mono text-[#6E6A63]">
                               <span className="text-amber-400 font-bold">{floorRooms.length}</span> / {rooms.length} Rooms
                             </span>
                           </div>
@@ -1801,7 +1817,7 @@ const Reception: React.FC = () => {
 
                         {/* Filter Pills */}
                         <div className="flex items-center gap-2 mb-4">
-                          <Filter className="w-3.5 h-3.5 text-gray-500 mr-1" />
+                          <Filter className="w-3.5 h-3.5 text-[#6E6A63]/80 mr-1" />
                           {([
                             { label: 'All', value: 'all' as const, count: floorRooms.length },
                             { label: 'Vacant', value: 'vacant' as const, count: vacant },
@@ -1810,12 +1826,8 @@ const Reception: React.FC = () => {
                           ] as const).map(f => (
                             <button key={f.value} onClick={() => setRoomFilter(f.value)}
                               className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all duration-200 cursor-pointer border ${roomFilter === f.value
-                                  ? f.value === 'occupied'
-                                    ? 'bg-purple-500/15 text-purple-300 border-purple-500/40 shadow-md shadow-black/20'
-                                    : f.value === 'maintenance'
-                                      ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-md shadow-black/20'
-                                      : 'bg-amber-600/15 text-emerald-300 border-emerald-400/40 shadow-md shadow-black/20'
-                                  : 'bg-white/[0.02] text-gray-500 border-white/5 hover:text-white hover:border-white/15'
+                                  ? 'bg-[#C49A32] text-white border-[#C49A32] shadow-sm'
+                                  : 'bg-white text-[#6E6A63] border-black/10 hover:text-[#171717] hover:border-[#C49A32]/40'
                                 }`}
                             >
                               {f.label} <span className="ml-1.5 opacity-60">{f.count}</span>
@@ -1826,7 +1838,7 @@ const Reception: React.FC = () => {
                         {/* 3D Hallway Lobby Corridor */}
                         <div className="flex-1 relative flex flex-col justify-center min-h-[500px]">
                           {filteredFloorRooms.length === 0 ? (
-                            <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
+                            <div className="flex items-center justify-center h-40 text-[#6E6A63]/80 text-sm">
                               No rooms match the current filter.
                             </div>
                           ) : (
@@ -1856,7 +1868,7 @@ const Reception: React.FC = () => {
                                           title: 'Complete Maintenance',
                                           message: (
                                             <span>
-                                              Room <strong className="text-white font-mono">{room.room_number}</strong> is under maintenance. Mark it as Vacant/Available?
+                                              Room <strong className="text-[#171717] font-mono">{room.room_number}</strong> is under maintenance. Mark it as Vacant/Available?
                                             </span>
                                           ),
                                           confirmText: 'Yes, Mark Vacant',
@@ -1872,28 +1884,28 @@ const Reception: React.FC = () => {
                                     };
 
                                     // Style values based on status
-                                    let themeColor = 'rgba(16, 185, 129, 0.2)';
-                                    let themeBg = 'linear-gradient(135deg, rgba(6, 78, 59, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                    let sideBg = '#047857';
-                                    let glowDot = 'bg-emerald-400 shadow-md shadow-black/20';
-                                    let borderGlow = isSelected ? '0 0 20px rgba(16, 185, 129, 0.4)' : '';
+                                    let themeColor = 'rgba(34, 197, 94, 0.35)';
+                                    let themeBg = '#FFFFFF';
+                                    let sideBg = '#E5E0D8';
+                                    let glowDot = 'bg-emerald-500 shadow-sm';
+                                    let borderGlow = isSelected ? '0 10px 25px rgba(196, 154, 50, 0.25)' : '0 4px 16px rgba(0,0,0,0.06)';
 
                                     if (isOccupied) {
-                                      themeColor = 'rgba(168, 85, 247, 0.2)';
-                                      themeBg = 'linear-gradient(135deg, rgba(88, 28, 135, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                      sideBg = '#701a75';
-                                      glowDot = 'bg-purple-400 shadow-md shadow-black/20';
-                                      borderGlow = isSelected ? '0 0 20px rgba(16, 185, 129, 0.4)' : '';
+                                      themeColor = 'rgba(245, 158, 11, 0.4)';
+                                      themeBg = '#FFFFFF';
+                                      sideBg = '#E5E0D8';
+                                      glowDot = 'bg-amber-500 shadow-sm';
+                                      borderGlow = isSelected ? '0 10px 25px rgba(196, 154, 50, 0.25)' : '0 4px 16px rgba(0,0,0,0.06)';
                                     } else if (isMaint) {
-                                      themeColor = 'rgba(245, 158, 11, 0.2)';
-                                      themeBg = 'linear-gradient(135deg, rgba(120, 53, 15, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                      sideBg = '#b45309';
-                                      glowDot = 'bg-amber-400 shadow-md shadow-black/20';
-                                      borderGlow = isSelected ? '0 0 20px rgba(245, 158, 11, 0.4)' : '';
+                                      themeColor = 'rgba(239, 68, 68, 0.4)';
+                                      themeBg = '#FFFFFF';
+                                      sideBg = '#E5E0D8';
+                                      glowDot = 'bg-rose-500 shadow-sm';
+                                      borderGlow = isSelected ? '0 10px 25px rgba(196, 154, 50, 0.25)' : '0 4px 16px rgba(0,0,0,0.06)';
                                     }
 
                                     if (isSelected) {
-                                      themeColor = isOccupied ? '#a855f7' : isMaint ? '#f59e0b' : '#10b981';
+                                      themeColor = '#C49A32';
                                     }
 
                                     return (
@@ -1921,46 +1933,46 @@ const Reception: React.FC = () => {
                                           {/* Top Section */}
                                           <div className="flex justify-between items-start">
                                             <div>
-                                              <span className="text-xl font-black tracking-tight text-white block">
+                                              <span className="text-xl font-black tracking-tight text-[#171717] block">
                                                 Room {room.room_number}
                                               </span>
-                                              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 block">
+                                              <span className="text-[9px] font-bold text-[#6E6A63]/80 uppercase tracking-widest mt-0.5 block">
                                                 {room.room_type}
                                               </span>
                                             </div>
-                                            <span className="text-sm font-black text-indigo-400 font-mono">
+                                            <span className="text-sm font-black text-[#C49A32] font-mono">
                                               ₹{parseFloat(room.price_per_night).toFixed(0)}
                                             </span>
                                           </div>
 
                                           {/* Middle details (Guest/Pax) */}
-                                          <div className="flex items-center gap-4 text-gray-400 text-[10px]">
+                                          <div className="flex items-center gap-4 text-[#6E6A63] text-[10px]">
                                             <span className="flex items-center gap-1">
-                                              <Users className="w-3.5 h-3.5 text-gray-500" />
+                                              <Users className="w-3.5 h-3.5 text-[#6E6A63]/80" />
                                               <span>{room.capacity} Pax</span>
                                             </span>
 
                                             {isOccupied && booking && (
-                                              <span className="text-purple-300 font-medium truncate max-w-[130px] flex items-center gap-1">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                                              <span className="text-[#C49A32] font-medium truncate max-w-[130px] flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                                                 {booking.guest_name}
                                               </span>
                                             )}
                                           </div>
 
                                           {/* Bottom Section */}
-                                          <div className="flex justify-between items-center mt-1.5 pt-1.5 border-t border-white/5">
+                                          <div className="flex justify-between items-center mt-1.5 pt-1.5 border-t border-black/5">
                                             <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${isOccupied
-                                                ? 'bg-purple-500/15 border-purple-500/30 text-purple-300'
+                                                ? 'bg-amber-50 border-amber-200 text-amber-700'
                                                 : isMaint
-                                                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
-                                                  : 'bg-amber-600/15 border-amber-600/30 text-emerald-300'
+                                                  ? 'bg-rose-50 border-rose-200 text-rose-700'
+                                                  : 'bg-emerald-50 border-emerald-200 text-emerald-700'
                                               }`}>
                                               {isVacant ? 'VACANT' : isOccupied ? 'OCCUPIED' : 'MAINTENANCE'}
                                             </span>
 
                                             <div className="flex items-center gap-2">
-                                              <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider group-hover:text-white transition">
+                                              <span className="text-[9px] text-[#6E6A63]/80 font-bold uppercase tracking-wider group-hover:text-[#171717] transition">
                                                 {isVacant ? 'Book Stay' : isOccupied ? 'Checkout' : 'Mark Vacant'}
                                               </span>
                                               <div className={`w-2 h-2 rounded-full ${glowDot}`} />
@@ -1991,7 +2003,7 @@ const Reception: React.FC = () => {
                                           title: 'Complete Maintenance',
                                           message: (
                                             <span>
-                                              Room <strong className="text-white font-mono">{room.room_number}</strong> is under maintenance. Mark it as Vacant/Available?
+                                              Room <strong className="text-[#171717] font-mono">{room.room_number}</strong> is under maintenance. Mark it as Vacant/Available?
                                             </span>
                                           ),
                                           confirmText: 'Yes, Mark Vacant',
@@ -2007,28 +2019,28 @@ const Reception: React.FC = () => {
                                     };
 
                                     // Style values based on status
-                                    let themeColor = 'rgba(16, 185, 129, 0.2)';
-                                    let themeBg = 'linear-gradient(135deg, rgba(6, 78, 59, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                    let sideBg = '#047857';
-                                    let glowDot = 'bg-emerald-400 shadow-md shadow-black/20';
-                                    let borderGlow = isSelected ? '0 0 20px rgba(16, 185, 129, 0.4)' : '';
+                                    let themeColor = 'rgba(34, 197, 94, 0.35)';
+                                    let themeBg = '#FFFFFF';
+                                    let sideBg = '#E5E0D8';
+                                    let glowDot = 'bg-emerald-500 shadow-sm';
+                                    let borderGlow = isSelected ? '0 10px 25px rgba(196, 154, 50, 0.25)' : '0 4px 16px rgba(0,0,0,0.06)';
 
                                     if (isOccupied) {
-                                      themeColor = 'rgba(168, 85, 247, 0.2)';
-                                      themeBg = 'linear-gradient(135deg, rgba(88, 28, 135, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                      sideBg = '#701a75';
-                                      glowDot = 'bg-purple-400 shadow-md shadow-black/20';
-                                      borderGlow = isSelected ? '0 0 20px rgba(16, 185, 129, 0.4)' : '';
+                                      themeColor = 'rgba(245, 158, 11, 0.4)';
+                                      themeBg = '#FFFFFF';
+                                      sideBg = '#E5E0D8';
+                                      glowDot = 'bg-amber-500 shadow-sm';
+                                      borderGlow = isSelected ? '0 10px 25px rgba(196, 154, 50, 0.25)' : '0 4px 16px rgba(0,0,0,0.06)';
                                     } else if (isMaint) {
-                                      themeColor = 'rgba(245, 158, 11, 0.2)';
-                                      themeBg = 'linear-gradient(135deg, rgba(120, 53, 15, 0.25) 0%, rgba(3, 7, 18, 0.98) 100%)';
-                                      sideBg = '#b45309';
-                                      glowDot = 'bg-amber-400 shadow-md shadow-black/20';
-                                      borderGlow = isSelected ? '0 0 20px rgba(245, 158, 11, 0.4)' : '';
+                                      themeColor = 'rgba(239, 68, 68, 0.4)';
+                                      themeBg = '#FFFFFF';
+                                      sideBg = '#E5E0D8';
+                                      glowDot = 'bg-rose-500 shadow-sm';
+                                      borderGlow = isSelected ? '0 10px 25px rgba(196, 154, 50, 0.25)' : '0 4px 16px rgba(0,0,0,0.06)';
                                     }
 
                                     if (isSelected) {
-                                      themeColor = isOccupied ? '#a855f7' : isMaint ? '#f59e0b' : '#10b981';
+                                      themeColor = '#C49A32';
                                     }
 
                                     return (
@@ -2056,46 +2068,46 @@ const Reception: React.FC = () => {
                                           {/* Top Section */}
                                           <div className="flex justify-between items-start">
                                             <div>
-                                              <span className="text-xl font-black tracking-tight text-white block">
+                                              <span className="text-xl font-black tracking-tight text-[#171717] block">
                                                 Room {room.room_number}
                                               </span>
-                                              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 block">
+                                              <span className="text-[9px] font-bold text-[#6E6A63]/80 uppercase tracking-widest mt-0.5 block">
                                                 {room.room_type}
                                               </span>
                                             </div>
-                                            <span className="text-sm font-black text-indigo-400 font-mono">
+                                            <span className="text-sm font-black text-[#C49A32] font-mono">
                                               ₹{parseFloat(room.price_per_night).toFixed(0)}
                                             </span>
                                           </div>
 
                                           {/* Middle details (Guest/Pax) */}
-                                          <div className="flex items-center gap-4 text-gray-400 text-[10px]">
+                                          <div className="flex items-center gap-4 text-[#6E6A63] text-[10px]">
                                             <span className="flex items-center gap-1">
-                                              <Users className="w-3.5 h-3.5 text-gray-500" />
+                                              <Users className="w-3.5 h-3.5 text-[#6E6A63]/80" />
                                               <span>{room.capacity} Pax</span>
                                             </span>
 
                                             {isOccupied && booking && (
-                                              <span className="text-purple-300 font-medium truncate max-w-[130px] flex items-center gap-1">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                                              <span className="text-[#C49A32] font-medium truncate max-w-[130px] flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                                                 {booking.guest_name}
                                               </span>
                                             )}
                                           </div>
 
                                           {/* Bottom Section */}
-                                          <div className="flex justify-between items-center mt-1.5 pt-1.5 border-t border-white/5">
+                                          <div className="flex justify-between items-center mt-1.5 pt-1.5 border-t border-black/5">
                                             <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${isOccupied
-                                                ? 'bg-purple-500/15 border-purple-500/30 text-purple-300'
+                                                ? 'bg-amber-50 border-amber-200 text-amber-700'
                                                 : isMaint
-                                                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
-                                                  : 'bg-amber-600/15 border-amber-600/30 text-emerald-300'
+                                                  ? 'bg-rose-50 border-rose-200 text-rose-700'
+                                                  : 'bg-emerald-50 border-emerald-200 text-emerald-700'
                                               }`}>
                                               {isVacant ? 'VACANT' : isOccupied ? 'OCCUPIED' : 'MAINTENANCE'}
                                             </span>
 
                                             <div className="flex items-center gap-2">
-                                              <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider group-hover:text-white transition">
+                                              <span className="text-[9px] text-[#6E6A63]/80 font-bold uppercase tracking-wider group-hover:text-[#171717] transition">
                                                 {isVacant ? 'Book Stay' : isOccupied ? 'Checkout' : 'Mark Vacant'}
                                               </span>
                                               <div className={`w-2 h-2 rounded-full ${glowDot}`} />
@@ -2114,7 +2126,7 @@ const Reception: React.FC = () => {
                                   {roomPage > 0 && (
                                     <button
                                       onClick={() => setRoomPage(prev => prev - 1)}
-                                      className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-slate-950/90 border border-white/10 hover:border-indigo-500 text-gray-400 hover:text-white rounded-full transition cursor-pointer z-30 shadow-2xl hover:scale-110 flex items-center justify-center"
+                                      className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 border border-black/10 hover:border-[#C49A32] text-[#6E6A63] hover:text-[#171717] rounded-full transition cursor-pointer z-30 shadow-2xl hover:scale-110 flex items-center justify-center"
                                       title="Previous Page"
                                     >
                                       <ChevronLeft className="w-5 h-5" />
@@ -2123,7 +2135,7 @@ const Reception: React.FC = () => {
                                   {roomPage < totalPages - 1 && (
                                     <button
                                       onClick={() => setRoomPage(prev => prev + 1)}
-                                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-slate-950/90 border border-white/10 hover:border-indigo-500 text-gray-400 hover:text-white rounded-full transition cursor-pointer z-30 shadow-2xl hover:scale-110 flex items-center justify-center"
+                                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 border border-black/10 hover:border-[#C49A32] text-[#6E6A63] hover:text-[#171717] rounded-full transition cursor-pointer z-30 shadow-2xl hover:scale-110 flex items-center justify-center"
                                       title="Next Page"
                                     >
                                       <ChevronRight className="w-5 h-5" />
@@ -2131,7 +2143,7 @@ const Reception: React.FC = () => {
                                   )}
 
                                   {/* Page Number indicator */}
-                                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-950/80 border border-white/5 rounded-full text-[10px] font-black tracking-widest text-indigo-400 uppercase font-mono z-30 shadow-md">
+                                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#F8F6F1]/90 border border-black/5 rounded-full text-[10px] font-black tracking-widest text-[#C49A32] uppercase font-mono z-30 shadow-md">
                                     Page {roomPage + 1} of {totalPages}
                                   </div>
                                 </>
@@ -2141,16 +2153,16 @@ const Reception: React.FC = () => {
                         </div>
 
                         {/* Summary Badges */}
-                        <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/5">
+                        <div className="flex items-center gap-3 mt-4 pt-4 border-t border-black/5">
                           <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600/10 border border-amber-600/20">
                             <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-md shadow-black/20" />
                             <span className="text-xl font-black text-emerald-300">{vacant}</span>
                             <span className="text-[10px] font-bold text-amber-400/70 uppercase tracking-widest">Vacant</span>
                           </div>
-                          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                            <div className="w-2.5 h-2.5 rounded-full bg-purple-400 shadow-md shadow-black/20" />
-                            <span className="text-xl font-black text-purple-300">{occupied}</span>
-                            <span className="text-[10px] font-bold text-purple-400/70 uppercase tracking-widest">Occupied</span>
+                          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#C49A32]/10 border border-[#C49A32]/20">
+                            <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-md shadow-black/20" />
+                            <span className="text-xl font-black text-[#C49A32]">{occupied}</span>
+                            <span className="text-[10px] font-bold text-[#C49A32]/70 uppercase tracking-widest">Occupied</span>
                           </div>
                           {maintenance > 0 && (
                             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
@@ -2160,9 +2172,9 @@ const Reception: React.FC = () => {
                             </div>
                           )}
                           <div className="flex-1" />
-                          <div className="hidden md:flex items-center gap-4 text-[10px] text-gray-500 uppercase tracking-wider font-bold">
+                          <div className="hidden md:flex items-center gap-4 text-[10px] text-[#6E6A63]/80 uppercase tracking-wider font-bold">
                             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-600/30 border border-amber-600/40" /> Vacant</span>
-                            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-purple-500/30 border border-purple-500/40" /> Occupied</span>
+                            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-500/30 border border-amber-500/40" /> Occupied</span>
                             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-500/30 border border-amber-500/40" /> Maintenance</span>
                           </div>
                         </div>
@@ -2173,7 +2185,7 @@ const Reception: React.FC = () => {
               </div>
 
               {/* Tip text */}
-              <div className="px-5 py-3 border-t border-white/5 text-[10px] text-gray-500 font-medium">
+              <div className="px-5 py-3 border-t border-black/5 text-[10px] text-[#6E6A63]/80 font-medium">
                 {selectedFloor === 0
                   ? '💡 Click any Vacant restaurant table to reserve it. Click Occupied tables to mark them vacant.'
                   : selectedFloor !== null
@@ -2185,28 +2197,28 @@ const Reception: React.FC = () => {
 
             {/* 4 Premium metrics cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-              <div className="glass-panel p-4.5 rounded-2xl border border-white/5 bg-indigo-500/5 shadow-md shadow-black/20 flex flex-col justify-between min-h-[90px]">
-                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block font-mono">Available Rooms</span>
-                <span className="text-2xl font-black text-white font-mono mt-2">
-                  {rooms.filter(r => r.status === 'AVAILABLE').length} <span className="text-xs text-gray-500 font-bold">/ {rooms.length}</span>
+              <div className="glass-panel p-4.5 rounded-2xl border border-black/5 bg-[#C49A32]/5 shadow-md shadow-black/20 flex flex-col justify-between min-h-[90px]">
+                <span className="text-[10px] font-black text-[#C49A32] uppercase tracking-widest block font-mono">Available Rooms</span>
+                <span className="text-2xl font-black text-[#171717] font-mono mt-2">
+                  {rooms.filter(r => r.status === 'AVAILABLE').length} <span className="text-xs text-[#6E6A63]/80 font-bold">/ {rooms.length}</span>
                 </span>
               </div>
-              <div className="glass-panel p-4.5 rounded-2xl border border-white/5 bg-rose-500/5 shadow-md shadow-black/20 flex flex-col justify-between min-h-[90px]">
+              <div className="glass-panel p-4.5 rounded-2xl border border-black/5 bg-rose-500/5 shadow-md shadow-black/20 flex flex-col justify-between min-h-[90px]">
                 <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest block font-mono">Occupied Rooms</span>
-                <span className="text-2xl font-black text-white font-mono mt-2">
+                <span className="text-2xl font-black text-[#171717] font-mono mt-2">
                   {rooms.filter(r => r.status === 'OCCUPIED').length}
                 </span>
               </div>
-              <div className="glass-panel p-4.5 rounded-2xl border border-white/5 bg-amber-500/5 shadow-md shadow-black/20 flex flex-col justify-between min-h-[90px]">
+              <div className="glass-panel p-4.5 rounded-2xl border border-black/5 bg-amber-500/5 shadow-md shadow-black/20 flex flex-col justify-between min-h-[90px]">
                 <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block font-mono">Maintenance</span>
-                <span className="text-2xl font-black text-white font-mono mt-2">
+                <span className="text-2xl font-black text-[#171717] font-mono mt-2">
                   {rooms.filter(r => r.status === 'MAINTENANCE').length}
                 </span>
               </div>
-              <div className="glass-panel p-4.5 rounded-2xl border border-white/5 bg-amber-600/5 shadow-md shadow-black/20 flex flex-col justify-between min-h-[90px]">
+              <div className="glass-panel p-4.5 rounded-2xl border border-black/5 bg-amber-600/5 shadow-md shadow-black/20 flex flex-col justify-between min-h-[90px]">
                 <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block font-mono">Vacant Tables</span>
-                <span className="text-2xl font-black text-white font-mono mt-2">
-                  {tables.filter(t => t.status === 'VACANT').length} <span className="text-xs text-gray-500 font-bold">/ {tables.length}</span>
+                <span className="text-2xl font-black text-[#171717] font-mono mt-2">
+                  {tables.filter(t => t.status === 'VACANT').length} <span className="text-xs text-[#6E6A63]/80 font-bold">/ {tables.length}</span>
                 </span>
               </div>
             </div>
@@ -2216,14 +2228,14 @@ const Reception: React.FC = () => {
 
         {/* Active Bookings & Stays Tab */}
         {activeTab === 'active' && (
-          <div className="glass-panel rounded-2xl overflow-hidden border border-white/5">
-            <div className="p-6 border-b border-white/5">
-              <h3 className="text-lg font-bold text-white">Active Bookings & Guest Stays</h3>
+          <div className="glass-panel rounded-2xl overflow-hidden border border-black/5">
+            <div className="p-6 border-b border-black/5">
+              <h3 className="text-lg font-bold text-[#171717]">Active Bookings & Guest Stays</h3>
             </div>
             <div className="overflow-x-auto text-xs sm:text-sm">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-950/40 text-gray-400 border-b border-white/5">
+                  <tr className="bg-[#F8F6F1]/60 text-[#6E6A63] border-b border-black/5">
                     <th className="p-4 font-semibold uppercase tracking-wider text-xs">Guest Name</th>
                     <th className="p-4 font-semibold uppercase tracking-wider text-xs">Room Number</th>
                     <th className="p-4 font-semibold uppercase tracking-wider text-xs">Check-In</th>
@@ -2235,30 +2247,30 @@ const Reception: React.FC = () => {
                 </thead>
                 <tbody>
                   {bookings.filter(b => b.status === 'CHECKED_IN' || b.status === 'BOOKED').map(booking => (
-                    <tr key={booking.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
-                      <td className="p-4 font-medium text-white">{booking.guest_name}</td>
-                      <td className="p-4 font-bold text-indigo-400">Room {booking.room_number}</td>
-                      <td className="p-4 text-gray-400">{booking.check_in_date}</td>
-                      <td className="p-4 text-gray-400">{booking.check_out_date}</td>
+                    <tr key={booking.id} className="border-b border-white/[0.04] hover:bg-[#F8F6F1]/50">
+                      <td className="p-4 font-medium text-[#171717]">{booking.guest_name}</td>
+                      <td className="p-4 font-bold text-[#C49A32]">Room {booking.room_number}</td>
+                      <td className="p-4 text-[#6E6A63]">{booking.check_in_date}</td>
+                      <td className="p-4 text-[#6E6A63]">{booking.check_out_date}</td>
                       <td className="p-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase ${booking.status === 'CHECKED_IN' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20'
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase ${booking.status === 'CHECKED_IN' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-[#C49A32]/10 text-[#C49A32] border border-[#C49A32]/20'
                           }`}>
                           {booking.status}
                         </span>
                       </td>
-                      <td className="p-4 font-bold text-white">₹{parseFloat(booking.total_price).toFixed(2)}</td>
+                      <td className="p-4 font-bold text-[#171717]">₹{parseFloat(booking.total_price).toFixed(2)}</td>
                       <td className="p-4 text-right space-x-2 whitespace-nowrap">
                         {booking.status === 'BOOKED' && (
                           <button
                             onClick={() => handleCheckInBooking(booking.id)}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition cursor-pointer"
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-amber-600 text-[#171717] rounded-lg text-xs font-bold transition cursor-pointer"
                           >
                             Check In
                           </button>
                         )}
                         <button
                           onClick={() => handleCancelBooking(booking.id, booking.guest_name, booking.room_number)}
-                          className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition cursor-pointer"
+                          className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-[#171717] rounded-lg text-xs font-bold transition cursor-pointer"
                         >
                           Cancel / Remove
                         </button>
@@ -2267,7 +2279,7 @@ const Reception: React.FC = () => {
                   ))}
                   {bookings.filter(b => b.status === 'CHECKED_IN' || b.status === 'BOOKED').length === 0 && (
                     <tr>
-                      <td colSpan={7} className="text-center py-12 text-gray-500">
+                      <td colSpan={7} className="text-center py-12 text-[#6E6A63]/80">
                         No active bookings found.
                       </td>
                     </tr>
@@ -2406,23 +2418,23 @@ const Reception: React.FC = () => {
           });
 
           return (
-            <div className="glass-panel p-6 rounded-2xl overflow-hidden border border-white/5">
+            <div className="glass-panel p-6 rounded-2xl overflow-hidden border border-black/5">
 
               {/* Header controls for Month & Year */}
-              <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 border-b border-white/5 pb-6">
+              <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 border-b border-black/5 pb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-indigo-400" />
+                  <h3 className="text-lg font-bold text-[#171717] flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-[#C49A32]" />
                     Monthly Room Occupancy Calendar
                   </h3>
-                  <p className="text-xs text-gray-400 mt-1">Live grid showing guest reservations, check-ins, and maintenance for the entire month.</p>
+                  <p className="text-xs text-[#6E6A63] mt-1">Live grid showing guest reservations, check-ins, and maintenance for the entire month.</p>
                 </div>
 
                 {/* Navigation Controls */}
                 <div className="flex flex-wrap items-center gap-2 self-start xl:self-center">
                   <button
                     onClick={handlePrevMonth}
-                    className="p-2.5 bg-slate-900 border border-white/5 text-gray-400 hover:text-white rounded-xl cursor-pointer hover:bg-slate-800 transition duration-150 flex items-center justify-center"
+                    className="p-2.5 bg-[#F8F6F1] border border-black/5 text-[#6E6A63] hover:text-[#171717] rounded-xl cursor-pointer hover:bg-[#F8F6F1] transition duration-150 flex items-center justify-center"
                     title="Previous Month"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -2431,7 +2443,7 @@ const Reception: React.FC = () => {
                   <select
                     value={calendarMonth}
                     onChange={(e) => setCalendarMonth(parseInt(e.target.value))}
-                    className="p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 rounded-xl outline-none transition cursor-pointer text-xs font-bold uppercase tracking-wider"
+                    className="p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] rounded-xl outline-none transition cursor-pointer text-xs font-bold uppercase tracking-wider"
                   >
                     {monthNames.map((name, idx) => (
                       <option key={idx} value={idx}>{name}</option>
@@ -2441,7 +2453,7 @@ const Reception: React.FC = () => {
                   <select
                     value={calendarYear}
                     onChange={(e) => setCalendarYear(parseInt(e.target.value))}
-                    className="p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 rounded-xl outline-none transition cursor-pointer text-xs font-bold font-mono"
+                    className="p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] rounded-xl outline-none transition cursor-pointer text-xs font-bold font-mono"
                   >
                     {[2025, 2026, 2027, 2028].map(yr => (
                       <option key={yr} value={yr}>{yr}</option>
@@ -2450,7 +2462,7 @@ const Reception: React.FC = () => {
 
                   <button
                     onClick={handleNextMonth}
-                    className="p-2.5 bg-slate-900 border border-white/5 text-gray-400 hover:text-white rounded-xl cursor-pointer hover:bg-slate-800 transition duration-150 flex items-center justify-center"
+                    className="p-2.5 bg-[#F8F6F1] border border-black/5 text-[#6E6A63] hover:text-[#171717] rounded-xl cursor-pointer hover:bg-[#F8F6F1] transition duration-150 flex items-center justify-center"
                     title="Next Month"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -2461,7 +2473,7 @@ const Reception: React.FC = () => {
                       setCalendarMonth(new Date().getMonth());
                       setCalendarYear(new Date().getFullYear());
                     }}
-                    className="px-3.5 py-2 bg-slate-700 border border-amber-500/30/10 hover:bg-slate-700 border border-amber-500/30 border border-indigo-500/20 text-indigo-300 hover:text-white rounded-xl text-xs font-bold tracking-wider uppercase transition cursor-pointer"
+                    className="px-3.5 py-2 bg-[#C49A32]/10 hover:bg-[#b08a2d] border border-amber-500/30 border border-[#C49A32]/20 text-[#C49A32] hover:text-[#171717] rounded-xl text-xs font-bold tracking-wider uppercase transition cursor-pointer"
                   >
                     Today
                   </button>
@@ -2472,8 +2484,8 @@ const Reception: React.FC = () => {
                   <span className="flex items-center gap-1 text-[9px] text-amber-400 bg-amber-600/10 px-2 py-1.5 rounded-lg border border-amber-600/20 font-bold uppercase tracking-wider">
                     <span className="h-1.5 w-1.5 rounded-full bg-amber-600"></span> Vacant
                   </span>
-                  <span className="flex items-center gap-1 text-[9px] text-indigo-400 bg-indigo-500/10 px-2 py-1.5 rounded-lg border border-indigo-500/20 font-bold uppercase tracking-wider">
-                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-500"></span> Reserved
+                  <span className="flex items-center gap-1 text-[9px] text-[#C49A32] bg-[#C49A32]/10 px-2 py-1.5 rounded-lg border border-[#C49A32]/20 font-bold uppercase tracking-wider">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C49A32]"></span> Reserved
                   </span>
                   <span className="flex items-center gap-1 text-[9px] text-rose-400 bg-rose-500/10 px-2 py-1.5 rounded-lg border border-rose-500/20 font-bold uppercase tracking-wider">
                     <span className="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Checked In
@@ -2485,21 +2497,21 @@ const Reception: React.FC = () => {
               </div>
 
               {/* Dedicated Search and Status Filters Bar */}
-              <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-5 bg-[#050711]/40 border border-white/5 p-4 rounded-xl">
+              <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-5 bg-[#F8F6F1] border border-black/5 p-4 rounded-xl">
                 {/* Search input with search icon */}
                 <div className="relative flex-grow max-w-md">
-                  <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+                  <Search className="w-4 h-4 text-[#6E6A63] absolute left-3.5 top-3.5" />
                   <input
                     type="text"
                     placeholder="Quick search room (e.g. 101, Single, Deluxe)..."
                     value={calendarSearchQuery}
                     onChange={(e) => setCalendarSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2.5 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 rounded-xl outline-none text-xs font-semibold placeholder:text-gray-500 transition"
+                    className="w-full pl-10 pr-10 py-2.5 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] rounded-xl outline-none text-xs font-semibold placeholder:text-[#6E6A63]/80 transition"
                   />
                   {calendarSearchQuery && (
                     <button
                       onClick={() => setCalendarSearchQuery('')}
-                      className="absolute right-3.5 top-3.5 text-gray-400 hover:text-white text-xs cursor-pointer font-bold uppercase tracking-wider text-[10px]"
+                      className="absolute right-3.5 top-3.5 text-[#6E6A63] hover:text-[#171717] text-xs cursor-pointer font-bold uppercase tracking-wider text-[10px]"
                     >
                       Clear
                     </button>
@@ -2507,12 +2519,12 @@ const Reception: React.FC = () => {
                 </div>
 
                 {/* Status Selector dropdown */}
-                <div className="flex items-center gap-2.5 border-t border-white/5 pt-3 md:pt-0 md:border-t-0">
-                  <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Filter Status:</span>
+                <div className="flex items-center gap-2.5 border-t border-black/5 pt-3 md:pt-0 md:border-t-0">
+                  <span className="text-xs text-[#6E6A63] font-bold uppercase tracking-wider">Filter Status:</span>
                   <select
                     value={calendarStatusFilter}
                     onChange={(e) => setCalendarStatusFilter(e.target.value as any)}
-                    className="p-2.5 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 rounded-xl outline-none transition cursor-pointer text-xs font-bold uppercase tracking-wider"
+                    className="p-2.5 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] rounded-xl outline-none transition cursor-pointer text-xs font-bold uppercase tracking-wider"
                   >
                     <option value="all">All Rooms</option>
                     <option value="vacant">Vacant Today</option>
@@ -2524,12 +2536,12 @@ const Reception: React.FC = () => {
               </div>
 
               {/* Scrollable Month Grid */}
-              <div className="overflow-x-auto border border-white/5 rounded-2xl max-h-[calc(100vh-320px)] h-[560px] min-h-[350px] overflow-y-auto custom-scrollbar relative">
+              <div className="overflow-x-auto border border-black/5 rounded-2xl max-h-[calc(100vh-320px)] h-[560px] min-h-[350px] overflow-y-auto custom-scrollbar relative">
                 <table className="w-full text-left border-collapse table-fixed">
                   <thead>
-                    <tr className="border-b border-white/5">
+                    <tr className="border-b border-black/5">
                       {/* Sticky Room info column header: sticky left AND top */}
-                      <th className="p-3 border-r border-b border-white/10 font-bold text-gray-300 text-xs w-40 min-w-[160px] sticky top-0 left-0 bg-[#060811] z-30 shadow-[4px_4px_8px_rgba(0,0,0,0.5)]">
+                      <th className="p-3 border-r border-b border-black/10 font-bold text-[#171717]/80 text-xs w-40 min-w-[160px] sticky top-0 left-0 bg-white z-30 shadow-[4px_4px_8px_rgba(0,0,0,0.5)]">
                         Room Info
                       </th>
                       {occupancyDates.map((date) => {
@@ -2538,11 +2550,11 @@ const Reception: React.FC = () => {
                         return (
                           <th
                             key={dateStr}
-                            className={`p-2 border-r border-b border-white/10 text-center font-bold text-xs min-w-[56px] w-14 sticky top-0 bg-[#060811] z-20 shadow-[0_2px_4px_rgba(0,0,0,0.4)] ${isTodayVal ? 'bg-indigo-950/40' : ''
+                            className={`p-2 border-r border-b border-black/10 text-center font-bold text-xs min-w-[56px] w-14 sticky top-0 bg-white z-20 shadow-[0_2px_4px_rgba(0,0,0,0.4)] ${isTodayVal ? 'bg-[#C49A32]/10' : ''
                               }`}
                           >
-                            <div className="text-indigo-400 uppercase tracking-widest text-[8px]">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                            <div className={`text-xs font-black mt-0.5 inline-block w-6 h-6 leading-6 rounded-full ${isTodayVal ? 'bg-slate-700 border border-amber-500/30 text-white' : 'text-white'
+                            <div className="text-[#C49A32] uppercase tracking-widest text-[8px]">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                            <div className={`text-xs font-black mt-0.5 inline-block w-6 h-6 leading-6 rounded-full ${isTodayVal ? 'bg-[#C49A32] text-[#171717]' : 'text-[#171717]'
                               }`}>
                               {date.getDate()}
                             </div>
@@ -2555,15 +2567,15 @@ const Reception: React.FC = () => {
                     {filteredRooms.map(room => (
                       <tr key={room.id} className="hover:bg-white/[0.01]">
                         {/* Sticky Room name cell with real-time status light dot */}
-                        <td className="p-3 border-r border-b border-white/5 font-semibold text-white bg-[#060811]/90 sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.3)]">
+                        <td className="p-3 border-r border-b border-black/5 font-semibold text-[#171717] bg-white/90 sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.3)]">
                           <div className="flex items-center gap-2">
                             <span className={`h-2 w-2 rounded-full shrink-0 ${room.status === 'AVAILABLE' ? 'bg-amber-600 animate-pulse' :
                                 room.status === 'OCCUPIED' ? 'bg-rose-500 animate-pulse' :
                                   'bg-yellow-500 animate-pulse'
                               }`} title={`Current status: ${room.status.toLowerCase()}`}></span>
-                            <span className="font-extrabold text-[13px] text-white">Room {room.room_number}</span>
+                            <span className="font-extrabold text-[13px] text-[#171717]">Room {room.room_number}</span>
                           </div>
-                          <div className="text-[9px] text-gray-400 font-medium capitalize mt-1.5 pl-4">
+                          <div className="text-[9px] text-[#6E6A63] font-medium capitalize mt-1.5 pl-4">
                             {room.room_type.toLowerCase()} • {room.capacity} Pax
                           </div>
                         </td>
@@ -2577,7 +2589,7 @@ const Reception: React.FC = () => {
                           return (
                             <td
                               key={dateStr}
-                              className={`p-1 border-r border-b border-white/5 text-center text-xs h-14 min-w-[56px] w-14 ${isTodayVal ? 'bg-indigo-500/5' : ''
+                              className={`p-1 border-r border-b border-black/5 text-center text-xs h-14 min-w-[56px] w-14 ${isTodayVal ? 'bg-[#C49A32]/5' : ''
                                 }`}
                             >
                               {(() => {
@@ -2588,7 +2600,7 @@ const Reception: React.FC = () => {
                                     <div
                                       className={`h-full w-full rounded-xl flex flex-col justify-center items-center select-none text-center relative group/cell transition ${isCheckedIn
                                           ? 'bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300'
-                                          : 'bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/30 text-indigo-300'
+                                          : 'bg-[#C49A32]/20 hover:bg-[#C49A32]/30 border border-[#C49A32]/30 text-[#C49A32]'
                                         }`}
                                     >
                                       <span className="font-extrabold text-[9px] uppercase tracking-wider truncate max-w-[48px] px-0.5">
@@ -2599,14 +2611,14 @@ const Reception: React.FC = () => {
                                       </span>
 
                                       {/* Tooltip on Hover */}
-                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-52 bg-[#050711] border border-white/10 text-white rounded-2xl p-3 text-left shadow-2xl hidden group-hover/cell:block z-30 pointer-events-none">
-                                        <p className="font-extrabold text-xs text-white border-b border-white/5 pb-1 mb-1.5 flex items-center gap-1.5">
-                                          <span className={`h-2 w-2 rounded-full ${isCheckedIn ? 'bg-rose-500 animate-pulse' : 'bg-indigo-500 animate-pulse'}`}></span>
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-52 bg-white border border-black/10 text-[#171717] rounded-2xl p-3 text-left shadow-2xl hidden group-hover/cell:block z-30 pointer-events-none">
+                                        <p className="font-extrabold text-xs text-[#171717] border-b border-black/5 pb-1 mb-1.5 flex items-center gap-1.5">
+                                          <span className={`h-2 w-2 rounded-full ${isCheckedIn ? 'bg-rose-500 animate-pulse' : 'bg-[#C49A32] animate-pulse'}`}></span>
                                           {b.guest_name}
                                         </p>
-                                        <p className="text-[10px] text-gray-400">Status: <span className={`font-bold ${isCheckedIn ? 'text-rose-400' : 'text-indigo-400'}`}>{b.status === 'CHECKED_IN' ? 'Checked In' : 'Reserved'}</span></p>
-                                        <p className="text-[10px] text-gray-400 mt-0.5">Stay: <span className="font-semibold text-gray-200">{b.check_in_date} to {b.check_out_date}</span></p>
-                                        <p className="text-[10px] text-gray-400 mt-0.5">Total price: <span className="font-extrabold text-indigo-400">₹{parseFloat(b.total_price).toFixed(0)}</span></p>
+                                        <p className="text-[10px] text-[#6E6A63]">Status: <span className={`font-bold ${isCheckedIn ? 'text-rose-400' : 'text-[#C49A32]'}`}>{b.status === 'CHECKED_IN' ? 'Checked In' : 'Reserved'}</span></p>
+                                        <p className="text-[10px] text-[#6E6A63] mt-0.5">Stay: <span className="font-semibold text-[#171717]/90">{b.check_in_date} to {b.check_out_date}</span></p>
+                                        <p className="text-[10px] text-[#6E6A63] mt-0.5">Total price: <span className="font-extrabold text-[#C49A32]">₹{parseFloat(b.total_price).toFixed(0)}</span></p>
                                       </div>
                                     </div>
                                   );
@@ -2625,15 +2637,15 @@ const Reception: React.FC = () => {
                                       className="h-full w-full bg-amber-600/5 hover:bg-amber-600/10 border border-dashed border-amber-600/20 hover:border-amber-600/40 text-amber-400 rounded-xl flex flex-col justify-center items-center cursor-pointer select-none text-center relative group/cell transition"
                                     >
                                       <span className="font-extrabold text-[8px] uppercase tracking-widest text-amber-400">OUT</span>
-                                      <span className="text-[7px] text-gray-500 font-bold uppercase tracking-wider truncate max-w-[48px] mt-0.5">
+                                      <span className="text-[7px] text-[#6E6A63]/80 font-bold uppercase tracking-wider truncate max-w-[48px] mt-0.5">
                                         {b.guest_name.split(' ')[0]}
                                       </span>
 
                                       {/* Tooltip on Hover */}
-                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-52 bg-[#050711] border border-white/10 text-white rounded-2xl p-3 text-left shadow-2xl hidden group-hover/cell:block z-30 pointer-events-none">
-                                        <p className="font-extrabold text-xs text-white border-b border-white/5 pb-1 mb-1.5">Check-Out Day</p>
-                                        <p className="text-[10px] text-gray-400">Guest: <span className="font-semibold text-gray-200">{b.guest_name}</span></p>
-                                        <p className="text-[10px] text-gray-400 mt-1">Room will be vacated today. Click cell to book next guest check-in.</p>
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-52 bg-white border border-black/10 text-[#171717] rounded-2xl p-3 text-left shadow-2xl hidden group-hover/cell:block z-30 pointer-events-none">
+                                        <p className="font-extrabold text-xs text-[#171717] border-b border-black/5 pb-1 mb-1.5">Check-Out Day</p>
+                                        <p className="text-[10px] text-[#6E6A63]">Guest: <span className="font-semibold text-[#171717]/90">{b.guest_name}</span></p>
+                                        <p className="text-[10px] text-[#6E6A63] mt-1">Room will be vacated today. Click cell to book next guest check-in.</p>
                                       </div>
                                     </div>
                                   );
@@ -2646,9 +2658,9 @@ const Reception: React.FC = () => {
                                       <span className="text-[7px] text-yellow-500/80 font-bold uppercase tracking-wider mt-0.5">MAINT</span>
 
                                       {/* Tooltip on Hover */}
-                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-[#050711] border border-white/10 text-white rounded-2xl p-3 text-left shadow-2xl hidden group-hover/cell:block z-30 pointer-events-none">
-                                        <p className="font-extrabold text-xs text-yellow-400 border-b border-white/5 pb-1 mb-1.5">Maintenance</p>
-                                        <p className="text-[10px] text-gray-400">Room is undergoing cleanup. Go to Room Cleaning to set vacant.</p>
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-white border border-black/10 text-[#171717] rounded-2xl p-3 text-left shadow-2xl hidden group-hover/cell:block z-30 pointer-events-none">
+                                        <p className="font-extrabold text-xs text-yellow-400 border-b border-black/5 pb-1 mb-1.5">Maintenance</p>
+                                        <p className="text-[10px] text-[#6E6A63]">Room is undergoing cleanup. Go to Room Cleaning to set vacant.</p>
                                       </div>
                                     </div>
                                   );
@@ -2668,9 +2680,9 @@ const Reception: React.FC = () => {
                                       <span className="text-xs font-bold opacity-0 group-hover/cell:opacity-100 transition">+</span>
 
                                       {/* Tooltip on Hover */}
-                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-44 bg-[#050711] border border-white/10 text-white rounded-2xl p-2.5 text-center shadow-2xl hidden group-hover/cell:block z-30 pointer-events-none">
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-44 bg-white border border-black/10 text-[#171717] rounded-2xl p-2.5 text-center shadow-2xl hidden group-hover/cell:block z-30 pointer-events-none">
                                         <p className="font-bold text-[10px] text-amber-400 uppercase tracking-widest">Vacant</p>
-                                        <p className="text-[9px] text-gray-400 mt-1">Click to reserve Room {room.room_number} starting {dateStr}</p>
+                                        <p className="text-[9px] text-[#6E6A63] mt-1">Click to reserve Room {room.room_number} starting {dateStr}</p>
                                       </div>
                                     </div>
                                   );
@@ -2683,7 +2695,7 @@ const Reception: React.FC = () => {
                     ))}
                     {filteredRooms.length === 0 && (
                       <tr>
-                        <td colSpan={occupancyDates.length + 1} className="text-center py-12 text-gray-500 font-bold bg-[#060811]/30">
+                        <td colSpan={occupancyDates.length + 1} className="text-center py-12 text-[#6E6A63]/80 font-bold bg-white/30">
                           No rooms match the selected search or filter criteria.
                         </td>
                       </tr>
@@ -2700,61 +2712,257 @@ const Reception: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print:grid-cols-1 print:gap-0">
 
             {/* Guest Selector */}
-            <div className="glass-panel p-6 rounded-2xl space-y-4 self-start print:hidden">
-              <h3 className="text-lg font-bold text-white">Generate Invoice</h3>
-              <div className="text-sm">
-                <label className="block font-medium text-gray-300 mb-1">Select Checked-In Guest</label>
-                <select
-                  value={selectedBillingGuestId}
-                  onChange={e => setSelectedBillingGuestId(e.target.value)}
-                  className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 rounded-lg outline-none transition cursor-pointer"
-                >
-                  <option value="">Select Guest</option>
-                  {guests.map(g => (
-                    <option key={g.id} value={g.id}>
-                      {g.name || g.username} ({g.email})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <button
-                onClick={handleGenerateBill}
-                disabled={!selectedBillingGuestId || loading}
-                className="w-full py-3.5 glowing-btn-indigo text-white font-bold rounded-xl transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer shadow-lg"
-              >
-                <CreditCard className="w-4 h-4" />
-                Generate Statement
-              </button>
-            </div>
+            {(() => {
+              const checkedInGuests = guests.map(g => {
+                const activeBooking = bookings.find(b => 
+                  (b.guest === g.id || b.guest === (g.id as any) || b.guest_name === g.username) && 
+                  b.status === 'CHECKED_IN'
+                );
+                if (!activeBooking) return null;
+                return {
+                  ...g,
+                  room_number: activeBooking.room_number || (activeBooking as any).room?.room_number || 'N/A',
+                  booking_id: activeBooking.id,
+                  booking: activeBooking
+                };
+              }).filter(Boolean) as (User & { room_number: string; booking_id: number; booking: Booking })[];
+
+              // Filter by search query (supporting full name, first name, surname, room number, email, phone)
+              const query = billingGuestSearch.trim().toLowerCase();
+              const filteredGuests = checkedInGuests.filter(g => {
+                if (!query) return true;
+                const fullName = (g.name || '').toLowerCase();
+                const username = (g.username || '').toLowerCase();
+                const roomNum = (g.room_number || '').toLowerCase();
+                const email = (g.email || '').toLowerCase();
+                const phone = (g.phone || '').toLowerCase();
+
+                // Support searching full name ("raj sharma"), first name ("raj"), surname ("sharma"), or room ("101")
+                const tokens = query.split(/\s+/).filter(Boolean);
+                return tokens.every(token => 
+                  fullName.includes(token) || 
+                  username.includes(token) || 
+                  roomNum.includes(token) || 
+                  email.includes(token) || 
+                  phone.includes(token)
+                );
+              });
+
+              const selectedGuest = checkedInGuests.find(g => g.id === selectedBillingGuestId);
+
+              const handleSelectGuest = (g: any) => {
+                setSelectedBillingGuestId(g.id);
+                setBillingGuestSearch(g.name || g.username);
+                setIsBillingDropdownOpen(false);
+                handleGenerateBill(g.id);
+              };
+
+              const handleClearSelection = () => {
+                setSelectedBillingGuestId('');
+                setBillingGuestSearch('');
+                setCurrentInvoice(null);
+                setIsBillingDropdownOpen(false);
+              };
+
+              return (
+                <div className="glass-panel p-6 rounded-2xl space-y-5 self-start print:hidden border border-black/5 bg-white shadow-sm" ref={billingDropdownRef}>
+                  <div className="flex items-center justify-between border-b border-black/5 pb-3">
+                    <h3 className="text-lg font-bold text-[#171717] flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-[#C49A32]" />
+                      Generate Invoice
+                    </h3>
+                    <span className="text-[10px] font-bold bg-[#C49A32]/10 border border-[#C49A32]/20 text-[#C49A32] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      {checkedInGuests.length} Checked In
+                    </span>
+                  </div>
+
+                  {/* Searchable Combobox for Checked-In Guests */}
+                  <div className="space-y-2 relative">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-[#171717]/80 uppercase tracking-wider">
+                        Search Checked-In Guest
+                      </label>
+                      {selectedGuest && (
+                        <button
+                          type="button"
+                          onClick={handleClearSelection}
+                          className="text-[10px] text-rose-500 hover:text-rose-600 font-bold cursor-pointer"
+                        >
+                          Clear Selection
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Search Input Box */}
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-[#C49A32] absolute left-3.5 top-3.5 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Search full name (e.g. Raj Sharma) or room..."
+                        value={billingGuestSearch}
+                        onChange={e => {
+                          setBillingGuestSearch(e.target.value);
+                          setIsBillingDropdownOpen(true);
+                          if (!e.target.value) {
+                            setSelectedBillingGuestId('');
+                            setCurrentInvoice(null);
+                          }
+                        }}
+                        onFocus={() => setIsBillingDropdownOpen(true)}
+                        className="w-full pl-10 pr-10 py-3 bg-[#F8F6F1] border border-black/10 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-xl outline-none transition text-xs font-medium placeholder:text-[#6E6A63]/60 shadow-inner"
+                      />
+                      {billingGuestSearch && (
+                        <button
+                          type="button"
+                          onClick={handleClearSelection}
+                          className="absolute right-3 top-3 text-[#6E6A63] hover:text-rose-500 transition p-0.5 rounded-full hover:bg-black/5 cursor-pointer"
+                          title="Clear search"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Dropdown Suggestions Menu */}
+                    {isBillingDropdownOpen && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-black/10 rounded-2xl shadow-2xl z-40 max-h-72 overflow-y-auto custom-scrollbar animate-scale-in">
+                        <div className="p-2.5 border-b border-black/5 bg-[#F8F6F1]/80 text-[10px] font-black text-[#6E6A63] uppercase tracking-wider flex justify-between items-center">
+                          <span>Matching Guests ({filteredGuests.length})</span>
+                          <span className="text-[#C49A32]">Click to Select & Generate</span>
+                        </div>
+
+                        {filteredGuests.length === 0 ? (
+                          <div className="p-5 text-center space-y-1">
+                            <Users className="w-6 h-6 mx-auto text-gray-300" />
+                            <p className="text-xs font-bold text-[#171717]">No matching checked-in guests</p>
+                            <p className="text-[11px] text-[#6E6A63]">
+                              {billingGuestSearch ? `No guest matches "${billingGuestSearch}"` : "No guests currently checked in"}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="p-1.5 space-y-1">
+                            {filteredGuests.map(g => {
+                              const isSelected = g.id === selectedBillingGuestId;
+                              return (
+                                <button
+                                  key={g.id}
+                                  type="button"
+                                  onClick={() => handleSelectGuest(g)}
+                                  className={`w-full p-2.5 rounded-xl text-left transition flex items-center justify-between gap-3 cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-[#C49A32]/15 border border-[#C49A32]/40 text-[#171717]'
+                                      : 'hover:bg-[#F8F6F1] border border-transparent text-[#171717]'
+                                  }`}
+                                >
+                                  <div className="truncate flex-grow min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-bold text-xs text-[#171717] truncate">
+                                        {g.name || g.username}
+                                      </span>
+                                      {g.username && g.name && (
+                                        <span className="text-[10px] text-[#6E6A63] font-mono truncate">
+                                          (@{g.username})
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-[10px] text-[#6E6A63] truncate">
+                                      {g.email} {g.phone ? `• ${g.phone}` : ''}
+                                    </div>
+                                  </div>
+
+                                  <div className="shrink-0 flex items-center gap-2">
+                                    <span className="text-[10px] font-extrabold bg-[#C49A32]/10 border border-[#C49A32]/30 text-[#C49A32] px-2 py-0.5 rounded-full flex items-center gap-1 font-mono">
+                                      <Hotel className="w-3 h-3 text-[#C49A32]" />
+                                      Room {g.room_number}
+                                    </span>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Selected Guest Card Preview */}
+                  {selectedGuest && (
+                    <div className="p-3.5 bg-emerald-500/5 border border-emerald-500/20 rounded-xl space-y-2 animate-fade-in">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span className="text-xs font-bold text-emerald-900">Selected for Billing</span>
+                        </div>
+                        <span className="text-[10px] font-extrabold bg-emerald-600/10 border border-emerald-600/30 text-emerald-700 px-2 py-0.5 rounded-full font-mono">
+                          Room {selectedGuest.room_number}
+                        </span>
+                      </div>
+                      <div className="text-xs space-y-0.5 text-[#171717]">
+                        <p className="font-bold text-sm text-[#171717]">{selectedGuest.name || selectedGuest.username}</p>
+                        <p className="text-[11px] text-[#6E6A63] truncate">{selectedGuest.email}</p>
+                        {selectedGuest.phone && <p className="text-[11px] text-[#6E6A63] font-mono">{selectedGuest.phone}</p>}
+                      </div>
+                    </div>
+                  )}
+
+                  {checkedInGuests.length === 0 && (
+                    <p className="text-[11px] text-[#6E6A63] bg-[#F8F6F1] p-3 rounded-xl border border-black/5 text-center">
+                      All hotel guests are currently checked out and settled. No pending checkouts at this time.
+                    </p>
+                  )}
+
+                  <button
+                    onClick={() => handleGenerateBill()}
+                    disabled={!selectedBillingGuestId || loading}
+                    className="w-full py-3.5 glowing-btn-indigo text-white font-bold rounded-xl transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer shadow-lg"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {loading ? 'Generating Statement...' : 'Generate Statement'}
+                  </button>
+                </div>
+              );
+            })()}
 
             {/* Bill Statement */}
-            <div className="lg:col-span-2 glass-panel rounded-2xl p-6 space-y-6 border border-white/5 print:col-span-full print:border-none print:shadow-none print:p-0">
+            <div className="lg:col-span-2 glass-panel rounded-2xl p-6 space-y-6 border border-black/5 print:col-span-full print:border-none print:shadow-none print:p-0">
               {currentInvoice ? (
                 <div className="space-y-6">
-                  <div className="border-b border-white/5 pb-4 flex justify-between items-start">
+                  <div className="border-b border-black/5 pb-4 flex justify-between items-start">
                     <div>
-                      <h3 className="text-2xl font-bold text-white">Invoice Statement</h3>
-                      <p className="text-xs text-gray-400 mt-1">Invoice #{currentInvoice.id} • Dynamic Guest Type: {currentInvoice.guest_type_at_billing}</p>
+                      <h3 className="text-2xl font-bold text-[#171717]">Invoice Statement</h3>
+                      <p className="text-xs text-[#6E6A63] mt-1">Invoice #{currentInvoice.id} • Dynamic Guest Type: {currentInvoice.guest_type_at_billing}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider border ${currentInvoice.payment_status === 'PAID' ? 'bg-amber-600/10 border-amber-600/20 text-emerald-300' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'
-                      }`}>
-                      {currentInvoice.payment_status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider border ${currentInvoice.payment_status === 'PAID' ? 'bg-amber-600/10 border-amber-600/20 text-emerald-300' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+                        }`}>
+                        {currentInvoice.payment_status}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setCurrentInvoice(null);
+                          setSelectedBillingGuestId('');
+                        }}
+                        className="px-2.5 py-1 text-xs text-[#6E6A63] hover:text-[#171717] bg-[#F8F6F1] border border-black/5 rounded-lg cursor-pointer font-bold transition"
+                        title="Dismiss statement"
+                      >
+                        ✕ Close
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
                     <div>
-                      <p className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Billed To</p>
-                      <p className="font-bold text-white text-base mt-1">{currentInvoice.guest_name}</p>
+                      <p className="text-[#6E6A63]/80 font-bold uppercase tracking-wider text-[10px]">Billed To</p>
+                      <p className="font-bold text-[#171717] text-base mt-1">{currentInvoice.guest_name}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Billing Date</p>
-                      <p className="font-bold text-white text-base mt-1">{new Date().toLocaleDateString()}</p>
+                      <p className="text-[#6E6A63]/80 font-bold uppercase tracking-wider text-[10px]">Billing Date</p>
+                      <p className="font-bold text-[#171717] text-base mt-1">{new Date().toLocaleDateString()}</p>
                     </div>
                   </div>
 
-                  <div className="border border-white/5 rounded-xl overflow-hidden text-xs sm:text-sm">
-                    <div className="bg-slate-950/40 p-3 grid grid-cols-3 font-bold text-gray-300 border-b border-white/5">
+                  <div className="border border-black/5 rounded-xl overflow-hidden text-xs sm:text-sm">
+                    <div className="bg-[#F8F6F1]/60 p-3 grid grid-cols-3 font-bold text-[#171717]/80 border-b border-black/5">
                       <div>Charge Item</div>
                       <div className="text-center">Details / Breakdown</div>
                       <div className="text-right">Amount (₹)</div>
@@ -2763,23 +2971,23 @@ const Reception: React.FC = () => {
                     {/* Room Lodging Details */}
                     {parseFloat(currentInvoice.room_charges || '0') > 0 && (
                       <>
-                        <div className="p-3.5 grid grid-cols-3 border-b border-white/5 text-gray-300 bg-slate-900/20">
-                          <div className="font-bold text-white flex items-center gap-1.5">
+                        <div className="p-3.5 grid grid-cols-3 border-b border-black/5 text-[#171717]/80 bg-[#F8F6F1]/60">
+                          <div className="font-bold text-[#171717] flex items-center gap-1.5">
                             🏨 Room Lodging
                           </div>
-                          <div className="text-center text-gray-400">
+                          <div className="text-center text-[#6E6A63]">
                             {currentInvoice.booking_details ? (
                               <span>Room {currentInvoice.booking_details.room_number} ({currentInvoice.booking_details.room_type}) • {currentInvoice.booking_details.nights} night(s) @ ₹{parseFloat(currentInvoice.booking_details.price_per_night || '0').toFixed(2)}</span>
                             ) : (
                               <span>Stay accommodation charges</span>
                             )}
                           </div>
-                          <div className="text-right font-black text-white font-mono">₹{parseFloat(currentInvoice.room_charges || '0').toFixed(2)}</div>
+                          <div className="text-right font-black text-[#171717] font-mono">₹{parseFloat(currentInvoice.room_charges || '0').toFixed(2)}</div>
                         </div>
-                        <div className="px-3.5 py-2 grid grid-cols-3 border-b border-white/5 text-gray-400 bg-white/[0.01] text-[11px]">
-                          <div className="pl-4 text-gray-400 font-medium">↳ Room Stay GST (12%)</div>
-                          <div className="text-center text-gray-500">6% CGST + 6% SGST</div>
-                          <div className="text-right font-bold text-gray-300 font-mono">₹{(parseFloat(currentInvoice.room_charges || '0') * 0.12).toFixed(2)}</div>
+                        <div className="px-3.5 py-2 grid grid-cols-3 border-b border-black/5 text-[#6E6A63] bg-white/[0.01] text-[11px]">
+                          <div className="pl-4 text-[#6E6A63] font-medium">↳ Room Stay GST (12%)</div>
+                          <div className="text-center text-[#6E6A63]/80">6% CGST + 6% SGST</div>
+                          <div className="text-right font-bold text-[#171717]/80 font-mono">₹{(parseFloat(currentInvoice.room_charges || '0') * 0.12).toFixed(2)}</div>
                         </div>
                       </>
                     )}
@@ -2787,30 +2995,30 @@ const Reception: React.FC = () => {
                     {/* Food & Dining Details */}
                     {parseFloat(currentInvoice.food_charges || '0') > 0 && (
                       <>
-                        <div className="p-3.5 grid grid-cols-3 border-b border-white/5 text-gray-300 bg-slate-900/20">
-                          <div className="font-bold text-white flex items-center gap-1.5">
+                        <div className="p-3.5 grid grid-cols-3 border-b border-black/5 text-[#171717]/80 bg-[#F8F6F1]/60">
+                          <div className="font-bold text-[#171717] flex items-center gap-1.5">
                             🍽️ Restaurant & Food
                           </div>
-                          <div className="text-center text-gray-400">
+                          <div className="text-center text-[#6E6A63]">
                             <span>Billed food & beverage orders</span>
                           </div>
-                          <div className="text-right font-black text-white font-mono">₹{parseFloat(currentInvoice.food_charges || '0').toFixed(2)}</div>
+                          <div className="text-right font-black text-[#171717] font-mono">₹{parseFloat(currentInvoice.food_charges || '0').toFixed(2)}</div>
                         </div>
 
                         {/* Itemized Food List */}
                         {currentInvoice.itemized_items && currentInvoice.itemized_items.length > 0 && (
-                          <div className="px-3.5 py-2.5 border-b border-white/5 bg-slate-950/30 space-y-1.5">
-                            <div className="text-[10px] font-black text-indigo-400 uppercase tracking-wider pl-4">Itemized Dishes:</div>
+                          <div className="px-3.5 py-2.5 border-b border-black/5 bg-[#F8F6F1]/60 space-y-1.5">
+                            <div className="text-[10px] font-black text-[#C49A32] uppercase tracking-wider pl-4">Itemized Dishes:</div>
                             {currentInvoice.itemized_items.map((item: any) => (
-                              <div key={item.id} className="grid grid-cols-3 text-xs pl-4 text-gray-300">
+                              <div key={item.id} className="grid grid-cols-3 text-xs pl-4 text-[#171717]/80">
                                 <div className="flex items-center gap-1.5 truncate">
                                   <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.is_veg ? 'bg-emerald-400' : 'bg-rose-400'}`} />
                                   <span className="truncate">{item.name}</span>
                                 </div>
-                                <div className="text-center text-gray-400 font-mono text-[11px]">
+                                <div className="text-center text-[#6E6A63] font-mono text-[11px]">
                                   {item.quantity} x ₹{parseFloat(item.unit_price || '0').toFixed(2)}
                                 </div>
-                                <div className="text-right font-bold text-white font-mono text-[11px]">
+                                <div className="text-right font-bold text-[#171717] font-mono text-[11px]">
                                   ₹{parseFloat(item.total_price || '0').toFixed(2)}
                                 </div>
                               </div>
@@ -2818,29 +3026,29 @@ const Reception: React.FC = () => {
                           </div>
                         )}
 
-                        <div className="px-3.5 py-2 grid grid-cols-3 border-b border-white/5 text-gray-400 bg-white/[0.01] text-[11px]">
-                          <div className="pl-4 text-gray-400 font-medium">↳ Restaurant Food GST (5%)</div>
-                          <div className="text-center text-gray-500">2.5% CGST + 2.5% SGST</div>
-                          <div className="text-right font-bold text-gray-300 font-mono">₹{(parseFloat(currentInvoice.food_charges || '0') * 0.05).toFixed(2)}</div>
+                        <div className="px-3.5 py-2 grid grid-cols-3 border-b border-black/5 text-[#6E6A63] bg-white/[0.01] text-[11px]">
+                          <div className="pl-4 text-[#6E6A63] font-medium">↳ Restaurant Food GST (5%)</div>
+                          <div className="text-center text-[#6E6A63]/80">2.5% CGST + 2.5% SGST</div>
+                          <div className="text-right font-bold text-[#171717]/80 font-mono">₹{(parseFloat(currentInvoice.food_charges || '0') * 0.05).toFixed(2)}</div>
                         </div>
                       </>
                     )}
 
                     {/* Total GST */}
-                    <div className="p-3.5 grid grid-cols-3 border-b border-white/5 text-gray-400 bg-slate-900/30">
-                      <div className="font-bold text-indigo-300">Total GST Taxes</div>
-                      <div className="text-center text-xs text-gray-400">Government taxes & fees</div>
-                      <div className="text-right font-black text-indigo-300 font-mono">₹{parseFloat(currentInvoice.tax_amount).toFixed(2)}</div>
+                    <div className="p-3.5 grid grid-cols-3 border-b border-black/5 text-[#6E6A63] bg-[#F8F6F1]/80">
+                      <div className="font-bold text-[#C49A32]">Total GST Taxes</div>
+                      <div className="text-center text-xs text-[#6E6A63]">Government taxes & fees</div>
+                      <div className="text-right font-black text-[#C49A32] font-mono">₹{parseFloat(currentInvoice.tax_amount).toFixed(2)}</div>
                     </div>
 
                     {/* Grand Total */}
-                    <div className="p-4 grid grid-cols-3 font-bold text-white text-lg bg-indigo-500/10 border-t border-indigo-500/20">
+                    <div className="p-4 grid grid-cols-3 font-bold text-[#171717] text-lg bg-[#C49A32]/10 border-t border-[#C49A32]/20">
                       <div className="text-base tracking-tight flex items-center gap-2">
                         <span>Total Payable</span>
-                        <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full font-bold uppercase">Net Settle</span>
+                        <span className="text-[10px] bg-[#C49A32]/20 text-[#C49A32] px-2 py-0.5 rounded-full font-bold uppercase">Net Settle</span>
                       </div>
                       <div></div>
-                      <div className="text-right text-indigo-400 font-black text-xl font-mono">₹{parseFloat(currentInvoice.total_amount).toFixed(2)}</div>
+                      <div className="text-right text-[#C49A32] font-black text-xl font-mono">₹{parseFloat(currentInvoice.total_amount).toFixed(2)}</div>
                     </div>
                   </div>
 
@@ -2855,16 +3063,16 @@ const Reception: React.FC = () => {
 
                   <button
                     onClick={() => window.print()}
-                    className="w-full mt-2 py-2.5 bg-slate-900 border border-white/5 text-gray-300 hover:text-white hover:bg-slate-800 font-bold rounded-xl transition flex items-center justify-center gap-2 print:hidden cursor-pointer text-xs uppercase tracking-wider"
+                    className="w-full mt-2 py-2.5 bg-[#F8F6F1] border border-black/5 text-[#171717]/80 hover:text-[#171717] hover:bg-[#F8F6F1] font-bold rounded-xl transition flex items-center justify-center gap-2 print:hidden cursor-pointer text-xs uppercase tracking-wider"
                   >
                     <Download className="w-4 h-4" />
                     Print / Download Invoice PDF
                   </button>
                 </div>
               ) : (
-                <div className="h-64 flex flex-col items-center justify-center text-gray-500 text-center">
+                <div className="h-64 flex flex-col items-center justify-center text-[#6E6A63]/80 text-center">
                   <CreditCard className="w-12 h-12 mb-3 text-slate-700 stroke-1 animate-pulse" />
-                  <p className="font-bold text-white">No Statement Generated</p>
+                  <p className="font-bold text-[#171717]">No Statement Generated</p>
                   <p className="text-xs mt-1">Select a guest and generate a statement to see invoice items.</p>
                 </div>
               )}
@@ -2876,7 +3084,7 @@ const Reception: React.FC = () => {
       {/* Reserve Table Modal Popup */}
       {isReservingTable && createPortal(
         <div
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden animate-fade-in"
+          className="fixed inset-0 bg-[#F8F6F1]/90 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden animate-fade-in"
           onClick={() => {
             setIsReservingTable(false);
             setReserveCustomerName('');
@@ -2887,14 +3095,14 @@ const Reception: React.FC = () => {
           }}
         >
           <div
-            className="bg-[#050712] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl relative flex flex-col overflow-hidden max-h-[90vh]"
+            className="bg-white border border-black/10 w-full max-w-md rounded-3xl p-6 shadow-2xl relative flex flex-col overflow-hidden max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4 shrink-0">
+            <div className="flex items-center justify-between border-b border-black/5 pb-4 mb-4 shrink-0">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
-                <h3 className="text-base font-bold text-white uppercase tracking-wider font-mono">
+                <h3 className="text-base font-bold text-[#171717] uppercase tracking-wider font-mono">
                   Reserve Restaurant Table
                 </h3>
               </div>
@@ -2907,7 +3115,7 @@ const Reception: React.FC = () => {
                   setIsExistingGuestReservation(false);
                   setSelectedReserveGuestId('');
                 }}
-                className="px-3 py-1.5 bg-slate-900 border border-white/5 text-gray-400 hover:text-white rounded-xl text-xs font-bold cursor-pointer transition hover:bg-slate-800"
+                className="px-3 py-1.5 bg-[#F8F6F1] border border-black/5 text-[#6E6A63] hover:text-[#171717] rounded-xl text-xs font-bold cursor-pointer transition hover:bg-[#F8F6F1]"
               >
                 Close
               </button>
@@ -2916,7 +3124,7 @@ const Reception: React.FC = () => {
             {/* Modal Body */}
             <form onSubmit={handleCreateReservation} className="space-y-4 text-xs sm:text-sm">
               {/* Reservation Type Segment Picker */}
-              <div className="flex gap-2 p-1 bg-slate-950/60 border border-white/5 rounded-xl mb-4">
+              <div className="flex gap-2 p-1 bg-[#F8F6F1]/90 border border-black/5 rounded-xl mb-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -2924,7 +3132,7 @@ const Reception: React.FC = () => {
                     setReserveCustomerName('');
                     setSelectedReserveGuestId('');
                   }}
-                  className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition duration-200 cursor-pointer ${!isExistingGuestReservation ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-400 hover:text-white'
+                  className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition duration-200 cursor-pointer ${!isExistingGuestReservation ? 'bg-[#C49A32] text-white shadow-sm' : 'text-[#6E6A63] hover:text-[#171717]'
                     }`}
                 >
                   New Dine-in Guest
@@ -2936,7 +3144,7 @@ const Reception: React.FC = () => {
                     setReserveCustomerName('');
                     setSelectedReserveGuestId('');
                   }}
-                  className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition duration-200 cursor-pointer ${isExistingGuestReservation ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-400 hover:text-white'
+                  className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition duration-200 cursor-pointer ${isExistingGuestReservation ? 'bg-[#C49A32] text-white shadow-sm' : 'text-[#6E6A63] hover:text-[#171717]'
                     }`}
                 >
                   Hotel Checked-In Guest
@@ -2945,7 +3153,7 @@ const Reception: React.FC = () => {
 
               {isExistingGuestReservation ? (
                 <div>
-                  <label className="block font-medium text-gray-300 mb-1">Select Checked-In / Booked Guest</label>
+                  <label className="block font-medium text-[#171717]/80 mb-1">Select Checked-In / Booked Guest</label>
                   <select
                     required
                     value={selectedReserveGuestId}
@@ -2954,7 +3162,7 @@ const Reception: React.FC = () => {
                       const match = bookings.find(b => b.id.toString() === e.target.value);
                       setReserveCustomerName(match ? match.guest_name : '');
                     }}
-                    className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-emerald-500 rounded-lg outline-none transition text-xs cursor-pointer"
+                    className="w-full p-3 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs cursor-pointer"
                   >
                     <option value="">Choose a guest...</option>
                     {bookings.filter(b => b.status === 'CHECKED_IN' || b.status === 'BOOKED').map(b => (
@@ -2966,25 +3174,25 @@ const Reception: React.FC = () => {
                 </div>
               ) : (
                 <div>
-                  <label className="block font-medium text-gray-300 mb-1">Customer Full Name</label>
+                  <label className="block font-medium text-[#171717]/80 mb-1">Customer Full Name</label>
                   <input
                     type="text"
                     required
                     value={reserveCustomerName}
                     onChange={e => setReserveCustomerName(e.target.value)}
-                    className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent rounded-lg outline-none transition text-xs"
+                    className="w-full p-3 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] focus:border-transparent rounded-lg outline-none transition text-xs"
                     placeholder="Jane Smith"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block font-medium text-gray-300 mb-1">Select Vacant Table</label>
+                <label className="block font-medium text-[#171717]/80 mb-1">Select Vacant Table</label>
                 <select
                   required
                   value={reserveTableId}
                   onChange={e => setReserveTableId(e.target.value)}
-                  className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-emerald-500 rounded-lg outline-none transition text-xs cursor-pointer"
+                  className="w-full p-3 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs cursor-pointer"
                 >
                   <option value="">Choose a table...</option>
                   {tables.filter(t => t.status === 'VACANT' && !tableReservations.some((tr: any) => tr.table === t.id && tr.status === 'BOOKED')).map(t => (
@@ -2996,7 +3204,7 @@ const Reception: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-medium text-gray-300 mb-1">Reservation Date & Time</label>
+                <label className="block font-medium text-[#171717]/80 mb-1">Reservation Date & Time</label>
                 <div className="relative">
                   <input
                     ref={reserveTimeRef}
@@ -3004,10 +3212,10 @@ const Reception: React.FC = () => {
                     required
                     value={reserveTime}
                     onChange={e => setReserveTime(e.target.value)}
-                    className="w-full p-3 pr-10 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-emerald-500 rounded-lg outline-none transition text-xs"
+                    className="w-full p-3 pr-10 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs"
                   />
                   <Calendar
-                    className="w-4 h-4 text-amber-400 absolute right-3 top-3.5 cursor-pointer hover:text-emerald-300 transition"
+                    className="w-4 h-4 text-emerald-600 absolute right-3 top-3.5 cursor-pointer hover:text-emerald-300 transition"
                     onClick={() => reserveTimeRef.current?.showPicker()}
                   />
                 </div>
@@ -3031,7 +3239,7 @@ const Reception: React.FC = () => {
       {/* Premium Registration Modal Popup */}
       {isRegistering && createPortal(
         <div
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden animate-fade-in"
+          className="fixed inset-0 bg-[#F8F6F1]/90 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden animate-fade-in"
           onClick={() => {
             setIsRegistering(false);
             setSelectedRoomId('');
@@ -3044,14 +3252,14 @@ const Reception: React.FC = () => {
           }}
         >
           <div
-            className="bg-[#050712] border border-white/10 w-full max-w-3xl rounded-3xl p-6 shadow-2xl relative flex flex-col overflow-hidden max-h-[90vh]"
+            className="bg-white border border-black/10 w-full max-w-3xl rounded-3xl p-6 shadow-2xl relative flex flex-col overflow-hidden max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4 shrink-0">
+            <div className="flex items-center justify-between border-b border-black/5 pb-4 mb-4 shrink-0">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-indigo-400 animate-pulse" />
-                <h3 className="text-lg font-bold text-white uppercase tracking-wider font-mono">
+                <Sparkles className="w-5 h-5 text-[#C49A32] animate-pulse" />
+                <h3 className="text-lg font-bold text-[#171717] uppercase tracking-wider font-mono">
                   {selectedRoomId ? `Check-in Guest: Room ${rooms.find(r => r.id.toString() === selectedRoomId)?.room_number || selectedRoomId}` : 'Register Walk-In Guest'}
                 </h3>
               </div>
@@ -3066,7 +3274,7 @@ const Reception: React.FC = () => {
                   setPhone('');
                   setImmediateCheckIn(true);
                 }}
-                className="px-4 py-2 bg-slate-900 border border-white/5 text-gray-400 hover:text-white rounded-xl text-xs font-bold cursor-pointer transition hover:bg-slate-800"
+                className="px-4 py-2 bg-[#F8F6F1] border border-black/5 text-[#6E6A63] hover:text-[#171717] rounded-xl text-xs font-bold cursor-pointer transition hover:bg-[#F8F6F1]"
               >
                 Close
               </button>
@@ -3077,8 +3285,8 @@ const Reception: React.FC = () => {
               <form onSubmit={handleRegisterAndCheckIn} className="space-y-4 text-xs sm:text-sm">
 
                 {/* Select Past Guest Select Dropdown */}
-                <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10 space-y-2">
-                  <label className="block text-xs font-mono font-bold text-indigo-300 uppercase tracking-wider">
+                <div className="p-4 rounded-xl bg-[#C49A32]/5 border border-[#C49A32]/10 space-y-2">
+                  <label className="block text-xs font-mono font-bold text-[#C49A32] uppercase tracking-wider">
                     Quick Select Past Guest (Optional)
                   </label>
                   <select
@@ -3104,7 +3312,7 @@ const Reception: React.FC = () => {
                         setGuestType('BOTH');
                       }
                     }}
-                    className="w-full p-3 bg-slate-950 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 rounded-lg outline-none cursor-pointer text-xs"
+                    className="w-full p-3 bg-white border border-stone-200 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none cursor-pointer text-xs"
                   >
                     <option value="">-- Create New Walk-in Guest --</option>
                     {guests.map((g) => (
@@ -3117,24 +3325,24 @@ const Reception: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-medium text-gray-300 mb-1">First Name</label>
+                    <label className="block font-medium text-[#171717]/80 mb-1">First Name</label>
                     <input
                       type="text"
                       required
                       value={firstName}
                       onChange={e => setFirstName(e.target.value)}
-                      className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition text-xs"
+                      className="w-full p-3 bg-white border border-stone-200 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs"
                       placeholder="John"
                     />
                   </div>
                   <div>
-                    <label className="block font-medium text-gray-300 mb-1">Last Name</label>
+                    <label className="block font-medium text-[#171717]/80 mb-1">Last Name</label>
                     <input
                       type="text"
                       required
                       value={lastName}
                       onChange={e => setLastName(e.target.value)}
-                      className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition text-xs"
+                      className="w-full p-3 bg-white border border-stone-200 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs"
                       placeholder="Doe"
                     />
                   </div>
@@ -3142,24 +3350,24 @@ const Reception: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-medium text-gray-300 mb-1">Email Address</label>
+                    <label className="block font-medium text-[#171717]/80 mb-1">Email Address</label>
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition text-xs"
+                      className="w-full p-3 bg-white border border-stone-200 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs"
                       placeholder="john.doe@example.com"
                     />
                   </div>
                   <div>
-                    <label className="block font-medium text-gray-300 mb-1">Contact Number</label>
+                    <label className="block font-medium text-[#171717]/80 mb-1">Contact Number</label>
                     <input
                       type="tel"
                       required
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
-                      className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition text-xs"
+                      className="w-full p-3 bg-white border border-stone-200 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs"
                       placeholder="e.g. +919999999999"
                     />
                   </div>
@@ -3167,22 +3375,22 @@ const Reception: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-medium text-gray-300 mb-1">Number of People</label>
+                    <label className="block font-medium text-[#171717]/80 mb-1">Number of People</label>
                     <input
                       type="number"
                       required
                       min="1"
                       value={groupSize}
                       onChange={e => setGroupSize(e.target.value)}
-                      className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition text-xs"
+                      className="w-full p-3 bg-white border border-stone-200 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs"
                     />
                   </div>
                   <div>
-                    <label className="block font-medium text-gray-300 mb-1">Guest Type</label>
+                    <label className="block font-medium text-[#171717]/80 mb-1">Guest Type</label>
                     <select
                       value={guestType}
                       onChange={e => setGuestType(e.target.value)}
-                      className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition text-xs cursor-pointer"
+                      className="w-full p-3 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition text-xs cursor-pointer"
                     >
                       <option value="DINE_IN">Dine-in Only Guest</option>
                       <option value="STAY_IN">Stay-in Only Guest</option>
@@ -3193,19 +3401,19 @@ const Reception: React.FC = () => {
 
                 {/* STAY details */}
                 {(guestType === 'STAY_IN' || guestType === 'BOTH') && (
-                  <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10 space-y-4">
-                    <h4 className="font-bold text-indigo-300 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="p-4 rounded-xl bg-[#C49A32]/5 border border-[#C49A32]/10 space-y-4">
+                    <h4 className="font-bold text-[#C49A32] text-xs uppercase tracking-wider flex items-center gap-1.5">
                       <Hotel className="w-4 h-4" />
                       Stay Room Allocation
                     </h4>
                     <div className={`grid grid-cols-1 ${selectedRoomId ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4`}>
                       {!selectedRoomId && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-400 mb-1">Room Selected</label>
+                          <label className="block text-xs font-medium text-[#6E6A63] mb-1">Room Selected</label>
                           <select
                             value={selectedRoomId}
                             onChange={e => setSelectedRoomId(e.target.value)}
-                            className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 rounded-lg outline-none transition text-xs cursor-pointer"
+                            className="w-full p-2.5 bg-white border border-stone-200 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs cursor-pointer"
                             required={guestType === 'STAY_IN' || guestType === 'BOTH'}
                           >
                             <option value="">Select Room</option>
@@ -3218,35 +3426,35 @@ const Reception: React.FC = () => {
                         </div>
                       )}
                       <div>
-                        <label className="block text-xs font-medium text-gray-400 mb-1">Check-in Date</label>
+                        <label className="block text-xs font-medium text-[#6E6A63] mb-1">Check-in Date</label>
                         <div className="relative">
                           <input
                             ref={checkInRef}
                             type="date"
                             value={checkInDate}
                             onChange={e => setCheckInDate(e.target.value)}
-                            className="w-full p-2 pr-9 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 rounded-lg outline-none transition text-xs"
+                            className="w-full p-2.5 pr-9 bg-white border border-stone-200 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs"
                             required={guestType === 'STAY_IN' || guestType === 'BOTH'}
                           />
                           <Calendar
-                            className="w-4 h-4 text-indigo-400 absolute right-2.5 top-2.5 cursor-pointer hover:text-indigo-300 transition"
+                            className="w-4 h-4 text-[#C49A32] absolute right-2.5 top-2.5 cursor-pointer hover:text-[#C49A32] transition"
                             onClick={() => checkInRef.current?.showPicker()}
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-400 mb-1">Check-out Date</label>
+                        <label className="block text-xs font-medium text-[#6E6A63] mb-1">Check-out Date</label>
                         <div className="relative">
                           <input
                             ref={checkOutRef}
                             type="date"
                             value={checkOutDate}
                             onChange={e => setCheckOutDate(e.target.value)}
-                            className="w-full p-2 pr-9 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 rounded-lg outline-none transition text-xs"
+                            className="w-full p-2.5 pr-9 bg-white border border-stone-200 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs"
                             required={guestType === 'STAY_IN' || guestType === 'BOTH'}
                           />
                           <Calendar
-                            className="w-4 h-4 text-indigo-400 absolute right-2.5 top-2.5 cursor-pointer hover:text-indigo-300 transition"
+                            className="w-4 h-4 text-[#C49A32] absolute right-2.5 top-2.5 cursor-pointer hover:text-[#C49A32] transition"
                             onClick={() => checkOutRef.current?.showPicker()}
                           />
                         </div>
@@ -3254,15 +3462,15 @@ const Reception: React.FC = () => {
                     </div>
 
                     {/* Immediate Check-In Toggle */}
-                    <div className="flex items-center gap-2 pt-3.5 border-t border-white/5">
+                    <div className="flex items-center gap-2 pt-3.5 border-t border-black/5">
                       <input
                         type="checkbox"
                         id="immediateCheckIn"
                         checked={immediateCheckIn}
                         onChange={e => setImmediateCheckIn(e.target.checked)}
-                        className="w-4 h-4 rounded bg-slate-950 border border-white/10 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                        className="w-4 h-4 rounded bg-[#F8F6F1] border border-black/10 text-[#C49A32] focus:ring-[#C49A32] cursor-pointer"
                       />
-                      <label htmlFor="immediateCheckIn" className="text-xs font-semibold text-gray-300 cursor-pointer select-none">
+                      <label htmlFor="immediateCheckIn" className="text-xs font-semibold text-[#171717]/80 cursor-pointer select-none">
                         Check-in guest immediately (Occupies room in database)
                       </label>
                     </div>
@@ -3271,17 +3479,17 @@ const Reception: React.FC = () => {
 
                 {/* DINE_IN details */}
                 {(guestType === 'DINE_IN' || guestType === 'BOTH') && (
-                  <div className="p-4 rounded-xl bg-amber-600/5 border border-amber-600/10 space-y-4">
-                    <h4 className="font-bold text-emerald-300 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="p-4 rounded-xl bg-[#C49A32]/5 border border-[#C49A32]/10 space-y-4">
+                    <h4 className="font-bold text-[#C49A32] text-xs uppercase tracking-wider flex items-center gap-1.5">
                       <ConciergeBell className="w-4 h-4" />
                       Restaurant Table Allocation
                     </h4>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Reserve Vacant Table (Optional)</label>
+                      <label className="block text-xs font-medium text-[#6E6A63] mb-1">Reserve Vacant Table (Optional)</label>
                       <select
                         value={selectedTableId}
                         onChange={e => setSelectedTableId(e.target.value)}
-                        className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 rounded-lg outline-none transition text-xs cursor-pointer"
+                        className="w-full p-2.5 bg-white border border-stone-200 text-[#171717] focus:ring-2 focus:ring-[#C49A32] focus:border-[#C49A32] rounded-lg outline-none transition text-xs cursor-pointer"
                       >
                         <option value="">Allocate Table Later</option>
                         {tables.filter(t => t.status === 'VACANT' && !tableReservations.some((tr: any) => tr.table === t.id && tr.status === 'BOOKED')).map(t => (
@@ -3295,24 +3503,24 @@ const Reception: React.FC = () => {
                 )}
 
                 {/* Guest Identity Verification Section */}
-                <div className="p-4 rounded-xl bg-slate-900/50 border border-white/5 space-y-4">
-                  <h4 className="font-bold text-indigo-300 text-xs uppercase tracking-wider flex items-center gap-1.5 font-mono">
-                    <ShieldAlert className="w-4 h-4 text-indigo-400" />
+                <div className="p-4 rounded-xl bg-[#F8F6F1]/80 border border-black/5 space-y-4">
+                  <h4 className="font-bold text-[#C49A32] text-xs uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                    <ShieldAlert className="w-4 h-4 text-[#C49A32]" />
                     Guest Identity Verification
                   </h4>
-                  <p className="text-gray-400 text-xs">
+                  <p className="text-[#6E6A63] text-xs">
                     Verify the guest's email via a secure OTP code before check-in.
                   </p>
 
                   {otpError && (
-                    <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl flex items-center gap-2.5 animate-fade-in">
+                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2.5 animate-fade-in">
                       <ShieldAlert className="w-4 h-4 shrink-0" />
                       <span>{otpError}</span>
                     </div>
                   )}
 
                   {otpSuccess && (
-                    <div className="p-3 bg-amber-600/10 border border-amber-600/20 text-amber-400 text-xs rounded-xl flex items-center gap-2.5 animate-fade-in">
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-xl flex items-center gap-2.5 animate-fade-in">
                       <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span>{otpSuccess}</span>
                     </div>
@@ -3322,21 +3530,21 @@ const Reception: React.FC = () => {
                     <div className="flex-grow w-full">
                       {otpSent && !otpVerified ? (
                         <div>
-                          <label className="block text-xs font-medium text-gray-400 mb-1">Enter 6-digit OTP Code</label>
+                          <label className="block text-xs font-medium text-[#6E6A63] mb-1">Enter 6-digit OTP Code</label>
                           <input
                             type="text"
                             maxLength={6}
                             value={otpCode}
                             onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                             placeholder="• • • • • •"
-                            className="w-full p-2.5 bg-slate-950 border border-white/10 text-gray-200 text-center tracking-widest font-mono text-sm rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                            className="w-full p-2.5 bg-[#F8F6F1] border border-black/10 text-[#171717]/90 text-center tracking-widest font-mono text-sm rounded-lg outline-none focus:ring-2 focus:ring-[#C49A32] focus:border-transparent transition"
                           />
                         </div>
                       ) : (
-                        <div className="text-xs text-gray-500 py-2">
+                        <div className="text-xs text-[#6E6A63]/80 py-2">
                           {otpVerified ? (
-                            <span className="text-amber-400 font-bold flex items-center gap-1.5">
-                              <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                            <span className="text-emerald-700 font-bold flex items-center gap-1.5">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                               Email successfully verified.
                             </span>
                           ) : (
@@ -3352,7 +3560,7 @@ const Reception: React.FC = () => {
                           type="button"
                           disabled={otpLoading || !email || !phone}
                           onClick={handleSendCheckinOtp}
-                          className="w-full sm:w-auto px-5 py-2.5 bg-slate-700 border border-amber-500/30 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs transition cursor-pointer disabled:opacity-50"
+                          className="w-full sm:w-auto px-5 py-2.5 bg-[#C49A32] hover:bg-[#b08a2d] text-white font-bold rounded-lg text-xs transition cursor-pointer disabled:opacity-50"
                         >
                           {otpLoading ? 'Sending...' : 'Send OTP Code'}
                         </button>
@@ -3370,7 +3578,7 @@ const Reception: React.FC = () => {
                             type="button"
                             disabled={otpLoading}
                             onClick={handleSendCheckinOtp}
-                            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg text-xs transition cursor-pointer"
+                            className="px-4 py-2.5 bg-white hover:bg-stone-100 border border-black/10 text-[#171717] rounded-lg text-xs transition cursor-pointer"
                           >
                             Resend
                           </button>
@@ -3399,23 +3607,23 @@ const Reception: React.FC = () => {
       {/* Custom Confirmation Modal */}
       {confirmDialog && confirmDialog.isOpen && createPortal(
         <div
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-hidden animate-fade-in"
+          className="fixed inset-0 bg-[#F8F6F1]/90 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-hidden animate-fade-in"
           onClick={() => setConfirmDialog(null)}
         >
           <div
-            className="bg-[#050712] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl relative flex flex-col overflow-hidden animate-scale-in"
+            className="bg-white border border-black/10 w-full max-w-md rounded-3xl p-6 shadow-2xl relative flex flex-col overflow-hidden animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center gap-2 border-b border-white/5 pb-4 mb-4">
-              <Sparkles className="w-5 h-5 text-indigo-400 animate-pulse" />
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+            <div className="flex items-center gap-2 border-b border-black/5 pb-4 mb-4">
+              <Sparkles className="w-5 h-5 text-[#C49A32] animate-pulse" />
+              <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wider font-mono">
                 {confirmDialog.title}
               </h3>
             </div>
 
             {/* Body */}
-            <div className="text-gray-300 text-sm mb-6 font-medium leading-relaxed">
+            <div className="text-[#171717]/80 text-sm mb-6 font-medium leading-relaxed">
               {confirmDialog.message}
             </div>
 
@@ -3424,7 +3632,7 @@ const Reception: React.FC = () => {
               {confirmDialog.cancelText !== null && (
                 <button
                   onClick={() => setConfirmDialog(null)}
-                  className={`px-4 py-2.5 bg-slate-900 border border-white/5 text-gray-400 hover:text-white rounded-xl text-xs font-bold cursor-pointer transition hover:bg-slate-800 ${confirmDialog.confirmText ? 'w-1/2' : 'w-full'}`}
+                  className={`px-4 py-2.5 bg-[#F8F6F1] border border-black/5 text-[#6E6A63] hover:text-[#171717] rounded-xl text-xs font-bold cursor-pointer transition hover:bg-[#F8F6F1] ${confirmDialog.confirmText ? 'w-1/2' : 'w-full'}`}
                 >
                   {confirmDialog.cancelText || 'Cancel'}
                 </button>
@@ -3435,7 +3643,7 @@ const Reception: React.FC = () => {
                     await confirmDialog.onConfirm();
                     setConfirmDialog(null);
                   }}
-                  className={`px-4 py-2.5 bg-indigo-500 hover:bg-slate-700 border border-amber-500/30 text-white rounded-xl text-xs font-black cursor-pointer transition shadow-lg shadow-indigo-500/20 ${confirmDialog.cancelText !== null ? 'w-1/2' : 'w-full'}`}
+                  className={`px-4 py-2.5 bg-[#C49A32] hover:bg-[#b08a2d] border border-amber-500/30 text-[#171717] rounded-xl text-xs font-black cursor-pointer transition shadow-lg shadow-[#C49A32]/20 ${confirmDialog.cancelText !== null ? 'w-1/2' : 'w-full'}`}
                 >
                   {confirmDialog.confirmText}
                 </button>

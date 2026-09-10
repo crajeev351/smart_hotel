@@ -8,10 +8,19 @@ class TableSerializer(serializers.ModelSerializer):
     current_guest_email = serializers.ReadOnlyField(source='current_guest.email')
     current_guest_phone = serializers.ReadOnlyField(source='current_guest.phone')
     current_guest_type = serializers.ReadOnlyField(source='current_guest.guest_type')
+    current_guest_active_room = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
         fields = '__all__'
+
+    def get_current_guest_active_room(self, obj):
+        if obj.current_guest:
+            from rooms.models import Booking
+            booking = Booking.objects.filter(guest=obj.current_guest, status='CHECKED_IN').first()
+            if booking and booking.room:
+                return booking.room.room_number
+        return None
 
     def validate(self, data):
         if self.instance:

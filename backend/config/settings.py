@@ -244,7 +244,7 @@ EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 20))
 EMAIL_PROVIDER = os.environ.get('EMAIL_PROVIDER', '').strip().lower()
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 
-default_from = 'Smart Hotel <onboarding@resend.dev>' if (RESEND_API_KEY or EMAIL_PROVIDER == 'resend') else 'noreply@smarthotel.com'
+default_from = 'Imperium Hotel <onboarding@resend.dev>' if (RESEND_API_KEY or EMAIL_PROVIDER == 'resend') else 'noreply@imperiumhotel.com'
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL') or (EMAIL_HOST_USER if EMAIL_HOST_USER and not RESEND_API_KEY else default_from)
 
 # JWT Authentication Config

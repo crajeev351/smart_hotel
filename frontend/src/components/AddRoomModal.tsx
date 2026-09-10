@@ -67,7 +67,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ onClose, onSuccess }) => {
               value={formData.room_number}
               onChange={handleChange}
               placeholder="e.g. 101"
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#C49A32] outline-none"
             />
           </div>
 
@@ -78,7 +78,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ onClose, onSuccess }) => {
                 name="room_type"
                 value={formData.room_type}
                 onChange={handleChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#C49A32] outline-none"
               >
                 <option value="SINGLE">Single</option>
                 <option value="DOUBLE">Double</option>
@@ -93,7 +93,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ onClose, onSuccess }) => {
                 required 
                 value={formData.floor}
                 onChange={handleChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#C49A32] outline-none"
               />
             </div>
           </div>
@@ -107,7 +107,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ onClose, onSuccess }) => {
                 required 
                 value={formData.price_per_night}
                 onChange={handleChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#C49A32] outline-none"
               />
             </div>
             <div>
@@ -118,7 +118,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ onClose, onSuccess }) => {
                 required 
                 value={formData.capacity}
                 onChange={handleChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#C49A32] outline-none"
               />
             </div>
           </div>
@@ -134,7 +134,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ onClose, onSuccess }) => {
             <button 
               type="submit" 
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-[#C49A32] text-white rounded-lg hover:bg-[#b08a2d] transition disabled:opacity-50"
             >
               {loading ? 'Adding...' : 'Add Room'}
             </button>

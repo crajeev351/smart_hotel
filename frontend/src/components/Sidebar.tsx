@@ -56,25 +56,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Mobile Backdrop Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 animate-fade-in"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 animate-fade-in"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar Container */}
       <div 
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0a0d16] border-r border-white/5 flex flex-col h-screen shrink-0 print:hidden transition-transform duration-300 lg:translate-x-0 lg:static lg:z-auto ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#171717] border-r border-white/5 flex flex-col h-screen shrink-0 print:hidden transition-transform duration-300 lg:translate-x-0 lg:static lg:z-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand Logo Header */}
-        <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="p-6 border-b border-white/10 flex items-center justify-between">
           <h1 className="text-xl font-black text-white flex items-center gap-2.5">
-            <div className="p-1.5 bg-indigo-500/10 rounded-lg text-indigo-400 border border-indigo-500/20">
+            <div className="p-1.5 bg-[#C49A32]/15 rounded-lg text-[#C49A32] border border-[#C49A32]/25">
               <Hotel className="w-5 h-5" />
             </div>
-            <span className="tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-100 to-gray-300">
-              Smart Hotel
+            <span className="tracking-tight text-white">
+              Imperium Hotel
             </span>
           </h1>
 
@@ -89,10 +89,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         
         <div className="px-6 py-4">
           {user && (
-            <div className="p-3 rounded-xl bg-white/5 border border-white/[0.04]">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-indigo-400">Current Session</p>
+            <div className="p-3 rounded-xl bg-white/5 border border-white/[0.06]">
+              <p className="text-[10px] uppercase font-bold tracking-widest text-[#C49A32]">Current Session</p>
               <p className="text-sm font-semibold text-white truncate mt-0.5 capitalize">{user.username}</p>
-              <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 uppercase tracking-wider">
+              <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-[#C49A32]/10 text-[#C49A32] border border-[#C49A32]/20 uppercase tracking-wider">
                 {user.role || 'GUEST'}
               </span>
             </div>
@@ -110,11 +110,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 onClick={onClose}
                 className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 group ${
                   isActive
-                    ? 'bg-gradient-to-r from-indigo-500/10 to-indigo-500/5 text-white border-l-4 border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.15)]'
-                    : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                    ? 'bg-[#C49A32] text-white shadow-[0_0_15px_rgba(196,154,50,0.2)]'
+                    : 'text-gray-400 hover:text-white hover:bg-white/[0.05]'
                 }`}
               >
-                <span className={`transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-indigo-400' : 'text-gray-500 group-hover:text-gray-300'}`}>
+                <span className={`transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -124,8 +124,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-white/5 bg-[#080a11]/40 text-center">
-          <p className="text-[11px] text-gray-500 font-semibold">Smart Hotel Cloud v2.0</p>
+        <div className="p-4 border-t border-white/5 bg-[#111111]/40 text-center">
+          <p className="text-[11px] text-gray-500 font-semibold">Imperium Hotel v2.0</p>
         </div>
       </div>
     </>

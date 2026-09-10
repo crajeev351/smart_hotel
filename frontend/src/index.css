@@ -3,27 +3,23 @@
 @layer base {
   body {
     font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
-    background: radial-gradient(circle at top right, #111827, #030712);
-    color: #f3f4f6;
+    background: #F8F6F1;
+    color: #171717;
     min-height: 100vh;
     overflow-x: hidden;
   }
 }
 
-/* Glassmorphism & Visual Polish Utilities */
+/* Card & Panel Utilities — Imperium Light Theme */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 4px 16px 0 rgba(0, 0, 0, 0.03);
 }
 
 .glass-panel-light {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .glass-card-hover {
@@ -31,27 +27,27 @@
 }
 .glass-card-hover:hover {
   transform: translateY(-4px);
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.15);
+  border-color: rgba(196, 154, 50, 0.4);
+  box-shadow: 0 12px 40px 0 rgba(196, 154, 50, 0.10);
 }
 
 .glowing-btn-indigo {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
-  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+  background: linear-gradient(135deg, #C49A32, #d4ab48);
+  box-shadow: 0 4px 14px 0 rgba(196, 154, 50, 0.35);
   transition: all 0.2s ease-in-out;
 }
 .glowing-btn-indigo:hover {
-  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.6);
+  box-shadow: 0 6px 20px 0 rgba(196, 154, 50, 0.5);
   transform: translateY(-1px);
 }
 
 .glowing-btn-emerald {
-  background: linear-gradient(135deg, #059669, #10b981);
-  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, #171717, #2a2a2a);
+  box-shadow: 0 4px 14px 0 rgba(23, 23, 23, 0.3);
   transition: all 0.2s ease-in-out;
 }
 .glowing-btn-emerald:hover {
-  box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.6);
+  box-shadow: 0 6px 20px 0 rgba(23, 23, 23, 0.45);
   transform: translateY(-1px);
 }
 
@@ -73,10 +69,10 @@
 
 @keyframes pulseGlow {
   0%, 100% {
-    box-shadow: 0 0 15px 2px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 0 15px 2px rgba(196, 154, 50, 0.2);
   }
   50% {
-    box-shadow: 0 0 25px 6px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 25px 6px rgba(196, 154, 50, 0.35);
   }
 }
 
@@ -122,14 +118,14 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(3, 7, 18, 0.5);
+  background: rgba(0, 0, 0, 0.03);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.12);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 /* Hide native calendar picker indicator in WebKit browsers to prevent overlapping icons */

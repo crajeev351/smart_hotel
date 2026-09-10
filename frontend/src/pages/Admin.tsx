@@ -565,13 +565,13 @@ const Admin: React.FC = () => {
       
       {/* Admin Panel Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 glass-panel p-4 sm:p-6 rounded-2xl">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white flex items-center gap-2 sm:gap-3">
-          <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400 animate-spin-slow" />
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#171717] flex items-center gap-2 sm:gap-3">
+          <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-[#C49A32] animate-spin-slow" />
           Administrative Control Center
         </h2>
         <button 
           onClick={() => loadData()}
-          className="bg-slate-900 border border-white/5 hover:bg-slate-800 text-gray-300 px-4 py-2.5 sm:py-2 rounded-xl transition cursor-pointer text-sm sm:text-base w-full sm:w-auto"
+          className="bg-[#F8F6F1] border border-black/5 hover:bg-[#F8F6F1] text-[#171717]/80 px-4 py-2.5 sm:py-2 rounded-xl transition cursor-pointer text-sm sm:text-base w-full sm:w-auto"
         >
           Reload Center Data
         </button>
@@ -590,7 +590,7 @@ const Admin: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto gap-2 border-b border-white/5 pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
+      <div className="flex overflow-x-auto gap-2 border-b border-black/5 pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
         {(['analytics', 'rooms', 'tables', 'menu', 'users', 'marketing'] as const).map(tab => (
           <button
             key={tab}
@@ -598,7 +598,7 @@ const Admin: React.FC = () => {
             className={`px-4 sm:px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold capitalize transition whitespace-nowrap flex-shrink-0 ${
               activeTab === tab 
                 ? 'glowing-btn-indigo text-white shadow-sm' 
-                : 'bg-[#0a0d16]/80 border border-white/5 text-gray-400 hover:text-white hover:bg-slate-800'
+                : 'bg-white/80 border border-black/5 text-[#6E6A63] hover:text-[#171717] hover:bg-[#F8F6F1]'
             }`}
           >
             {tab === 'menu' ? 'Menu & Dining' : tab}
@@ -610,7 +610,7 @@ const Admin: React.FC = () => {
       {activeTab === 'analytics' && analytics && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-            <div className="glass-panel p-4 sm:p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between h-[220px] group transition border hover:border-white/10 shadow-lg">
+            <div className="glass-panel p-4 sm:p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between h-[220px] group transition border hover:border-black/10 shadow-lg">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/20 group-hover:scale-105 transition duration-300">
@@ -620,54 +620,54 @@ const Admin: React.FC = () => {
                     Finances
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-black/20 p-1 rounded-lg border border-white/5">
+                <div className="flex items-center gap-1.5 bg-black/20 p-1 rounded-lg border border-black/5">
                   <select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                    className="bg-transparent text-gray-300 text-[10px] font-bold px-1 py-0.5 focus:outline-none cursor-pointer appearance-none text-center hover:text-white"
+                    className="bg-transparent text-[#171717]/80 text-[10px] font-bold px-1 py-0.5 focus:outline-none cursor-pointer appearance-none text-center hover:text-[#171717]"
                   >
-                    <option className="bg-[#0a0d16] text-white" value="1">Jan</option>
-                    <option className="bg-[#0a0d16] text-white" value="2">Feb</option>
-                    <option className="bg-[#0a0d16] text-white" value="3">Mar</option>
-                    <option className="bg-[#0a0d16] text-white" value="4">Apr</option>
-                    <option className="bg-[#0a0d16] text-white" value="5">May</option>
-                    <option className="bg-[#0a0d16] text-white" value="6">Jun</option>
-                    <option className="bg-[#0a0d16] text-white" value="7">Jul</option>
-                    <option className="bg-[#0a0d16] text-white" value="8">Aug</option>
-                    <option className="bg-[#0a0d16] text-white" value="9">Sep</option>
-                    <option className="bg-[#0a0d16] text-white" value="10">Oct</option>
-                    <option className="bg-[#0a0d16] text-white" value="11">Nov</option>
-                    <option className="bg-[#0a0d16] text-white" value="12">Dec</option>
+                    <option className="bg-white text-[#171717]" value="1">Jan</option>
+                    <option className="bg-white text-[#171717]" value="2">Feb</option>
+                    <option className="bg-white text-[#171717]" value="3">Mar</option>
+                    <option className="bg-white text-[#171717]" value="4">Apr</option>
+                    <option className="bg-white text-[#171717]" value="5">May</option>
+                    <option className="bg-white text-[#171717]" value="6">Jun</option>
+                    <option className="bg-white text-[#171717]" value="7">Jul</option>
+                    <option className="bg-white text-[#171717]" value="8">Aug</option>
+                    <option className="bg-white text-[#171717]" value="9">Sep</option>
+                    <option className="bg-white text-[#171717]" value="10">Oct</option>
+                    <option className="bg-white text-[#171717]" value="11">Nov</option>
+                    <option className="bg-white text-[#171717]" value="12">Dec</option>
                   </select>
                   <span className="text-gray-600 text-[10px]">/</span>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                    className="bg-transparent text-gray-300 text-[10px] font-bold px-1 py-0.5 focus:outline-none cursor-pointer appearance-none text-center hover:text-white"
+                    className="bg-transparent text-[#171717]/80 text-[10px] font-bold px-1 py-0.5 focus:outline-none cursor-pointer appearance-none text-center hover:text-[#171717]"
                   >
                     {Array.from({ length: 5 }, (_, i) => currentYear - 2 + i).map((yr) => (
-                      <option className="bg-[#0a0d16] text-white" key={yr} value={yr}>{yr}</option>
+                      <option className="bg-white text-[#171717]" key={yr} value={yr}>{yr}</option>
                     ))}
                   </select>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4 my-auto w-full">
-                <div className="flex flex-col bg-white/5 p-2 rounded-lg border border-white/5">
-                  <span className="text-[9px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Daily</span>
-                  <span className="text-sm font-extrabold text-white">
+                <div className="flex flex-col bg-black/3 p-2 rounded-lg border border-black/5">
+                  <span className="text-[9px] text-[#6E6A63] font-semibold uppercase tracking-wider mb-1">Daily</span>
+                  <span className="text-sm font-extrabold text-[#171717]">
                     ₹{(analytics?.daily_revenue ?? 0).toFixed(2)}
                   </span>
                 </div>
-                <div className="flex flex-col bg-white/5 p-2 rounded-lg border border-white/5">
-                  <span className="text-[9px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Monthly</span>
-                  <span className="text-sm font-extrabold text-white">
+                <div className="flex flex-col bg-black/3 p-2 rounded-lg border border-black/5">
+                  <span className="text-[9px] text-[#6E6A63] font-semibold uppercase tracking-wider mb-1">Monthly</span>
+                  <span className="text-sm font-extrabold text-[#171717]">
                     ₹{(analytics?.monthly_revenue ?? 0).toFixed(2)}
                   </span>
                 </div>
-                <div className="flex flex-col bg-white/5 p-2 rounded-lg border border-white/5">
-                  <span className="text-[9px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Yearly</span>
-                  <span className="text-sm font-extrabold text-white">
+                <div className="flex flex-col bg-black/3 p-2 rounded-lg border border-black/5">
+                  <span className="text-[9px] text-[#6E6A63] font-semibold uppercase tracking-wider mb-1">Yearly</span>
+                  <span className="text-sm font-extrabold text-[#171717]">
                     ₹{(analytics?.yearly_revenue ?? 0).toFixed(2)}
                   </span>
                 </div>
@@ -679,12 +679,12 @@ const Admin: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[9px] font-bold text-emerald-400/80 uppercase tracking-widest mt-3 pt-2 border-t border-white/5">
+              <div className="flex items-center justify-between text-[9px] font-bold text-emerald-400/80 uppercase tracking-widest mt-3 pt-2 border-t border-black/5">
                 <div className="flex items-center gap-1.5">
                   <TrendingUp className="w-3.5 h-3.5" />
                   Live Revenue
                 </div>
-                <span className="text-[8px] text-gray-500 normal-case font-medium">
+                <span className="text-[8px] text-[#6E6A63]/80 normal-case font-medium">
                   Filtered: {selectedMonth}/{selectedYear}
                 </span>
               </div>
@@ -692,18 +692,18 @@ const Admin: React.FC = () => {
 
             <div className="glass-panel p-4 sm:p-6 rounded-2xl flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-semibold">Occupancy Rate</p>
-                <p className="text-2xl sm:text-3xl font-extrabold text-white mt-2">{analytics.occupancy_rate}%</p>
+                <p className="text-sm text-[#6E6A63]/80 font-semibold">Occupancy Rate</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-[#171717] mt-2">{analytics.occupancy_rate}%</p>
               </div>
-              <div className="p-4 bg-indigo-500/10 border border-indigo-500/10 text-indigo-400 rounded-full text-indigo-400">
+              <div className="p-4 bg-[#C49A32]/10 border border-[#C49A32]/10 text-[#C49A32] rounded-full text-[#C49A32]">
                 <BarChart3 className="w-7 h-7" />
               </div>
             </div>
 
             <div className="glass-panel p-4 sm:p-6 rounded-2xl flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-semibold">Dining Orders</p>
-                <p className="text-2xl sm:text-3xl font-extrabold text-white mt-2">{analytics.total_orders}</p>
+                <p className="text-sm text-[#6E6A63]/80 font-semibold">Dining Orders</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-[#171717] mt-2">{analytics.total_orders}</p>
               </div>
               <div className="p-4 bg-orange-50 rounded-full text-orange-600">
                 <Utensils className="w-7 h-7" />
@@ -712,10 +712,10 @@ const Admin: React.FC = () => {
 
             <div className="glass-panel p-4 sm:p-6 rounded-2xl flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-semibold">Staff & User Accounts</p>
-                <p className="text-2xl sm:text-3xl font-extrabold text-white mt-2">{users.length}</p>
+                <p className="text-sm text-[#6E6A63]/80 font-semibold">Staff & User Accounts</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-[#171717] mt-2">{users.length}</p>
               </div>
-              <div className="p-4 bg-purple-50 rounded-full text-purple-600">
+              <div className="p-4 bg-[#C49A32]/10 rounded-full text-[#b08a2d]">
                 <Users className="w-7 h-7" />
               </div>
             </div>
@@ -724,12 +724,12 @@ const Admin: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
             {/* Occupancy stats */}
             <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Hotel className="w-5 h-5 text-blue-500" />
+              <h3 className="text-lg font-bold text-[#171717] flex items-center gap-2">
+                <Hotel className="w-5 h-5 text-[#C49A32]" />
                 Hotel Operations Status
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
-                <div className="p-4 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-lg">
+                <div className="p-4 bg-[#C49A32]/10 border border-[#C49A32]/20 text-blue-300 rounded-lg">
                   <span className="text-2xl font-bold">{analytics.total_rooms}</span>
                   <p className="text-xs text-blue-400 font-medium mt-1">Total Rooms</p>
                 </div>
@@ -746,7 +746,7 @@ const Admin: React.FC = () => {
 
             {/* Restaurant stats */}
             <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-[#171717] flex items-center gap-2">
                 <Utensils className="w-5 h-5 text-orange-500" />
                 Restaurant Operations Status
               </h3>
@@ -759,9 +759,9 @@ const Admin: React.FC = () => {
                   <span className="text-2xl font-bold">{analytics.total_tables - analytics.occupied_tables - analytics.cleaning_tables}</span>
                   <p className="text-xs text-emerald-400 font-medium mt-1">Vacant</p>
                 </div>
-                <div className="p-4 bg-purple-500/10 border border-purple-500/20 text-purple-300 rounded-lg">
+                <div className="p-4 bg-[#C49A32]/10 border border-[#C49A32]/20 text-[#C49A32] rounded-lg">
                   <span className="text-2xl font-bold">{analytics.occupied_tables}</span>
-                  <p className="text-xs text-purple-400 font-medium mt-1">Occupied</p>
+                  <p className="text-xs text-[#C49A32] font-medium mt-1">Occupied</p>
                 </div>
               </div>
             </div>
@@ -778,26 +778,26 @@ const Admin: React.FC = () => {
             <div className="space-y-4 sm:space-y-6">
               {/* Add Room Form */}
               <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4 h-fit">
-                <h3 className="text-lg font-bold text-white">Add New Room</h3>
+                <h3 className="text-lg font-bold text-[#171717]">Add New Room</h3>
                 <form onSubmit={handleAddRoom} className="space-y-3">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1">Room Number</label>
+                    <label className="block text-xs font-semibold text-[#6E6A63]/80 mb-1">Room Number</label>
                     <input 
                       type="text" 
                       required
                       placeholder="e.g. 101"
                       value={newRoom.room_number}
                       onChange={e => setNewRoom({...newRoom, room_number: e.target.value})}
-                      className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer"
+                      className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition cursor-pointer"
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">Type</label>
+                      <label className="block text-xs font-semibold text-[#6E6A63]/80 mb-1">Type</label>
                       <select 
                         value={newRoom.room_type}
                         onChange={e => setNewRoom({...newRoom, room_type: e.target.value})}
-                        className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer"
+                        className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition cursor-pointer"
                       >
                         <option value="SINGLE">Single</option>
                         <option value="DOUBLE">Double</option>
@@ -805,39 +805,39 @@ const Admin: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">Floor</label>
+                      <label className="block text-xs font-semibold text-[#6E6A63]/80 mb-1">Floor</label>
                       <input 
                         type="number" 
                         value={newRoom.floor}
                         onChange={e => setNewRoom({...newRoom, floor: parseInt(e.target.value) || 1})}
-                        className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer"
+                        className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition cursor-pointer"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">Price / Night (₹)</label>
+                      <label className="block text-xs font-semibold text-[#6E6A63]/80 mb-1">Price / Night (₹)</label>
                       <input 
                         type="number" 
                         required
                         value={newRoom.price_per_night}
                         onChange={e => setNewRoom({...newRoom, price_per_night: e.target.value})}
-                        className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer"
+                        className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition cursor-pointer"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">Capacity</label>
+                      <label className="block text-xs font-semibold text-[#6E6A63]/80 mb-1">Capacity</label>
                       <input 
                         type="number" 
                         value={newRoom.capacity}
                         onChange={e => setNewRoom({...newRoom, capacity: parseInt(e.target.value) || 2})}
-                        className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer"
+                        className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition cursor-pointer"
                       />
                     </div>
                   </div>
                   <button 
                     type="submit" 
-                    className="w-full py-2.5 glowing-btn-indigo hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm cursor-pointer"
+                    className="w-full py-2.5 glowing-btn-indigo hover:bg-[#b08a2d] text-[#171717] font-bold rounded-lg shadow-sm cursor-pointer"
                   >
                     Add Room Account
                   </button>
@@ -846,17 +846,17 @@ const Admin: React.FC = () => {
 
               {/* Floor Structure Management */}
               <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4">
-                <div className="flex items-center gap-2 text-indigo-400">
-                  <Hotel className="w-5 h-5 text-indigo-400" />
-                  <h3 className="text-lg font-bold text-white">Manage Building Floors</h3>
+                <div className="flex items-center gap-2 text-[#C49A32]">
+                  <Hotel className="w-5 h-5 text-[#C49A32]" />
+                  <h3 className="text-lg font-bold text-[#171717]">Manage Building Floors</h3>
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-[#6E6A63]">
                   Add or delete floors from the 3D SVG building structure.
                 </p>
 
                 {/* Add Floor Form */}
-                <form onSubmit={handleAddFloor} className="space-y-2 pt-2 border-t border-white/5">
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Add Floor Number</label>
+                <form onSubmit={handleAddFloor} className="space-y-2 pt-2 border-t border-black/5">
+                  <label className="block text-xs font-semibold text-[#6E6A63]/80 mb-1">Add Floor Number</label>
                   <div className="flex gap-2">
                     <input
                       type="number"
@@ -866,12 +866,12 @@ const Admin: React.FC = () => {
                       placeholder="e.g. 5"
                       value={newFloorNum}
                       onChange={e => setNewFloorNum(e.target.value)}
-                      className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition cursor-pointer text-xs"
+                      className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition cursor-pointer text-xs"
                     />
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-4 py-2 glowing-btn-indigo hover:bg-blue-700 text-white font-bold rounded-lg text-xs shrink-0 cursor-pointer"
+                      className="px-4 py-2 glowing-btn-indigo hover:bg-[#b08a2d] text-[#171717] font-bold rounded-lg text-xs shrink-0 cursor-pointer"
                     >
                       Add Floor
                     </button>
@@ -879,16 +879,16 @@ const Admin: React.FC = () => {
                 </form>
 
                 {/* Current Floors List */}
-                <div className="space-y-2 pt-2 border-t border-white/5">
-                  <label className="block text-xs font-semibold text-gray-500">Current Building Floors</label>
+                <div className="space-y-2 pt-2 border-t border-black/5">
+                  <label className="block text-xs font-semibold text-[#6E6A63]/80">Current Building Floors</label>
                   <div className="space-y-1.5 max-h-[200px] overflow-y-auto pr-1">
                     {uniqueFloors.map(floorNum => {
                       const floorRooms = rooms.filter(r => getRoomFloor(r.room_number) === floorNum);
                       return (
-                        <div key={floorNum} className="flex items-center justify-between p-2 bg-slate-950/30 rounded-lg border border-white/5">
+                        <div key={floorNum} className="flex items-center justify-between p-2 bg-[#F8F6F1]/80 rounded-lg border border-black/5">
                           <div className="flex flex-col">
-                            <span className="text-xs font-bold text-white">Level L{floorNum}</span>
-                            <span className="text-[10px] text-gray-500">{floorRooms.length} rooms configured</span>
+                            <span className="text-xs font-bold text-[#171717]">Level L{floorNum}</span>
+                            <span className="text-[10px] text-[#6E6A63]/80">{floorRooms.length} rooms configured</span>
                           </div>
                           <button
                             type="button"
@@ -908,12 +908,12 @@ const Admin: React.FC = () => {
             </div>
 
             {/* Rooms Table */}
-            <div className="lg:col-span-2 glass-panel p-3 sm:p-4 overflow-hidden border border-white/5 rounded-2xl">
-              <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Hotel Room Inventory</h3>
+            <div className="lg:col-span-2 glass-panel p-3 sm:p-4 overflow-hidden border border-black/5 rounded-2xl">
+              <h3 className="text-base sm:text-lg font-bold text-[#171717] mb-3 sm:mb-4">Hotel Room Inventory</h3>
               <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
                 <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[500px]">
                   <thead>
-                    <tr className="bg-slate-950/40 border-b border-white/5 border-white/5 text-gray-400">
+                    <tr className="bg-[#F8F6F1]/60 border-b border-black/5 border-black/5 text-[#6E6A63]">
                       <th className="p-3">Room</th>
                       <th className="p-3">Type</th>
                       <th className="p-3">Price</th>
@@ -923,7 +923,7 @@ const Admin: React.FC = () => {
                   </thead>
                   <tbody>
                     {rooms.map(room => (
-                      <tr key={room.id} className="border-b border-white/5 border-white/5 hover:bg-white/[0.01]">
+                      <tr key={room.id} className="border-b border-black/5 border-black/5 hover:bg-white/[0.01]">
                         {editingRoom?.id === room.id ? (
                           <>
                             <td className="p-2">
@@ -965,14 +965,14 @@ const Admin: React.FC = () => {
                               </select>
                             </td>
                             <td className="p-2 text-right space-x-1">
-                              <button onClick={() => handleUpdateRoom(editingRoom)} className="p-1.5 sm:p-1 bg-green-500 text-white rounded"><Save className="w-4 h-4" /></button>
-                              <button onClick={() => setEditingRoom(null)} className="p-1.5 sm:p-1 bg-gray-500 text-white rounded"><X className="w-4 h-4" /></button>
+                              <button onClick={() => handleUpdateRoom(editingRoom)} className="p-1.5 sm:p-1 bg-green-500 text-[#171717] rounded"><Save className="w-4 h-4" /></button>
+                              <button onClick={() => setEditingRoom(null)} className="p-1.5 sm:p-1 bg-gray-500 text-[#171717] rounded"><X className="w-4 h-4" /></button>
                             </td>
                           </>
                         ) : (
                           <>
-                            <td className="p-3 font-semibold text-white">Room {room.room_number} (Floor {room.floor})</td>
-                            <td className="p-3 text-gray-400">{room.room_type} (Max: {room.capacity})</td>
+                            <td className="p-3 font-semibold text-[#171717]">Room {room.room_number} (Floor {room.floor})</td>
+                            <td className="p-3 text-[#6E6A63]">{room.room_type} (Max: {room.capacity})</td>
                             <td className="p-3 font-bold">₹{parseFloat(room.price_per_night).toFixed(2)}</td>
                             <td className="p-3">
                               <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
@@ -983,7 +983,7 @@ const Admin: React.FC = () => {
                               </span>
                             </td>
                             <td className="p-3 text-right space-x-2">
-                              <button onClick={() => setEditingRoom(room)} className="p-1.5 sm:p-1 text-indigo-400 hover:bg-indigo-500/10 border border-indigo-500/10 text-indigo-400 rounded"><Edit className="w-4 h-4" /></button>
+                              <button onClick={() => setEditingRoom(room)} className="p-1.5 sm:p-1 text-[#C49A32] hover:bg-[#C49A32]/10 border border-[#C49A32]/10 text-[#C49A32] rounded"><Edit className="w-4 h-4" /></button>
                               <button onClick={() => handleDeleteRoom(room.id)} className="p-1.5 sm:p-1 text-red-600 hover:bg-red-50 rounded"><Trash className="w-4 h-4" /></button>
                             </td>
                           </>
@@ -1002,40 +1002,40 @@ const Admin: React.FC = () => {
       {activeTab === 'tables' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4 h-fit">
-            <h3 className="text-lg font-bold text-white">Add New Dining Table</h3>
+            <h3 className="text-lg font-bold text-[#171717]">Add New Dining Table</h3>
             <form onSubmit={handleAddTable} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">Table Number</label>
+                <label className="block text-xs font-semibold text-[#6E6A63]/80 mb-1">Table Number</label>
                 <input 
                   type="text" 
                   required
                   placeholder="e.g. 101"
                   value={newTable.table_number}
                   onChange={e => setNewTable({...newTable, table_number: e.target.value})}
-                  className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                  className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">Seating Capacity</label>
+                <label className="block text-xs font-semibold text-[#6E6A63]/80 mb-1">Seating Capacity</label>
                 <input 
                   type="number" 
                   value={newTable.capacity}
                   onChange={e => setNewTable({...newTable, capacity: parseInt(e.target.value) || 4})}
-                  className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                  className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                 />
               </div>
-              <button type="submit" className="w-full py-2.5 glowing-btn-indigo hover:bg-blue-700 text-white font-bold rounded-lg">
+              <button type="submit" className="w-full py-2.5 glowing-btn-indigo hover:bg-[#b08a2d] text-[#171717] font-bold rounded-lg">
                 Add Table Account
               </button>
             </form>
           </div>
 
-          <div className="lg:col-span-2 glass-panel p-3 sm:p-4 overflow-hidden border border-white/5 rounded-2xl">
-            <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Dining Room Table Layout</h3>
+          <div className="lg:col-span-2 glass-panel p-3 sm:p-4 overflow-hidden border border-black/5 rounded-2xl">
+            <h3 className="text-base sm:text-lg font-bold text-[#171717] mb-3 sm:mb-4">Dining Room Table Layout</h3>
             <div className="overflow-x-auto overflow-y-auto max-h-[400px]">
               <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[450px]">
                 <thead>
-                  <tr className="bg-slate-950/40 border-b border-white/5 border-white/5 text-gray-400">
+                  <tr className="bg-[#F8F6F1]/60 border-b border-black/5 border-black/5 text-[#6E6A63]">
                     <th className="p-3">Table Number</th>
                     <th className="p-3">Capacity</th>
                     <th className="p-3">Status</th>
@@ -1048,14 +1048,14 @@ const Admin: React.FC = () => {
                     .map(capacity => (
                       <React.Fragment key={capacity}>
                         {/* Capacity Group Header */}
-                        <tr className="bg-slate-950 border-y border-white/10">
-                          <td colSpan={4} className="p-3 text-xs font-black uppercase text-indigo-400 tracking-widest bg-indigo-500/5">
+                        <tr className="bg-[#F8F6F1] border-y border-black/10">
+                          <td colSpan={4} className="p-3 text-xs font-black uppercase text-[#C49A32] tracking-widest bg-[#C49A32]/5">
                             {capacity} Seater Tables
                           </td>
                         </tr>
                         {/* Tables in this group */}
                         {tables.filter(t => t.capacity === capacity).sort((a, b) => a.table_number.localeCompare(b.table_number)).map(table => (
-                          <tr key={table.id} className="border-b border-white/5 border-white/5 hover:bg-white/[0.01]">
+                          <tr key={table.id} className="border-b border-black/5 border-black/5 hover:bg-white/[0.01]">
                             {editingTable?.id === table.id ? (
                               <>
                                 <td className="p-2">
@@ -1063,7 +1063,7 @@ const Admin: React.FC = () => {
                                     type="text" 
                                     value={editingTable.table_number}
                                     onChange={e => setEditingTable({...editingTable, table_number: e.target.value})}
-                                    className="w-20 p-1 bg-slate-900 border border-white/10 text-white rounded outline-none focus:ring-1 focus:ring-indigo-500"
+                                    className="w-20 p-1 bg-[#F8F6F1] border border-black/10 text-[#171717] rounded outline-none focus:ring-1 focus:ring-[#C49A32]"
                                   />
                                 </td>
                                 <td className="p-2">
@@ -1071,14 +1071,14 @@ const Admin: React.FC = () => {
                                     type="number" 
                                     value={editingTable.capacity}
                                     onChange={e => setEditingTable({...editingTable, capacity: parseInt(e.target.value) || 2})}
-                                    className="w-20 p-1 bg-slate-900 border border-white/10 text-white rounded outline-none focus:ring-1 focus:ring-indigo-500"
+                                    className="w-20 p-1 bg-[#F8F6F1] border border-black/10 text-[#171717] rounded outline-none focus:ring-1 focus:ring-[#C49A32]"
                                   />
                                 </td>
                                 <td className="p-2">
                                   <select 
                                     value={editingTable.status}
                                     onChange={e => setEditingTable({...editingTable, status: e.target.value})}
-                                    className="p-1 bg-slate-900 border border-white/10 text-white rounded outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
+                                    className="p-1 bg-[#F8F6F1] border border-black/10 text-[#171717] rounded outline-none focus:ring-1 focus:ring-[#C49A32] text-xs"
                                   >
                                     <option value="VACANT">Vacant</option>
                                     <option value="OCCUPIED">Occupied</option>
@@ -1086,14 +1086,14 @@ const Admin: React.FC = () => {
                                   </select>
                                 </td>
                                 <td className="p-2 text-right space-x-1">
-                                  <button onClick={() => handleUpdateTable(editingTable)} className="p-1.5 sm:p-1 bg-green-500 hover:bg-green-600 transition text-white rounded"><Save className="w-4 h-4" /></button>
-                                  <button onClick={() => setEditingTable(null)} className="p-1.5 sm:p-1 bg-slate-600 hover:bg-slate-500 transition text-white rounded"><X className="w-4 h-4" /></button>
+                                  <button onClick={() => handleUpdateTable(editingTable)} className="p-1.5 sm:p-1 bg-green-500 hover:bg-green-600 transition text-[#171717] rounded"><Save className="w-4 h-4" /></button>
+                                  <button onClick={() => setEditingTable(null)} className="p-1.5 sm:p-1 bg-slate-600 hover:bg-slate-500 transition text-[#171717] rounded"><X className="w-4 h-4" /></button>
                                 </td>
                               </>
                             ) : (
                               <>
-                                <td className="p-3 font-semibold text-white">Table {table.table_number}</td>
-                                <td className="p-3 text-gray-400">{table.capacity} Seats</td>
+                                <td className="p-3 font-semibold text-[#171717]">Table {table.table_number}</td>
+                                <td className="p-3 text-[#6E6A63]">{table.capacity} Seats</td>
                                 <td className="p-3">
                                   <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${
                                     table.status === 'VACANT' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300' :
@@ -1103,7 +1103,7 @@ const Admin: React.FC = () => {
                                   </span>
                                 </td>
                                 <td className="p-3 text-right space-x-2">
-                                  <button onClick={() => setEditingTable(table)} className="p-1.5 sm:p-1 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 transition rounded"><Edit className="w-4 h-4" /></button>
+                                  <button onClick={() => setEditingTable(table)} className="p-1.5 sm:p-1 hover:bg-[#C49A32]/20 border border-[#C49A32]/20 text-[#C49A32] transition rounded"><Edit className="w-4 h-4" /></button>
                                   <button onClick={() => handleDeleteTable(table.id)} className="p-1.5 sm:p-1 text-rose-500 hover:bg-rose-500/20 border border-rose-500/20 transition rounded"><Trash className="w-4 h-4" /></button>
                                 </td>
                               </>
@@ -1125,7 +1125,7 @@ const Admin: React.FC = () => {
           <div className="space-y-6">
             {/* Category Form */}
             <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4">
-              <h3 className="text-lg font-bold text-white">Add Menu Category</h3>
+              <h3 className="text-lg font-bold text-[#171717]">Add Menu Category</h3>
               <form onSubmit={handleAddCategory} className="space-y-3">
                 <input 
                   type="text" 
@@ -1133,21 +1133,21 @@ const Admin: React.FC = () => {
                   placeholder="Category Name, e.g. Desserts"
                   value={newCategory.name}
                   onChange={e => setNewCategory({...newCategory, name: e.target.value})}
-                  className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                  className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                 />
                 <input 
                   type="text" 
                   placeholder="Short Description"
                   value={newCategory.description}
                   onChange={e => setNewCategory({...newCategory, description: e.target.value})}
-                  className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                  className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                 />
                 <input 
                   type="number" 
                   placeholder="Display Order, e.g. 1"
                   value={newCategory.display_order}
                   onChange={e => setNewCategory({...newCategory, display_order: parseInt(e.target.value) || 1})}
-                  className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                  className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                 />
                 <button type="submit" className="w-full py-2 glowing-btn-indigo text-white rounded-lg font-bold">
                   Create Category
@@ -1157,7 +1157,7 @@ const Admin: React.FC = () => {
 
             {/* Menu Item Form */}
             <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4">
-              <h3 className="text-lg font-bold text-white">Add New Dish</h3>
+              <h3 className="text-lg font-bold text-[#171717]">Add New Dish</h3>
               <form onSubmit={handleAddMenuItem} className="space-y-3">
                 <input 
                   type="text" 
@@ -1165,14 +1165,14 @@ const Admin: React.FC = () => {
                   placeholder="Dish Name, e.g. Veg Burger"
                   value={newMenuItem.name}
                   onChange={e => setNewMenuItem({...newMenuItem, name: e.target.value})}
-                  className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                  className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                 />
                 <input 
                   type="text" 
                   placeholder="Description/Ingredients"
                   value={newMenuItem.description}
                   onChange={e => setNewMenuItem({...newMenuItem, description: e.target.value})}
-                  className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                  className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input 
@@ -1181,13 +1181,13 @@ const Admin: React.FC = () => {
                     placeholder="Price (₹)"
                     value={newMenuItem.price}
                     onChange={e => setNewMenuItem({...newMenuItem, price: e.target.value})}
-                    className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                    className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                   />
                   <select
                     required
                     value={newMenuItem.category}
                     onChange={e => setNewMenuItem({...newMenuItem, category: e.target.value})}
-                    className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                    className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                   >
                     <option value="">Select Category</option>
                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -1199,18 +1199,18 @@ const Admin: React.FC = () => {
                     id="veg-checkbox"
                     checked={newMenuItem.is_veg}
                     onChange={e => setNewMenuItem({...newMenuItem, is_veg: e.target.checked})}
-                    className="w-4 h-4 text-indigo-400 focus:ring-blue-500 border-gray-300 rounded"
+                    className="w-4 h-4 text-[#C49A32] focus:ring-[#C49A32] border-gray-300 rounded"
                   />
-                  <label htmlFor="veg-checkbox" className="text-sm font-semibold text-gray-300">Is Vegetarian Dish</label>
+                  <label htmlFor="veg-checkbox" className="text-sm font-semibold text-[#171717]/80">Is Vegetarian Dish</label>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">Dish Image (Optional)</label>
+                  <label className="block text-xs font-semibold text-[#6E6A63] mb-1">Dish Image (Optional)</label>
                   <input 
                     type="file" 
                     id="new-menu-item-image"
                     accept="image/*"
                     onChange={e => setNewMenuItemImage(e.target.files?.[0] || null)}
-                    className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-400 focus:ring-2 focus:ring-indigo-500 rounded-lg outline-none transition cursor-pointer text-xs"
+                    className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#6E6A63] focus:ring-2 focus:ring-[#C49A32] rounded-lg outline-none transition cursor-pointer text-xs"
                   />
                 </div>
                 <button type="submit" className="w-full py-2 glowing-btn-indigo text-white rounded-lg font-bold">
@@ -1221,12 +1221,12 @@ const Admin: React.FC = () => {
           </div>
 
           {/* Menu Items Table */}
-          <div className="lg:col-span-2 glass-panel p-3 sm:p-4 overflow-hidden border border-white/5 rounded-2xl">
-            <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Active Restaurant Menu</h3>
+          <div className="lg:col-span-2 glass-panel p-3 sm:p-4 overflow-hidden border border-black/5 rounded-2xl">
+            <h3 className="text-base sm:text-lg font-bold text-[#171717] mb-3 sm:mb-4">Active Restaurant Menu</h3>
             <div className="overflow-x-auto overflow-y-auto max-h-[450px]">
               <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[550px]">
                 <thead>
-                  <tr className="bg-slate-950/40 border-b border-white/5 border-white/5 text-gray-400">
+                  <tr className="bg-[#F8F6F1]/60 border-b border-black/5 border-black/5 text-[#6E6A63]">
                     <th className="p-3">Dish</th>
                     <th className="p-3">Category</th>
                     <th className="p-3">Price</th>
@@ -1236,7 +1236,7 @@ const Admin: React.FC = () => {
                 </thead>
                 <tbody>
                   {menuItems.map(item => (
-                    <tr key={item.id} className="border-b border-white/5 border-white/5 hover:bg-white/[0.01]">
+                    <tr key={item.id} className="border-b border-black/5 border-black/5 hover:bg-white/[0.01]">
                       {editingMenuItem?.id === item.id ? (
                         <>
                           <td className="p-2">
@@ -1245,13 +1245,13 @@ const Admin: React.FC = () => {
                                 type="text" 
                                 value={editingMenuItem.name}
                                 onChange={e => setEditingMenuItem({...editingMenuItem, name: e.target.value})}
-                                className="w-full p-1 border rounded text-xs bg-slate-950 text-white border-white/10"
+                                className="w-full p-1 border rounded text-xs bg-[#F8F6F1] text-[#171717] border-black/10"
                               />
                               <input 
                                 type="file" 
                                 accept="image/*"
                                 onChange={e => setEditingMenuItemImage(e.target.files?.[0] || null)}
-                                className="text-[10px] text-gray-400 mt-1 cursor-pointer w-full"
+                                className="text-[10px] text-[#6E6A63] mt-1 cursor-pointer w-full"
                               />
                             </div>
                           </td>
@@ -1280,17 +1280,17 @@ const Admin: React.FC = () => {
                             /> Veg
                           </td>
                           <td className="p-2 text-right space-x-1">
-                            <button onClick={() => handleUpdateMenuItem(editingMenuItem)} className="p-1.5 sm:p-1 bg-green-500 text-white rounded"><Save className="w-4 h-4" /></button>
-                            <button onClick={() => setEditingMenuItem(null)} className="p-1.5 sm:p-1 bg-gray-500 text-white rounded"><X className="w-4 h-4" /></button>
+                            <button onClick={() => handleUpdateMenuItem(editingMenuItem)} className="p-1.5 sm:p-1 bg-green-500 text-[#171717] rounded"><Save className="w-4 h-4" /></button>
+                            <button onClick={() => setEditingMenuItem(null)} className="p-1.5 sm:p-1 bg-gray-500 text-[#171717] rounded"><X className="w-4 h-4" /></button>
                           </td>
                         </>
                       ) : (
                         <>
-                          <td className="p-3 font-semibold text-white flex items-center gap-3">
+                          <td className="p-3 font-semibold text-[#171717] flex items-center gap-3">
                             <img 
                               src={getMenuItemImage(item)} 
                               alt={item.name}
-                              className="w-10 h-10 object-cover rounded-lg border border-white/10 shadow-sm"
+                              className="w-10 h-10 object-cover rounded-lg border border-black/10 shadow-sm"
                               onError={(e: any) => {
                                 e.target.onerror = null;
                                 e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=100&auto=format&fit=crop';
@@ -1298,22 +1298,22 @@ const Admin: React.FC = () => {
                             />
                             <div>
                               {item.name}
-                              <p className="text-xs text-gray-500 font-normal">{item.description}</p>
+                              <p className="text-xs text-[#6E6A63]/80 font-normal">{item.description}</p>
                             </div>
                           </td>
-                          <td className="p-3 text-gray-400 text-xs">
+                          <td className="p-3 text-[#6E6A63] text-xs">
                             {categories.find(c => c.id === item.category)?.name || 'Uncategorized'}
                           </td>
                           <td className="p-3 font-bold">₹{parseFloat(item.price).toFixed(2)}</td>
                           <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-[#171717] ${
                               item.is_veg ? 'bg-green-600' : 'bg-red-600'
                             }`}>
                               {item.is_veg ? 'VEG' : 'NON-VEG'}
                             </span>
                           </td>
                           <td className="p-3 text-right space-x-2">
-                            <button onClick={() => setEditingMenuItem(item)} className="p-1.5 sm:p-1 text-indigo-400 hover:bg-indigo-500/10 border border-indigo-500/10 text-indigo-400 rounded"><Edit className="w-4 h-4" /></button>
+                            <button onClick={() => setEditingMenuItem(item)} className="p-1.5 sm:p-1 text-[#C49A32] hover:bg-[#C49A32]/10 border border-[#C49A32]/10 text-[#C49A32] rounded"><Edit className="w-4 h-4" /></button>
                             <button onClick={() => handleDeleteMenuItem(item.id)} className="p-1.5 sm:p-1 text-red-600 hover:bg-red-50 rounded"><Trash className="w-4 h-4" /></button>
                           </td>
                         </>
@@ -1332,7 +1332,7 @@ const Admin: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Add user form */}
           <div className="glass-panel p-4 sm:p-6 rounded-2xl space-y-4 h-fit">
-            <h3 className="text-lg font-bold text-white">Create Staff / User Account</h3>
+            <h3 className="text-lg font-bold text-[#171717]">Create Staff / User Account</h3>
             <form onSubmit={handleAddUser} className="space-y-3">
               <input 
                 type="text" 
@@ -1340,7 +1340,7 @@ const Admin: React.FC = () => {
                 placeholder="Username (unique)"
                 value={newUser.username}
                 onChange={e => setNewUser({...newUser, username: e.target.value})}
-                className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
               />
               <input 
                 type="text" 
@@ -1348,7 +1348,7 @@ const Admin: React.FC = () => {
                 placeholder="Full Name"
                 value={newUser.name}
                 onChange={e => setNewUser({...newUser, name: e.target.value})}
-                className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
               />
               <input 
                 type="email" 
@@ -1356,7 +1356,7 @@ const Admin: React.FC = () => {
                 placeholder="Email Address"
                 value={newUser.email}
                 onChange={e => setNewUser({...newUser, email: e.target.value})}
-                className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
               />
               <input 
                 type="tel" 
@@ -1364,13 +1364,13 @@ const Admin: React.FC = () => {
                 placeholder="Phone / Contact Number"
                 value={newUser.phone}
                 onChange={e => setNewUser({...newUser, phone: e.target.value})}
-                className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <select
                   value={newUser.role}
                   onChange={e => setNewUser({...newUser, role: e.target.value})}
-                  className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                  className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                 >
                   <option value="GUEST">Guest</option>
                   <option value="WAITER">Waiter</option>
@@ -1384,7 +1384,7 @@ const Admin: React.FC = () => {
                   placeholder="Password"
                   value={newUser.password}
                   onChange={e => setNewUser({...newUser, password: e.target.value})}
-                  className="w-full p-2 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
+                  className="w-full p-2 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-t border-white/[0.04]ransparent rounded-lg outline-none transition cursor-pointer"
                 />
               </div>
               <button type="submit" className="w-full py-2 glowing-btn-indigo text-white rounded-lg font-bold">
@@ -1394,12 +1394,12 @@ const Admin: React.FC = () => {
           </div>
 
           {/* Users List */}
-          <div className="lg:col-span-2 glass-panel p-3 sm:p-4 overflow-hidden border border-white/5 rounded-2xl">
-            <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Smart Hotel Accounts Registry</h3>
+          <div className="lg:col-span-2 glass-panel p-3 sm:p-4 overflow-hidden border border-black/5 rounded-2xl">
+            <h3 className="text-base sm:text-lg font-bold text-[#171717] mb-3 sm:mb-4">Imperium Hotel Accounts Registry</h3>
             <div className="overflow-x-auto overflow-y-auto max-h-[400px]">
               <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[600px]">
                 <thead>
-                  <tr className="bg-slate-950/40 border-b border-white/5 border-white/5 text-gray-400">
+                  <tr className="bg-[#F8F6F1]/60 border-b border-black/5 border-black/5 text-[#6E6A63]">
                     <th className="p-3">User</th>
                     <th className="p-3">Email</th>
                     <th className="p-3">Role</th>
@@ -1409,13 +1409,13 @@ const Admin: React.FC = () => {
                 </thead>
                 <tbody>
                   {users.map(user => (
-                    <tr key={user.id} className="border-b border-white/5 border-white/5 hover:bg-white/[0.01]">
-                      <td className="p-3 font-semibold text-white">
+                    <tr key={user.id} className="border-b border-black/5 border-black/5 hover:bg-white/[0.01]">
+                      <td className="p-3 font-semibold text-[#171717]">
                         {user.name || 'Unnamed'}
-                        <p className="text-xs text-gray-500 font-normal">@{user.username}</p>
+                        <p className="text-xs text-[#6E6A63]/80 font-normal">@{user.username}</p>
                       </td>
-                      <td className="p-3 text-gray-400">{user.email || 'None'}</td>
-                      <td className="p-3 text-xs font-bold text-indigo-400">{user.role || 'GUEST'}</td>
+                      <td className="p-3 text-[#6E6A63]">{user.email || 'None'}</td>
+                      <td className="p-3 text-xs font-bold text-[#C49A32]">{user.role || 'GUEST'}</td>
                       <td className="p-3">
                         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                           user.is_active ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300' : 'bg-rose-500/10 border border-rose-500/20 text-rose-300'
@@ -1451,7 +1451,7 @@ const Admin: React.FC = () => {
                                 role: user.role || 'GUEST',
                                 newPassword: ''
                               })}
-                              className="ml-2 text-indigo-400 hover:bg-indigo-500/10 border border-indigo-500/20 text-xs px-2.5 py-1 rounded font-semibold transition inline-flex items-center gap-1 cursor-pointer"
+                              className="ml-2 text-[#C49A32] hover:bg-[#C49A32]/10 border border-[#C49A32]/20 text-xs px-2.5 py-1 rounded font-semibold transition inline-flex items-center gap-1 cursor-pointer"
                               title="Edit Credentials (Username & Password)"
                             >
                               <Key className="w-3.5 h-3.5" />
@@ -1480,66 +1480,66 @@ const Admin: React.FC = () => {
       {/* ✉️ Marketing Campaign Dispatcher */}
       {activeTab === 'marketing' && (
         <div className="glass-panel p-4 sm:p-6 max-w-3xl mx-auto space-y-4 sm:space-y-6 rounded-2xl">
-          <div className="flex items-center gap-3 pb-3 border-b border-white/5">
-            <Mail className="w-8 h-8 text-indigo-400" />
+          <div className="flex items-center gap-3 pb-3 border-b border-black/5">
+            <Mail className="w-8 h-8 text-[#C49A32]" />
             <div>
-              <h3 className="text-xl font-bold text-white">Bulk Email Campaign Dispatcher</h3>
-              <p className="text-sm text-gray-500">Send promotional emails, seasonal offers, and menu updates to all registered customers simultaneously.</p>
+              <h3 className="text-xl font-bold text-[#171717]">Bulk Email Campaign Dispatcher</h3>
+              <p className="text-sm text-[#6E6A63]/80">Send promotional emails, seasonal offers, and menu updates to all registered customers simultaneously.</p>
             </div>
           </div>
 
           <form onSubmit={handleSendCampaign} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-1">Sender Gmail Address</label>
+                <label className="block text-sm font-semibold text-[#171717]/80 mb-1">Sender Gmail Address</label>
                 <input 
                   type="email" 
                   required
                   placeholder="e.g. marketing@gmail.com"
                   value={campaignSenderEmail}
                   onChange={e => setCampaignSenderEmail(e.target.value)}
-                  className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition text-base"
+                  className="w-full p-3 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition text-base"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-1">Gmail App Password</label>
+                <label className="block text-sm font-semibold text-[#171717]/80 mb-1">Gmail App Password</label>
                 <input 
                   type="password" 
                   required
                   placeholder="e.g. abcd efgh ijkl mnop"
                   value={campaignSenderPassword}
                   onChange={e => setCampaignSenderPassword(e.target.value)}
-                  className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition text-base"
+                  className="w-full p-3 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition text-base"
                 />
               </div>
             </div>
-            <p className="text-[11px] text-gray-500 -mt-1">Each sender must use their own Gmail App Password. Generate one at: Google Account → Security → 2-Step Verification → App Passwords.</p>
+            <p className="text-[11px] text-[#6E6A63]/80 -mt-1">Each sender must use their own Gmail App Password. Generate one at: Google Account → Security → 2-Step Verification → App Passwords.</p>
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-1">Campaign Subject / Title</label>
+              <label className="block text-sm font-semibold text-[#171717]/80 mb-1">Campaign Subject / Title</label>
               <input 
                 type="text" 
                 required
                 placeholder="e.g. Exclusive 20% Discount on Luxury Deluxe Suite Stays!"
                 value={campaignTitle}
                 onChange={e => setCampaignTitle(e.target.value)}
-                className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition text-base"
+                className="w-full p-3 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition text-base"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-1">Campaign Email Body</label>
+              <label className="block text-sm font-semibold text-[#171717]/80 mb-1">Campaign Email Body</label>
               <textarea 
                 required
                 rows={6}
                 placeholder="Type your message here. All active guests with genuine Gmail addresses will receive this message."
                 value={campaignBody}
                 onChange={e => setCampaignBody(e.target.value)}
-                className="w-full p-3 bg-slate-950/40 border border-white/5 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg outline-none transition text-sm"
+                className="w-full p-3 bg-[#F8F6F1]/60 border border-black/5 text-[#171717]/90 focus:ring-2 focus:ring-[#C49A32] focus:border-transparent rounded-lg outline-none transition text-sm"
               />
             </div>
             <button
               type="submit"
               disabled={loading || !campaignSenderEmail || !campaignSenderPassword || !campaignTitle || !campaignBody}
-              className="w-full py-3.5 glowing-btn-indigo hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition disabled:opacity-50 text-base"
+              className="w-full py-3.5 glowing-btn-indigo hover:bg-[#b08a2d] text-[#171717] font-bold rounded-lg shadow-md transition disabled:opacity-50 text-base"
             >
               {loading ? 'Dispatching Campaign Emails...' : 'Send Campaign to All Registered Guests'}
             </button>
@@ -1550,15 +1550,15 @@ const Admin: React.FC = () => {
       {/* 🔐 Admin Edit User Credentials Modal */}
       {editingUserCredentials && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="glass-panel p-6 rounded-2xl max-w-md w-full border border-white/10 space-y-4 shadow-2xl relative">
-            <div className="flex justify-between items-center pb-3 border-b border-white/10">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Key className="w-5 h-5 text-indigo-400" />
+          <div className="glass-panel p-6 rounded-2xl max-w-md w-full border border-black/10 space-y-4 shadow-2xl relative">
+            <div className="flex justify-between items-center pb-3 border-b border-black/10">
+              <h3 className="text-lg font-bold text-[#171717] flex items-center gap-2">
+                <Key className="w-5 h-5 text-[#C49A32]" />
                 Edit User Credentials
               </h3>
               <button 
                 onClick={() => setEditingUserCredentials(null)}
-                className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/5 cursor-pointer"
+                className="text-[#6E6A63] hover:text-[#171717] p-1 rounded-lg hover:bg-black/3 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1566,65 +1566,65 @@ const Admin: React.FC = () => {
 
             <form onSubmit={handleUpdateUserCredentials} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">Username</label>
+                <label className="block text-xs font-semibold text-[#6E6A63] mb-1">Username</label>
                 <input 
                   type="text" 
                   required
                   value={editingUserCredentials.username}
                   onChange={e => setEditingUserCredentials({...editingUserCredentials, username: e.target.value})}
-                  className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                  className="w-full p-2.5 bg-white border border-black/10 text-[#171717] rounded-xl outline-none focus:ring-2 focus:ring-[#C49A32] text-sm cursor-pointer"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">
-                  New Password <span className="text-gray-500 font-normal">(Leave blank to keep unchanged)</span>
+                <label className="block text-xs font-semibold text-[#6E6A63] mb-1">
+                  New Password <span className="text-[#6E6A63]/80 font-normal">(Leave blank to keep unchanged)</span>
                 </label>
                 <input 
                   type="password" 
                   placeholder="Enter new password"
                   value={editingUserCredentials.newPassword || ''}
                   onChange={e => setEditingUserCredentials({...editingUserCredentials, newPassword: e.target.value})}
-                  className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                  className="w-full p-2.5 bg-white border border-black/10 text-[#171717] rounded-xl outline-none focus:ring-2 focus:ring-[#C49A32] text-sm cursor-pointer"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">Full Name</label>
+                <label className="block text-xs font-semibold text-[#6E6A63] mb-1">Full Name</label>
                 <input 
                   type="text" 
                   value={editingUserCredentials.name}
                   onChange={e => setEditingUserCredentials({...editingUserCredentials, name: e.target.value})}
-                  className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                  className="w-full p-2.5 bg-white border border-black/10 text-[#171717] rounded-xl outline-none focus:ring-2 focus:ring-[#C49A32] text-sm cursor-pointer"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">Email Address</label>
+                <label className="block text-xs font-semibold text-[#6E6A63] mb-1">Email Address</label>
                 <input 
                   type="email" 
                   value={editingUserCredentials.email}
                   onChange={e => setEditingUserCredentials({...editingUserCredentials, email: e.target.value})}
-                  className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                  className="w-full p-2.5 bg-white border border-black/10 text-[#171717] rounded-xl outline-none focus:ring-2 focus:ring-[#C49A32] text-sm cursor-pointer"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">Phone Number</label>
+                  <label className="block text-xs font-semibold text-[#6E6A63] mb-1">Phone Number</label>
                   <input 
                     type="text" 
                     value={editingUserCredentials.phone}
                     onChange={e => setEditingUserCredentials({...editingUserCredentials, phone: e.target.value})}
-                    className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                    className="w-full p-2.5 bg-white border border-black/10 text-[#171717] rounded-xl outline-none focus:ring-2 focus:ring-[#C49A32] text-sm cursor-pointer"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">System Role</label>
+                  <label className="block text-xs font-semibold text-[#6E6A63] mb-1">System Role</label>
                   <select 
                     value={editingUserCredentials.role}
                     onChange={e => setEditingUserCredentials({...editingUserCredentials, role: e.target.value})}
-                    className="w-full p-2.5 bg-slate-950/60 border border-white/10 text-white rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm cursor-pointer"
+                    className="w-full p-2.5 bg-white border border-black/10 text-[#171717] rounded-xl outline-none focus:ring-2 focus:ring-[#C49A32] text-sm cursor-pointer"
                   >
                     <option value="GUEST">Guest</option>
                     <option value="WAITER">Waiter</option>
@@ -1639,7 +1639,7 @@ const Admin: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEditingUserCredentials(null)}
-                  className="flex-1 py-2.5 bg-slate-900 text-gray-300 font-semibold rounded-xl border border-white/10 hover:bg-slate-800 text-xs cursor-pointer"
+                  className="flex-1 py-2.5 bg-[#F8F6F1] text-[#171717]/80 font-semibold rounded-xl border border-black/10 hover:bg-[#F8F6F1] text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1658,28 +1658,28 @@ const Admin: React.FC = () => {
       {/* Confirmation Modal */}
       {confirmDialog && confirmDialog.isOpen && createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in p-4">
-          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-scale-in">
+          <div className="bg-[#F8F6F1] border border-black/10 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-scale-in">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 to-rose-600"></div>
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center shrink-0">
                   <Trash className="w-5 h-5 text-rose-400" />
                 </div>
-                <h3 className="text-xl font-bold text-white leading-tight">{confirmDialog.title}</h3>
+                <h3 className="text-xl font-bold text-[#171717] leading-tight">{confirmDialog.title}</h3>
               </div>
-              <p className="text-sm text-gray-300 leading-relaxed mb-6">
+              <p className="text-sm text-[#171717]/80 leading-relaxed mb-6">
                 {confirmDialog.message}
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setConfirmDialog(null)}
-                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 border border-white/5 text-gray-300 font-semibold rounded-xl transition cursor-pointer text-sm"
+                  className="flex-1 py-2.5 bg-[#F8F6F1] hover:bg-[#F8F6F1] border border-black/5 text-[#171717]/80 font-semibold rounded-xl transition cursor-pointer text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDialog.onConfirm}
-                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl shadow-lg shadow-rose-900/30 transition cursor-pointer text-sm"
+                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-[#171717] font-bold rounded-xl shadow-lg shadow-rose-900/30 transition cursor-pointer text-sm"
                 >
                   Yes, Delete
                 </button>

@@ -67,35 +67,31 @@ const Login: React.FC = () => {
   };
 
   const developerAccounts = [
-    { label: 'System Admin', user: 'Rajeev7112', pass: 'Rajeev123!', role: 'ADMIN', color: 'from-purple-500 to-indigo-500' },
-    { label: 'Receptionist', user: 'reception_test', pass: 'Reception123!', role: 'RECEPTION', color: 'from-blue-500 to-cyan-500' },
-    { label: 'Waiter Staff', user: 'waiter_test', pass: 'Waiter123!', role: 'WAITER', color: 'from-amber-500 to-orange-500' },
-    { label: 'Kitchen KDS', user: 'kitchen_test', pass: 'Kitchen123!', role: 'KITCHEN', color: 'from-emerald-500 to-teal-500' },
-    { label: 'Janitor Staff', user: 'janitor_test', pass: 'Janitor123!', role: 'JANITOR', color: 'from-pink-500 to-rose-500' },
+    { label: 'System Admin', user: 'Rajeev7112', pass: 'Rajeev123!', role: 'ADMIN', color: 'from-[#C49A32] to-[#d4ab48]' },
+    { label: 'Receptionist', user: 'reception_test', pass: 'Reception123!', role: 'RECEPTION', color: 'from-[#171717] to-[#2a2a2a]' },
+    { label: 'Waiter Staff', user: 'waiter_test', pass: 'Waiter123!', role: 'WAITER', color: 'from-amber-600 to-amber-500' },
+    { label: 'Kitchen KDS', user: 'kitchen_test', pass: 'Kitchen123!', role: 'KITCHEN', color: 'from-emerald-600 to-emerald-500' },
+    { label: 'Janitor Staff', user: 'janitor_test', pass: 'Janitor123!', role: 'JANITOR', color: 'from-[#6E6A63] to-[#8a8580]' },
   ];
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-[#0b0f19] text-gray-200 font-sans relative overflow-hidden">
-      
-      {/* Dynamic Background Glows */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-900/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-900/10 blur-[120px] pointer-events-none" />
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-[#171717] text-gray-200 font-sans relative overflow-hidden">
 
       {/* Left Column: Splash Screen (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:col-span-7 flex-col justify-between p-12 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 relative border-r border-white/5">
+      <div className="hidden lg:flex lg:col-span-7 flex-col justify-between p-12 bg-[#171717] relative border-r border-white/5">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-indigo-400">
+          <div className="p-2.5 bg-[#C49A32]/15 rounded-xl border border-[#C49A32]/25 text-[#C49A32]">
             <Hotel className="w-8 h-8" />
           </div>
-          <span className="text-2xl font-bold tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-            Smart Hotel System
+          <span className="text-2xl font-bold tracking-tight text-white">
+            Imperium Hotel System
           </span>
         </div>
 
         <div className="my-auto space-y-6 max-w-lg">
           <h1 className="text-3xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
             Seamlessly managing <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+            <span className="text-[#C49A32]">
               Hospitality & Dining
             </span>
           </h1>
@@ -105,8 +101,8 @@ const Login: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-white/5 border border-white/5 backdrop-blur-md">
-            <span className="text-xs font-semibold text-indigo-400 uppercase tracking-widest block mb-2">
+          <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+            <span className="text-xs font-semibold text-[#C49A32] uppercase tracking-widest block mb-2">
               Developer Testing Console
             </span>
             <div className="grid grid-cols-2 gap-2.5">
@@ -115,9 +111,9 @@ const Login: React.FC = () => {
                   type="button"
                   key={account.user}
                   onClick={() => handleLoginSubmit(account.user, account.pass)}
-                  className="p-3 text-left rounded-lg bg-slate-900/50 hover:bg-slate-900 border border-white/5 hover:border-indigo-500/30 transition duration-200 group"
+                  className="p-3 text-left rounded-lg bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-[#C49A32]/30 transition duration-200 group"
                 >
-                  <p className="text-xs font-bold text-white group-hover:text-indigo-300 transition">
+                  <p className="text-xs font-bold text-white group-hover:text-[#C49A32] transition">
                     {account.label}
                   </p>
                   <p className="text-[10px] text-gray-500 truncate">
@@ -128,7 +124,7 @@ const Login: React.FC = () => {
             </div>
           </div>
           <p className="text-xs text-gray-500">
-            © 2026 Smart Hotel. Loaded with responsive layouts & live telemetry.
+            © 2026 Imperium Hotel. Loaded with responsive layouts & live telemetry.
           </p>
         </div>
       </div>
@@ -139,17 +135,17 @@ const Login: React.FC = () => {
           
           {/* Mobile Logo View */}
           <div className="lg:hidden flex flex-col items-center mb-8">
-            <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 text-indigo-400 mb-3">
+            <div className="p-3 bg-[#C49A32]/15 rounded-2xl border border-[#C49A32]/25 text-[#C49A32] mb-3">
               <Hotel className="w-10 h-10" />
             </div>
-            <h2 className="text-2xl font-bold text-white">Smart Hotel</h2>
+            <h2 className="text-2xl font-bold text-white">Imperium Hotel</h2>
           </div>
 
           {otpRequired ? (
             <div className="space-y-2 text-center lg:text-left">
               <h2 className="text-3xl font-extrabold text-white tracking-tight">Security Check</h2>
               <p className="text-gray-400 text-sm">
-                We sent a 6-digit verification code to <span className="text-indigo-400 font-semibold">{maskedEmail}</span>
+                We sent a 6-digit verification code to <span className="text-[#C49A32] font-semibold">{maskedEmail}</span>
               </p>
             </div>
           ) : (
@@ -190,7 +186,7 @@ const Login: React.FC = () => {
                       maxLength={6}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      className="w-full pl-11 pr-4 py-3 bg-slate-900/50 hover:bg-slate-900 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-sm text-center tracking-widest font-mono text-lg text-white"
+                      className="w-full pl-11 pr-4 py-3 bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl focus:ring-2 focus:ring-[#C49A32] focus:border-transparent outline-none transition text-sm text-center tracking-widest font-mono text-lg text-white"
                       placeholder="• • • • • •"
                       required
                     />
@@ -214,7 +210,7 @@ const Login: React.FC = () => {
                     type="button"
                     onClick={() => handleLoginSubmit(username, password)}
                     disabled={loading}
-                    className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition text-center"
+                    className="text-xs text-[#C49A32] hover:text-[#d4ab48] font-semibold transition text-center"
                   >
                     Resend Verification Code
                   </button>
@@ -242,7 +238,7 @@ const Login: React.FC = () => {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3 bg-slate-900/50 hover:bg-slate-900 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-sm"
+                      className="w-full pl-11 pr-4 py-3 bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl focus:ring-2 focus:ring-[#C49A32] focus:border-transparent outline-none transition text-sm"
                       placeholder="e.g. Rajeev7112"
                       required
                     />
@@ -261,7 +257,7 @@ const Login: React.FC = () => {
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3 bg-slate-900/50 hover:bg-slate-900 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-sm"
+                      className="w-full pl-11 pr-4 py-3 bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl focus:ring-2 focus:ring-[#C49A32] focus:border-transparent outline-none transition text-sm"
                       placeholder="••••••••"
                       required
                     />
@@ -294,7 +290,7 @@ const Login: React.FC = () => {
                   type="button"
                   key={account.user + '_mob'}
                   onClick={() => handleLoginSubmit(account.user, account.pass)}
-                  className="p-2.5 text-center rounded-lg bg-slate-900/50 hover:bg-slate-900 border border-white/5 transition"
+                  className="p-2.5 text-center rounded-lg bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 transition"
                 >
                   <p className="text-xs font-bold text-white">{account.role}</p>
                 </button>
