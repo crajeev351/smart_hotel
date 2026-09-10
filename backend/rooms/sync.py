@@ -621,6 +621,17 @@ def sync_data():
         local_orders_dict[(lo.guest.username, table_num, lo_created.isoformat())] = lo
 
     # 7. Sync Invoices
+    # Auto-deduplicate any accidental duplicate local invoices
+    seen_invoices = set()
+    for inv in Invoice.objects.all().order_by('id'):
+        inv_created_sec = inv.created_at.replace(microsecond=0) if inv.created_at else None
+        inv_sig = (inv.guest_id, str(inv.total_amount), inv.payment_status, inv_created_sec)
+        if inv_sig in seen_invoices:
+            print(f"[Sync] Auto-purging duplicate local invoice {inv.id}")
+            inv.delete()
+        else:
+            seen_invoices.add(inv_sig)
+
     local_invoices = Invoice.objects.all().select_related('guest', 'booking')
     local_invoices_dict = {}
     for inv in local_invoices:
@@ -635,7 +646,7 @@ def sync_data():
         ci_created_iso = ci_created.isoformat() if ci_created else ci['created_at']
         cloud_invoices_dict[(ci.get('guest_name'), str(ci.get('total_amount')), ci_created_iso)] = ci
 
-    # Align close matches within 1-minute window
+    # Align close matches within 5-minute window
     unmatched_local_inv = []
     for key, l_inv in list(local_invoices_dict.items()):
         if key not in cloud_invoices_dict:
@@ -649,7 +660,7 @@ def sync_data():
                 ci_created = parse_datetime(ci['created_at'])
                 if ci_created and l_created:
                     diff = abs((ci_created - l_created).total_seconds())
-                    if diff <= 60:
+                    if diff <= 300:
                         Invoice.objects.filter(id=l_inv.id).update(created_at=ci_created)
                         new_key = (l_username, l_amount, ci_created.isoformat())
                         local_invoices_dict[new_key] = l_inv
@@ -722,6 +733,19 @@ def sync_data():
             try:
                 l_user = local_users.get(key[0])
                 if l_user:
+                    # Deduplication guard: Check if an invoice already exists for this guest & amount
+                    existing = Invoice.objects.filter(
+                        guest=l_user,
+                        total_amount=c_inv['total_amount'],
+                        payment_status=c_inv['payment_status']
+                    ).first()
+                    if existing:
+                        ci_created = parse_datetime(c_inv['created_at'])
+                        if ci_created:
+                            Invoice.objects.filter(id=existing.id).update(created_at=ci_created)
+                        print(f"[Sync] Matched existing local invoice {existing.id} with cloud invoice {c_inv.get('id')}.")
+                        continue
+
                     l_booking = None
                     if c_inv.get('booking'):
                         for cb in c_bookings:
