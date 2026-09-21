@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -34,6 +35,7 @@ router.register(r'order-items', OrderItemViewSet)
 router.register(r'invoices', InvoiceViewSet)
 
 urlpatterns = [
+    path('', RedirectView.as_view(url='/login/', permanent=False)),
     path('admin/', admin.site.urls),
 
     # JWT Authentication
