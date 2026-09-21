@@ -7,30 +7,8 @@ services:
     dockerCommand: sh -c "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker config.asgi:application"
     plan: free
     envVars:
-      - key: POSTGRES_DB
-        value: smarthotel
-      - key: POSTGRES_USER
-        value: smarthotel_user
-      - key: POSTGRES_PASSWORD
-        generateValue: true
-      - key: DB_HOST
-        fromDatabase:
-          name: smarthotel-postgres
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: smarthotel-postgres
-          property: port
-      - key: REDIS_HOST
-        fromService:
-          type: redis
-          name: smarthotel-redis
-          property: host
-      - key: REDIS_PORT
-        fromService:
-          type: redis
-          name: smarthotel-redis
-          property: port
+      - key: DATABASE_URL
+        sync: false
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
@@ -51,9 +29,3 @@ services:
     envVars:
       - key: VITE_API_URL
         sync: false
-
-databases:
-  - name: smarthotel-postgres
-    databaseName: smarthotel
-    user: smarthotel_user
-    plan: free
