@@ -168,25 +168,15 @@ def wipe_finances(request):
         return Response({'error': str(e)}, status=500)
 
 from orders.models import Table, Order, Invoice
-from django.db.models import Sum
-
+from django.db.models import Sum, Count, Q
+from django.core.cache import cache
 from django.utils import timezone
 
 @api_view(['GET'])
 def analytics_report(request):
-    total_rooms = Room.objects.count()
-    occupied_rooms = Room.objects.filter(status='OCCUPIED').count()
-    maintenance_rooms = Room.objects.filter(status='MAINTENANCE').count()
-    
-    total_tables = Table.objects.count()
-    occupied_tables = Table.objects.filter(status='OCCUPIED').count()
-    cleaning_tables = Table.objects.filter(status='UNDER_CLEANING').count()
-
-    # Calculate revenues
     now = timezone.now()
     today = now.date()
 
-    # Get optional year and month parameters for reporting
     try:
         selected_year = int(request.query_params.get('year', now.year))
     except (ValueError, TypeError):
@@ -197,26 +187,49 @@ def analytics_report(request):
     except (ValueError, TypeError):
         selected_month = now.month
 
-    daily_revenue_db = Invoice.objects.filter(payment_status='PAID', created_at__date=today).aggregate(total=Sum('total_amount'))['total']
-    daily_revenue = float(daily_revenue_db) if daily_revenue_db is not None else 0.0
+    cache_key = f"analytics_report_{today}_{selected_year}_{selected_month}"
+    cached_data = cache.get(cache_key)
+    if cached_data is not None:
+        return Response(cached_data)
 
-    monthly_revenue_db = Invoice.objects.filter(payment_status='PAID', created_at__year=selected_year, created_at__month=selected_month).aggregate(total=Sum('total_amount'))['total']
-    monthly_revenue = float(monthly_revenue_db) if monthly_revenue_db is not None else 0.0
+    # Consolidated Room Aggregations (1 query)
+    room_agg = Room.objects.aggregate(
+        total=Count('id'),
+        occupied=Count('id', filter=Q(status='OCCUPIED')),
+        maintenance=Count('id', filter=Q(status='MAINTENANCE'))
+    )
+    total_rooms = room_agg['total'] or 0
+    occupied_rooms = room_agg['occupied'] or 0
+    maintenance_rooms = room_agg['maintenance'] or 0
 
-    yearly_revenue_db = Invoice.objects.filter(payment_status='PAID', created_at__year=selected_year).aggregate(total=Sum('total_amount'))['total']
-    yearly_revenue = float(yearly_revenue_db) if yearly_revenue_db is not None else 0.0
+    # Consolidated Table Aggregations (1 query)
+    table_agg = Table.objects.aggregate(
+        total=Count('id'),
+        occupied=Count('id', filter=Q(status='OCCUPIED')),
+        cleaning=Count('id', filter=Q(status='UNDER_CLEANING'))
+    )
+    total_tables = table_agg['total'] or 0
+    occupied_tables = table_agg['occupied'] or 0
+    cleaning_tables = table_agg['cleaning'] or 0
 
-    total_revenue_db = Invoice.objects.filter(payment_status='PAID').aggregate(total=Sum('total_amount'))['total']
-    total_revenue = float(total_revenue_db) if total_revenue_db is not None else 0.0
+    # Consolidated Revenue Aggregations (1 query)
+    invoice_agg = Invoice.objects.filter(payment_status='PAID').aggregate(
+        daily=Sum('total_amount', filter=Q(created_at__date=today)),
+        monthly=Sum('total_amount', filter=Q(created_at__year=selected_year, created_at__month=selected_month)),
+        yearly=Sum('total_amount', filter=Q(created_at__year=selected_year)),
+        total=Sum('total_amount')
+    )
+    daily_revenue = float(invoice_agg['daily'] or 0.0)
+    monthly_revenue = float(invoice_agg['monthly'] or 0.0)
+    yearly_revenue = float(invoice_agg['yearly'] or 0.0)
+    total_revenue = float(invoice_agg['total'] or 0.0)
 
     total_orders = Order.objects.count()
-    total_bookings = Room.objects.filter(status='OCCUPIED').count()
-
-    occupancy_rate = (occupied_rooms / total_rooms * 100) if total_rooms > 0 else 0.0
-
+    total_bookings = occupied_rooms
+    occupancy_rate = round((occupied_rooms / total_rooms * 100) if total_rooms > 0 else 0.0, 2)
     roles_data = list(CustomUser.objects.values('role').annotate(count=Count('id')))
 
-    return Response({
+    data = {
         "total_rooms": total_rooms,
         "occupied_rooms": occupied_rooms,
         "maintenance_rooms": maintenance_rooms,
@@ -229,6 +242,8 @@ def analytics_report(request):
         "total_revenue": total_revenue,
         "total_orders": total_orders,
         "total_bookings": total_bookings,
-        "occupancy_rate": round(occupancy_rate, 2),
+        "occupancy_rate": occupancy_rate,
         "users_by_role": roles_data
-    })
+    }
+    cache.set(cache_key, data, timeout=5)
+    return Response(data)

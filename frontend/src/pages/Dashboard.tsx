@@ -27,7 +27,14 @@ interface Analytics {
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState<Analytics | null>(null);
+  const [stats, setStats] = useState<Analytics | null>(() => {
+    try {
+      const saved = sessionStorage.getItem('dashboard_stats');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
@@ -40,52 +47,63 @@ const Dashboard: React.FC = () => {
   const [tables, setTables] = useState<any[]>([]);
   const [tableReservations, setTableReservations] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const role = user?.role || 'GUEST';
 
-  
   useWebSocket((data) => {
     console.log('WebSocket update received:', data);
     fetchDashboardData(true);
   });
 
   const fetchDashboardData = async (silent = false) => {
-    if (!silent) setLoading(true);
+    if (!silent && !stats) setLoading(true);
     try {
-      // 1. Fetch reports analytics
-      const analyticsRes = await API.get(`reports/analytics/?year=${selectedYear}&month=${selectedMonth}`);
-      setStats(analyticsRes.data);
-      
-      // 2. Fetch specific lists based on role to compute live counts
-      if (role === 'ADMIN' || role === 'RECEPTION' || role === 'JANITOR') {
-        const roomsRes = await API.get('rooms/');
-        setRooms(roomsRes.data);
+      const promises: Promise<any>[] = [
+        API.get(`reports/analytics/?year=${selectedYear}&month=${selectedMonth}`)
+      ];
+
+      const needRooms = role === 'ADMIN' || role === 'RECEPTION' || role === 'JANITOR';
+      const needTables = role === 'ADMIN' || role === 'WAITER';
+      const needOrders = role === 'ADMIN' || role === 'WAITER' || role === 'KITCHEN';
+
+      if (needRooms) promises.push(API.get('rooms/'));
+      if (needTables) {
+        promises.push(API.get('tables/'));
+        promises.push(API.get('table-reservations/'));
       }
-      if (role === 'ADMIN' || role === 'WAITER') {
-        const [tablesRes, reservationsRes] = await Promise.all([
-          API.get('tables/'),
-          API.get('table-reservations/')
-        ]);
-        setTables(tablesRes.data);
-        setTableReservations(reservationsRes.data);
+      if (needOrders) promises.push(API.get('orders/'));
+
+      const results = await Promise.all(promises);
+      const analyticsData = results[0].data;
+      setStats(analyticsData);
+      try {
+        sessionStorage.setItem('dashboard_stats', JSON.stringify(analyticsData));
+      } catch {}
+
+      let idx = 1;
+      if (needRooms) {
+        setRooms(results[idx++].data);
       }
-      if (role === 'ADMIN' || role === 'WAITER' || role === 'KITCHEN') {
-        const ordersRes = await API.get('orders/');
-        setOrders(ordersRes.data);
+      if (needTables) {
+        setTables(results[idx++].data);
+        setTableReservations(results[idx++].data);
+      }
+      if (needOrders) {
+        setOrders(results[idx++].data);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
-      if (!silent) setLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
-    const poll = setInterval(() => fetchDashboardData(true), 6000);
+    fetchDashboardData(!!stats);
+    const poll = setInterval(() => fetchDashboardData(true), 10000);
     return () => clearInterval(poll);
   }, [role, selectedYear, selectedMonth]);
 
@@ -163,7 +181,7 @@ const Dashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-2xl sm:text-3xl font-extrabold text-[#171717] mt-4">
-                {loading ? '...' : `${stats?.occupied_rooms} / ${stats?.total_rooms}`}
+                {!stats ? '...' : `${stats?.occupied_rooms} / ${stats?.total_rooms}`}
               </p>
               <p className="text-xs text-[#6E6A63] mt-1">
                 Active Rooms Occupied • {stats?.maintenance_rooms || 0} in Maintenance
@@ -189,7 +207,7 @@ const Dashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-2xl sm:text-3xl font-extrabold text-[#171717] mt-4">
-                {loading ? '...' : `${stats?.occupied_tables} / ${stats?.total_tables}`}
+                {!stats ? '...' : `${stats?.occupied_tables} / ${stats?.total_tables}`}
               </p>
               <p className="text-xs text-[#6E6A63] mt-1">
                 Tables Filled • {stats?.cleaning_tables || 0} Under Cleaning
@@ -249,25 +267,25 @@ const Dashboard: React.FC = () => {
               <div className="flex flex-col">
                 <span className="text-[9px] text-[#6E6A63]/80 font-semibold uppercase tracking-wider">Daily</span>
                 <span className="text-sm sm:text-base font-extrabold text-[#171717] mt-0.5">
-                  {loading ? '...' : `₹${(stats?.daily_revenue ?? 0).toFixed(2)}`}
+                  {!stats ? '...' : `₹${(stats?.daily_revenue ?? 0).toFixed(2)}`}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[9px] text-[#6E6A63]/80 font-semibold uppercase tracking-wider">Monthly</span>
                 <span className="text-sm sm:text-base font-extrabold text-[#171717] mt-0.5">
-                  {loading ? '...' : `₹${(stats?.monthly_revenue ?? 0).toFixed(2)}`}
+                  {!stats ? '...' : `₹${(stats?.monthly_revenue ?? 0).toFixed(2)}`}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[9px] text-[#6E6A63]/80 font-semibold uppercase tracking-wider">Yearly</span>
                 <span className="text-sm sm:text-base font-extrabold text-[#171717] mt-0.5">
-                  {loading ? '...' : `₹${(stats?.yearly_revenue ?? 0).toFixed(2)}`}
+                  {!stats ? '...' : `₹${(stats?.yearly_revenue ?? 0).toFixed(2)}`}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[9px] text-[#C49A32] font-semibold uppercase tracking-wider">Total</span>
                 <span className="text-sm sm:text-base font-black text-[#C49A32] mt-0.5">
-                  {loading ? '...' : `₹${(stats?.total_revenue ?? 0).toFixed(2)}`}
+                  {!stats ? '...' : `₹${(stats?.total_revenue ?? 0).toFixed(2)}`}
                 </span>
               </div>
             </div>
