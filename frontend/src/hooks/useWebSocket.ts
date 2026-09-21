@@ -4,16 +4,10 @@ export const useWebSocket = (onMessageReceived: (data: any) => void) => {
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    let wsUrl = 'ws://localhost:8000/ws/updates/';
-    if (import.meta.env.VITE_API_URL) {
-      // Convert https://.../api/ to wss://.../ws/updates/
-      const baseUrl = import.meta.env.VITE_API_URL;
-      if (baseUrl.includes('https')) {
-        wsUrl = baseUrl.replace('https://', 'wss://').replace('/api/', '/ws/updates/');
-      } else {
-        wsUrl = baseUrl.replace('http://', 'ws://').replace('/api/', '/ws/updates/');
-      }
-    }
+    const baseUrl = import.meta.env.VITE_API_URL || 'https://smart-hotel-mchq.onrender.com/api/';
+    let wsUrl = baseUrl.includes('https')
+      ? baseUrl.replace('https://', 'wss://').replace('/api/', '/ws/updates/')
+      : baseUrl.replace('http://', 'ws://').replace('/api/', '/ws/updates/');
 
     const connect = () => {
       ws.current = new WebSocket(wsUrl);

@@ -4,7 +4,7 @@ const getBaseURL = () => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  return 'http://localhost:8000/api/';
+  return 'https://smart-hotel-mchq.onrender.com/api/';
 };
 
 const API = axios.create({
