@@ -35,17 +35,13 @@ class TableViewSet(viewsets.ModelViewSet):
         guest_removed = old_guest is not None and updated_instance.current_guest is None
 
         if is_now_vacant or guest_removed:
-            # 1. Cancel all active orders for this table
+            # 1. Cancel all active orders for this table in bulk
             active_orders = Order.objects.filter(
                 table=updated_instance,
                 status__in=['PENDING', 'PREPARING', 'READY', 'SERVED']
             )
-            for order in active_orders:
-                order.status = 'CANCELLED'
-                order.items.all().update(status='CANCELLED')
-                # Unlink from table when cancelled
-                order.table = None
-                order.save()
+            OrderItem.objects.filter(order__in=active_orders).update(status='CANCELLED')
+            active_orders.update(status='CANCELLED', table=None)
 
             # 2. Delete any pending DINE_IN invoices for the old guest (or current guest if none)
             target_guest = old_guest or updated_instance.current_guest
