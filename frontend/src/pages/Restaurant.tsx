@@ -31,7 +31,7 @@ interface Table {
   table_number: string;
   capacity: number;
   status: string;
-  current_guest?: string | null;
+  current_guest?: string | number | null;
 }
 
 interface CartItem {
