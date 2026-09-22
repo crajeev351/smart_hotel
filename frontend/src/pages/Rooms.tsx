@@ -104,7 +104,7 @@ const Rooms: React.FC = () => {
 
       // Update local state immediately
       setRooms(prev => prev.map(r => r.id === roomId ? { ...r, status: 'AVAILABLE' } : r));
-      await fetchData(true);
+      fetchData(true); // background refresh, don't await
 
       setTimeout(() => {
         setSuccess(null);

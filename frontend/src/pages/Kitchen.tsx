@@ -96,19 +96,26 @@ const Kitchen: React.FC = () => {
   }, []);
 
   const updateItemStatus = async (itemId: number, newStatus: string, itemName: string, tableNum: string) => {
+    // Optimistic: immediately update item status in UI
+    const prevOrders = [...orders];
+    setOrders(prev => prev.map(order => ({
+      ...order,
+      items: order.items.map(item => item.id === itemId ? { ...item, status: newStatus } : item)
+    })));
+
+    if (newStatus === 'READY') {
+      const message = `🔔 ${itemName} for Table ${tableNum} is READY!`;
+      setAlerts(prev => [message, ...prev]);
+      setTimeout(() => {
+        setAlerts(prev => prev.filter(a => a !== message));
+      }, 8000);
+    }
+
     try {
       await API.patch(`order-items/${itemId}/`, { status: newStatus });
-      
-      if (newStatus === 'READY') {
-        const message = `🔔 ${itemName} for Table ${tableNum} is READY!`;
-        setAlerts(prev => [message, ...prev]);
-        setTimeout(() => {
-          setAlerts(prev => prev.filter(a => a !== message));
-        }, 8000);
-      }
-
-      fetchKitchenOrders();
+      fetchKitchenOrders(true);
     } catch (err: any) {
+      setOrders(prevOrders); // Revert on failure
       setError('Failed to update status: ' + err.message);
     }
   };

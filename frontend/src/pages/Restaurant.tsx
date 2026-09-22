@@ -458,39 +458,41 @@ const Restaurant: React.FC = () => {
   }, [currentGuestId, activeOrder?.id, activeOrder?.status]);
 
   const handleAssignGuestToTable = async (tableId: number, guestId: string | null) => {
+    setError(null);
+    setSuccess(null);
+    // Optimistic: immediately update table state in UI
+    setTables(prev => prev.map(t => t.id === tableId ? { ...t, current_guest: guestId ? Number(guestId) : null, status: guestId ? 'OCCUPIED' : 'VACANT' } : t));
+    setSuccess(guestId ? 'Guest assigned to table successfully.' : 'Guest unassigned from table.');
+    setAssigningGuestId('');
     try {
-      setError(null);
-      setSuccess(null);
       await API.patch(`tables/${tableId}/`, { 
         current_guest: guestId,
         status: guestId ? 'OCCUPIED' : 'VACANT'
       });
-      setSuccess(guestId ? 'Guest assigned to table successfully.' : 'Guest unassigned from table.');
-      setAssigningGuestId('');
-      fetchData();
+      fetchData(true); // background refresh
     } catch (err: any) {
       setError('Failed to assign guest: ' + (err.response?.data?.error || err.message));
+      setSuccess(null);
+      fetchData(true); // revert by re-fetching
     }
   };
 
   const handleSeatReservation = async (resId: number, name: string, tableId: number) => {
-    setLoading(true);
     setError(null);
     setSuccess(null);
+    // Optimistic: immediately update table status
+    setTables(prev => prev.map(t => t.id === tableId ? { ...t, status: 'OCCUPIED' } : t));
+    setSuccess(`Table reservation for ${name} marked as completed.`);
     try {
-      await API.patch(`table-reservations/${resId}/`, {
-        status: 'COMPLETED'
-      });
-      // Set table to occupied
-      await API.patch(`tables/${tableId}/`, {
-        status: 'OCCUPIED'
-      });
-      setSuccess(`Table reservation for ${name} marked as completed.`);
-      fetchData();
+      await Promise.all([
+        API.patch(`table-reservations/${resId}/`, { status: 'COMPLETED' }),
+        API.patch(`tables/${tableId}/`, { status: 'OCCUPIED' })
+      ]);
+      fetchData(true);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to seat reservation');
-    } finally {
-      setLoading(false);
+      setSuccess(null);
+      fetchData(true);
     }
   };
 
@@ -516,24 +518,28 @@ const Restaurant: React.FC = () => {
       });
       const newGuest = userRes.data;
 
-      // 2. Assign to table
-      const tbl = tables.find(t => t.table_number === selectedTable);
-      if (tbl) {
-        await API.patch(`tables/${tbl.id}/`, {
-          current_guest: newGuest.id,
-          status: 'OCCUPIED'
-        });
-      }
-
+      // Immediately show success and clear form (don't wait for table assign + fetchData)
       setSuccess(`Guest ${newGuestName} registered and assigned to table.`);
       setNewGuestName('');
       setNewGuestEmail('');
       setNewGuestPhone('');
       setShowNewGuestForm(false);
-      fetchData();
+      setBillingLoading(false);
+
+      // 2. Assign to table in background
+      const tbl = tables.find(t => t.table_number === selectedTable);
+      if (tbl) {
+        // Optimistic: update table status immediately
+        setTables(prev => prev.map(t => t.id === tbl.id ? { ...t, current_guest: newGuest.id, status: 'OCCUPIED' } : t));
+        API.patch(`tables/${tbl.id}/`, {
+          current_guest: newGuest.id,
+          status: 'OCCUPIED'
+        }).then(() => fetchData(true)).catch(() => fetchData(true));
+      } else {
+        fetchData(true);
+      }
     } catch (err: any) {
       setError('Failed to register and assign guest: ' + (err.response?.data?.error || err.message));
-    } finally {
       setBillingLoading(false);
     }
   };
@@ -589,18 +595,27 @@ const Restaurant: React.FC = () => {
     setBillingLoading(true);
     setError(null);
     setSuccess(null);
+    // Optimistic: immediately clear the session
+    const prevInvoice = generatedInvoice;
+    const prevOrder = activeOrder;
+    const prevTable = selectedTable;
+    setSuccess('Invoice paid successfully. Table session closed and table is now vacant.');
+    setGeneratedInvoice(null);
+    setActiveOrder(null);
+    setSelectedTable('');
+    setSearchParams({});
+    setBillingLoading(false);
     try {
-      await API.post(`invoices/${generatedInvoice.id}/pay-invoice/`);
-      setSuccess('Invoice paid successfully. Table session closed and table is now vacant.');
-      setGeneratedInvoice(null);
-      setActiveOrder(null);
-      setSelectedTable('');
-      setSearchParams({});
-      await fetchData();
+      await API.post(`invoices/${prevInvoice.id}/pay-invoice/`);
+      fetchData(true);
     } catch (err: any) {
+      // Revert on failure
+      setGeneratedInvoice(prevInvoice);
+      setActiveOrder(prevOrder);
+      setSelectedTable(prevTable);
+      setSearchParams({ table: prevTable });
       setError('Failed to process invoice payment: ' + (err.response?.data?.error || err.message));
-    } finally {
-      setBillingLoading(false);
+      setSuccess(null);
     }
   };
 
@@ -626,16 +641,19 @@ const Restaurant: React.FC = () => {
 
   const handleCancelOrder = async (orderId: number) => {
     if (!window.confirm("Are you sure you want to cancel the entire order? This cannot be undone.")) return;
+    setError(null);
+    setSuccess(null);
+    // Optimistic: immediately clear order from UI
+    setSuccess("Order cancelled successfully.");
+    setActiveOrder(null);
+    setGeneratedInvoice(null);
     try {
-      setError(null);
-      setSuccess(null);
       await API.patch(`orders/${orderId}/`, { status: 'CANCELLED' });
-      setSuccess("Order cancelled successfully.");
-      setActiveOrder(null);
-      setGeneratedInvoice(null);
       fetchData(true);
     } catch (err: any) {
       setError('Failed to cancel order: ' + (err.response?.data?.error || err.message));
+      setSuccess(null);
+      fetchActiveOrder(true, selectedTable);
     }
   };
 
@@ -644,18 +662,26 @@ const Restaurant: React.FC = () => {
     setBillingLoading(true);
     setError(null);
     setSuccess(null);
+    // Optimistic: immediately clear session
+    const prevInvoice = generatedInvoice;
+    const prevOrder = activeOrder;
+    const prevTable = selectedTable;
+    setSuccess('Charges added to hotel room bill successfully. Table session closed and table is now vacant.');
+    setGeneratedInvoice(null);
+    setActiveOrder(null);
+    setSelectedTable('');
+    setSearchParams({});
+    setBillingLoading(false);
     try {
-      await API.post(`invoices/${generatedInvoice.id}/charge-to-room/`);
-      setSuccess('Charges added to hotel room bill successfully. Table session closed and table is now vacant.');
-      setGeneratedInvoice(null);
-      setActiveOrder(null);
-      setSelectedTable('');
-      setSearchParams({});
-      await fetchData();
+      await API.post(`invoices/${prevInvoice.id}/charge-to-room/`);
+      fetchData(true);
     } catch (err: any) {
+      setGeneratedInvoice(prevInvoice);
+      setActiveOrder(prevOrder);
+      setSelectedTable(prevTable);
+      setSearchParams({ table: prevTable });
       setError('Failed to charge to room: ' + (err.response?.data?.error || err.message));
-    } finally {
-      setBillingLoading(false);
+      setSuccess(null);
     }
   };
 
@@ -723,11 +749,12 @@ const Restaurant: React.FC = () => {
       setCart([]);
       setItemNotes({});
       setGeneratedInvoice(null);
-      fetchActiveOrder(false, selectedTable);
+      setOrderLoading(false);
+      // Don't await — background refresh, the 1.5s poll will also pick it up
+      fetchActiveOrder(true, selectedTable);
       fetchData(true);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to place order.');
-    } finally {
       setOrderLoading(false);
     }
   };
