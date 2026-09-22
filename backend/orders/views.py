@@ -17,7 +17,7 @@ from django.db import transaction
 User = get_user_model()
 
 class TableViewSet(viewsets.ModelViewSet):
-    queryset = Table.objects.all()
+    queryset = Table.objects.select_related('current_guest').all()
     serializer_class = TableSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -57,17 +57,17 @@ class TableViewSet(viewsets.ModelViewSet):
                 ).delete()
 
 class TableReservationViewSet(viewsets.ModelViewSet):
-    queryset = TableReservation.objects.all().order_by('-reservation_time')
+    queryset = TableReservation.objects.select_related('table', 'guest').all().order_by('-reservation_time')
     serializer_class = TableReservationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all()
+    queryset = Order.objects.select_related('guest', 'table').prefetch_related('items__menu_item').all()
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Order.objects.all().order_by('-created_at')
+        queryset = Order.objects.select_related('guest', 'table').prefetch_related('items__menu_item').all().order_by('-created_at')
         table_number = self.request.query_params.get('table_number')
         status_param = self.request.query_params.get('status')
         guest_id = self.request.query_params.get('guest')
@@ -266,12 +266,12 @@ class OrderItemViewSet(viewsets.ModelViewSet):
         order.save()
 
 class InvoiceViewSet(viewsets.ModelViewSet):
-    queryset = Invoice.objects.all()
+    queryset = Invoice.objects.select_related('guest', 'booking__room').prefetch_related('orders__items__menu_item').all()
     serializer_class = InvoiceSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Invoice.objects.all()
+        queryset = Invoice.objects.select_related('guest', 'booking__room').prefetch_related('orders__items__menu_item').all()
         guest_id = self.request.query_params.get('guest')
         payment_status = self.request.query_params.get('payment_status')
         if guest_id:

@@ -124,9 +124,15 @@ const Restaurant: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tableParam = searchParams.get('table');
 
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
-  const [tables, setTables] = useState<Table[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
+    try { const s = sessionStorage.getItem('restaurant_menu_items'); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  const [categories, setCategories] = useState<MenuCategory[]>(() => {
+    try { const s = sessionStorage.getItem('restaurant_categories'); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  const [tables, setTables] = useState<Table[]>(() => {
+    try { const s = sessionStorage.getItem('restaurant_tables'); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
   const [tableReservations, setTableReservations] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -340,7 +346,7 @@ const Restaurant: React.FC = () => {
   });
 
   const fetchData = async (silent = false) => {
-    if (!silent) setLoading(true);
+    if (!silent && menuItems.length === 0) setLoading(true);
     try {
       const [menuRes, catRes, tablesRes, tableReservationsRes, usersRes, bookingsRes] = await Promise.all([
         API.get('menu-items/'),
@@ -356,6 +362,11 @@ const Restaurant: React.FC = () => {
       setTableReservations(tableReservationsRes.data);
       setGuests(usersRes.data.filter((u: any) => u.role === 'GUEST'));
       setBookings(bookingsRes.data);
+      try {
+        sessionStorage.setItem('restaurant_menu_items', JSON.stringify(menuRes.data));
+        sessionStorage.setItem('restaurant_categories', JSON.stringify(catRes.data));
+        sessionStorage.setItem('restaurant_tables', JSON.stringify(tablesRes.data));
+      } catch {}
     } catch (err: any) {
       setError('Failed to load menu details: ' + err.message);
     } finally {

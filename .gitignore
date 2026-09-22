@@ -10,3 +10,5 @@ dist/
 .DS_Store
 *.jpg
 backup_data.json
+.vscode/
+pyrightconfig.json

@@ -12,8 +12,15 @@ interface Room {
 }
 
 const Rooms: React.FC = () => {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [rooms, setRooms] = useState<Room[]>(() => {
+    try {
+      const s = sessionStorage.getItem('rooms_list');
+      return s ? JSON.parse(s) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -39,22 +46,23 @@ const Rooms: React.FC = () => {
   });
 
   const fetchData = async (silent = false) => {
-    if (!silent) {
+    if (!silent && rooms.length === 0) {
       setLoading(true);
       setError(null);
     }
     try {
       const response = await API.get('rooms/');
       setRooms(response.data);
+      try {
+        sessionStorage.setItem('rooms_list', JSON.stringify(response.data));
+      } catch {}
     } catch (err: any) {
       console.error(err);
       if (!silent) {
         setError('Failed to fetch rooms queue.');
       }
     } finally {
-      if (!silent) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 

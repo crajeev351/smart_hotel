@@ -131,9 +131,18 @@ if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
-            conn_max_age=60,
+            conn_max_age=600,
             conn_health_checks=True,
+            ssl_require=True,
         )
+    }
+    DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
+    DATABASES['default']['OPTIONS'] = {
+        'connect_timeout': 10,
+        'keepalives': 1,
+        'keepalives_idle': 30,
+        'keepalives_interval': 10,
+        'keepalives_count': 5,
     }
 else:
     # Support for legacy discrete env vars if DATABASE_URL is missing
@@ -152,6 +161,7 @@ else:
                 'PASSWORD': DB_PASSWORD,
                 'HOST': DB_HOST,
                 'PORT': DB_PORT,
+                'CONN_MAX_AGE': 600,
             }
         }
     else:
@@ -162,7 +172,7 @@ else:
             }
         }
 
-# Cache (Redis for production rate-limiting and sessions)
+# Cache (Redis for production rate-limiting and sessions, LocMem for fast fallback)
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
 
@@ -177,7 +187,11 @@ else:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
+            'LOCATION': 'smart-hotel-cache',
+            'TIMEOUT': 60,
+            'OPTIONS': {
+                'MAX_ENTRIES': 2000
+            }
         }
     }
 

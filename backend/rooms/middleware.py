@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.core.cache import cache
 from rooms.models import Booking, Room
 
 class AutoUpdateBookingStatusMiddleware:
@@ -6,8 +7,14 @@ class AutoUpdateBookingStatusMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Run auto-update on every request to keep database state synchronized across all views (API, Admin, HTML templates)
-        self.auto_update_statuses()
+        # Throttle auto-update to at most once every 30 seconds to prevent query floods across WAN
+        cache_key = 'last_booking_auto_update'
+        if not cache.get(cache_key):
+            try:
+                self.auto_update_statuses()
+                cache.set(cache_key, True, timeout=30)
+            except Exception:
+                pass
         
         response = self.get_response(request)
         return response

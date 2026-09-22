@@ -79,10 +79,18 @@ const Reception: React.FC = () => {
   const [lobbyVisible, setLobbyVisible] = useState(false);
   const [roomFilter, setRoomFilter] = useState<'all' | 'vacant' | 'occupied' | 'maintenance'>('all');
   const [roomSearchQuery, setRoomSearchQuery] = useState('');
-  const [guests, setGuests] = useState<User[]>([]);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [tables, setTables] = useState<Table[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [guests, setGuests] = useState<User[]>(() => {
+    try { const s = sessionStorage.getItem('reception_guests'); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  const [rooms, setRooms] = useState<Room[]>(() => {
+    try { const s = sessionStorage.getItem('reception_rooms'); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  const [tables, setTables] = useState<Table[]>(() => {
+    try { const s = sessionStorage.getItem('reception_tables'); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  const [bookings, setBookings] = useState<Booking[]>(() => {
+    try { const s = sessionStorage.getItem('reception_bookings'); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -262,7 +270,7 @@ const Reception: React.FC = () => {
   });
 
   const fetchData = async (silent = false) => {
-    if (!silent) setLoading(true);
+    if (!silent && rooms.length === 0) setLoading(true);
     try {
       const [usersRes, roomsRes, tablesRes, bookingsRes, tableReservationsRes] = await Promise.all([
         API.get('users/'),
@@ -271,17 +279,24 @@ const Reception: React.FC = () => {
         API.get('bookings/'),
         API.get('table-reservations/')
       ]);
-      setGuests(usersRes.data.filter((u: any) => u.role === 'GUEST' || u.role === ''));
+      const filteredGuests = usersRes.data.filter((u: any) => u.role === 'GUEST' || u.role === '');
+      setGuests(filteredGuests);
       setRooms(roomsRes.data);
       setTables(tablesRes.data);
       setBookings(bookingsRes.data);
       setTableReservations(tableReservationsRes.data);
+      try {
+        sessionStorage.setItem('reception_guests', JSON.stringify(filteredGuests));
+        sessionStorage.setItem('reception_rooms', JSON.stringify(roomsRes.data));
+        sessionStorage.setItem('reception_tables', JSON.stringify(tablesRes.data));
+        sessionStorage.setItem('reception_bookings', JSON.stringify(bookingsRes.data));
+      } catch {}
     } catch (err: any) {
       if (!silent) {
         setError('Failed to fetch data: ' + (err.response?.data?.detail || err.message));
       }
     } finally {
-      if (!silent) setLoading(false);
+      setLoading(false);
     }
   };
 

@@ -997,8 +997,16 @@ def sync_loop():
         sync_event.clear()
 
 def start_sync_thread():
-    if os.environ.get('POSTGRES_DB'):
+    # 1. Disable sync if running in cloud production on Render
+    if os.environ.get('RENDER') or os.environ.get('POSTGRES_DB'):
         print("[Sync] Running in production/Render. Background sync thread disabled.")
+        return
+
+    # 2. Disable sync if already directly connected to Supabase/Postgres
+    # (Since both local and cloud share the same database directly, no sync loop needed)
+    db_url = os.environ.get('DATABASE_URL', '')
+    if 'postgres' in db_url or 'supabase' in db_url:
+        print("[Sync] Direct Supabase/PostgreSQL connection active. Background sync thread disabled.")
         return
 
     if os.environ.get('RUN_MAIN') != 'true':

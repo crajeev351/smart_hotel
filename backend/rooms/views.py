@@ -44,10 +44,11 @@ class BookingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        base_qs = Booking.objects.select_related('guest', 'room')
         if user.role == 'GUEST':
-            return Booking.objects.filter(guest=user)
+            return base_qs.filter(guest=user)
         elif user.role in ['ADMIN', 'RECEPTION', 'WAITER', 'KITCHEN']:
-            return Booking.objects.all()
+            return base_qs.all()
         else:
             return Booking.objects.none()
 
