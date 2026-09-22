@@ -57,7 +57,7 @@ class TableViewSet(viewsets.ModelViewSet):
                 ).delete()
 
 class TableReservationViewSet(viewsets.ModelViewSet):
-    queryset = TableReservation.objects.select_related('table', 'guest').all().order_by('-reservation_time')
+    queryset = TableReservation.objects.select_related('table').all().order_by('-reservation_time')
     serializer_class = TableReservationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
