@@ -125,13 +125,13 @@ const Restaurant: React.FC = () => {
   const tableParam = searchParams.get('table');
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
-    try { const s = sessionStorage.getItem('restaurant_menu_items'); return s ? JSON.parse(s) : []; } catch { return []; }
+    try { const s = localStorage.getItem('restaurant_menu_items') || sessionStorage.getItem('restaurant_menu_items'); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [categories, setCategories] = useState<MenuCategory[]>(() => {
-    try { const s = sessionStorage.getItem('restaurant_categories'); return s ? JSON.parse(s) : []; } catch { return []; }
+    try { const s = localStorage.getItem('restaurant_categories') || sessionStorage.getItem('restaurant_categories'); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [tables, setTables] = useState<Table[]>(() => {
-    try { const s = sessionStorage.getItem('restaurant_tables'); return s ? JSON.parse(s) : []; } catch { return []; }
+    try { const s = localStorage.getItem('restaurant_tables') || sessionStorage.getItem('restaurant_tables'); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [tableReservations, setTableReservations] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
@@ -363,6 +363,9 @@ const Restaurant: React.FC = () => {
       setGuests(usersRes.data.filter((u: any) => u.role === 'GUEST'));
       setBookings(bookingsRes.data);
       try {
+        localStorage.setItem('restaurant_menu_items', JSON.stringify(menuRes.data));
+        localStorage.setItem('restaurant_categories', JSON.stringify(catRes.data));
+        localStorage.setItem('restaurant_tables', JSON.stringify(tablesRes.data));
         sessionStorage.setItem('restaurant_menu_items', JSON.stringify(menuRes.data));
         sessionStorage.setItem('restaurant_categories', JSON.stringify(catRes.data));
         sessionStorage.setItem('restaurant_tables', JSON.stringify(tablesRes.data));
@@ -372,6 +375,22 @@ const Restaurant: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const pollLiveTables = async () => {
+    if (document.hidden) return;
+    try {
+      const [tablesRes, resRes] = await Promise.all([
+        API.get('tables/'),
+        API.get('table-reservations/')
+      ]);
+      setTables(tablesRes.data);
+      setTableReservations(resRes.data);
+      try {
+        localStorage.setItem('restaurant_tables', JSON.stringify(tablesRes.data));
+        sessionStorage.setItem('restaurant_tables', JSON.stringify(tablesRes.data));
+      } catch {}
+    } catch {}
   };
 
   const fetchActiveOrder = async (silent = false, tableNum?: string) => {
@@ -425,11 +444,18 @@ const Restaurant: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    const poll = setInterval(() => fetchData(true), 1500);
-    const onFocus = () => { fetchData(true); if (selectedTable) fetchActiveOrder(true, selectedTable); };
+    const poll = setInterval(() => {
+      if (document.hidden) return;
+      pollLiveTables();
+      if (selectedTable) fetchActiveOrder(true, selectedTable);
+    }, 3000);
+    const onFocus = () => {
+      fetchData(true);
+      if (selectedTable) fetchActiveOrder(true, selectedTable);
+    };
     window.addEventListener('focus', onFocus);
     return () => { clearInterval(poll); window.removeEventListener('focus', onFocus); };
-  }, []);
+  }, [selectedTable]);
 
   const selectedTableObj = tables.find(t => t.table_number === selectedTable);
   const currentGuestId = selectedTableObj?.current_guest;

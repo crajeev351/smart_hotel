@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<Analytics | null>(() => {
     try {
-      const saved = sessionStorage.getItem('dashboard_stats');
+      const saved = localStorage.getItem('dashboard_stats') || sessionStorage.getItem('dashboard_stats');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -80,6 +80,7 @@ const Dashboard: React.FC = () => {
       const analyticsData = results[0].data;
       setStats(analyticsData);
       try {
+        localStorage.setItem('dashboard_stats', JSON.stringify(analyticsData));
         sessionStorage.setItem('dashboard_stats', JSON.stringify(analyticsData));
       } catch {}
 
@@ -103,7 +104,10 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData(!!stats);
-    const poll = setInterval(() => fetchDashboardData(true), 2000);
+    const poll = setInterval(() => {
+      if (document.hidden) return;
+      fetchDashboardData(true);
+    }, 4000);
     const onFocus = () => fetchDashboardData(true);
     window.addEventListener('focus', onFocus);
     return () => { clearInterval(poll); window.removeEventListener('focus', onFocus); };

@@ -41,7 +41,7 @@ const Kitchen: React.FC = () => {
   const fetchKitchenOrders = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const response = await API.get('orders/');
+      const response = await API.get('orders/?status=IN_PROGRESS');
       const active = response.data.filter((order: any) => {
         return order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && 
                order.items.some((i: any) => i.status !== 'SERVED' && i.status !== 'CANCELLED');
@@ -81,7 +81,10 @@ const Kitchen: React.FC = () => {
   useEffect(() => {
     fetchKitchenOrders();
     
-    const orderPoll = setInterval(() => fetchKitchenOrders(true), 1500);
+    const orderPoll = setInterval(() => {
+      if (document.hidden) return;
+      fetchKitchenOrders(true);
+    }, 2500);
     const timeInterval = setInterval(() => {
       setNowTime(Date.now());
     }, 10000);

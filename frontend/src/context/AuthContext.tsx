@@ -18,8 +18,17 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    return !localStorage.getItem('user') && Boolean(localStorage.getItem('access_token'));
+  });
 
   useEffect(() => {
     const initAuth = async () => {
@@ -29,9 +38,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userResponse = await API.get('users/me/');
           setUser(userResponse.data);
           localStorage.setItem('user', JSON.stringify(userResponse.data));
-        } catch (err) {
-          console.error('Session expired or invalid:', err);
-          logout();
+        } catch (err: any) {
+          if (err.response?.status === 401) {
+            console.error('Session expired or invalid:', err);
+            logout();
+          }
         }
       } else {
         setUser(null);

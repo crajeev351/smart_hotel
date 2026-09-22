@@ -14,7 +14,7 @@ interface Room {
 const Rooms: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>(() => {
     try {
-      const s = sessionStorage.getItem('rooms_list');
+      const s = localStorage.getItem('rooms_list') || sessionStorage.getItem('rooms_list');
       return s ? JSON.parse(s) : [];
     } catch {
       return [];
@@ -54,6 +54,7 @@ const Rooms: React.FC = () => {
       const response = await API.get('rooms/');
       setRooms(response.data);
       try {
+        localStorage.setItem('rooms_list', JSON.stringify(response.data));
         sessionStorage.setItem('rooms_list', JSON.stringify(response.data));
       } catch {}
     } catch (err: any) {
@@ -68,7 +69,10 @@ const Rooms: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    const poll = setInterval(() => fetchData(true), 1500);
+    const poll = setInterval(() => {
+      if (document.hidden) return;
+      fetchData(true);
+    }, 3000);
     const onFocus = () => fetchData(true);
     window.addEventListener('focus', onFocus);
     return () => { clearInterval(poll); window.removeEventListener('focus', onFocus); };

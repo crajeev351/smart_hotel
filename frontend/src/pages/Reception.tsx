@@ -80,16 +80,16 @@ const Reception: React.FC = () => {
   const [roomFilter, setRoomFilter] = useState<'all' | 'vacant' | 'occupied' | 'maintenance'>('all');
   const [roomSearchQuery, setRoomSearchQuery] = useState('');
   const [guests, setGuests] = useState<User[]>(() => {
-    try { const s = sessionStorage.getItem('reception_guests'); return s ? JSON.parse(s) : []; } catch { return []; }
+    try { const s = localStorage.getItem('reception_guests') || sessionStorage.getItem('reception_guests'); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [rooms, setRooms] = useState<Room[]>(() => {
-    try { const s = sessionStorage.getItem('reception_rooms'); return s ? JSON.parse(s) : []; } catch { return []; }
+    try { const s = localStorage.getItem('reception_rooms') || sessionStorage.getItem('reception_rooms'); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [tables, setTables] = useState<Table[]>(() => {
-    try { const s = sessionStorage.getItem('reception_tables'); return s ? JSON.parse(s) : []; } catch { return []; }
+    try { const s = localStorage.getItem('reception_tables') || sessionStorage.getItem('reception_tables'); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [bookings, setBookings] = useState<Booking[]>(() => {
-    try { const s = sessionStorage.getItem('reception_bookings'); return s ? JSON.parse(s) : []; } catch { return []; }
+    try { const s = localStorage.getItem('reception_bookings') || sessionStorage.getItem('reception_bookings'); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -286,6 +286,10 @@ const Reception: React.FC = () => {
       setBookings(bookingsRes.data);
       setTableReservations(tableReservationsRes.data);
       try {
+        localStorage.setItem('reception_guests', JSON.stringify(filteredGuests));
+        localStorage.setItem('reception_rooms', JSON.stringify(roomsRes.data));
+        localStorage.setItem('reception_tables', JSON.stringify(tablesRes.data));
+        localStorage.setItem('reception_bookings', JSON.stringify(bookingsRes.data));
         sessionStorage.setItem('reception_guests', JSON.stringify(filteredGuests));
         sessionStorage.setItem('reception_rooms', JSON.stringify(roomsRes.data));
         sessionStorage.setItem('reception_tables', JSON.stringify(tablesRes.data));
@@ -302,7 +306,10 @@ const Reception: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    const poll = setInterval(() => fetchData(true), 1500);
+    const poll = setInterval(() => {
+      if (document.hidden) return;
+      fetchData(true);
+    }, 3500);
     const onFocus = () => fetchData(true);
     window.addEventListener('focus', onFocus);
     return () => { clearInterval(poll); window.removeEventListener('focus', onFocus); };

@@ -4,7 +4,7 @@ services:
     env: docker
     dockerContext: ./backend
     dockerfilePath: Dockerfile
-    dockerCommand: sh -c "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker config.asgi:application"
+    dockerCommand: sh -c "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker --workers 3 --timeout 120 config.asgi:application"
     plan: free
     envVars:
       - key: DATABASE_URL
