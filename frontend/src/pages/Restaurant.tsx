@@ -425,8 +425,10 @@ const Restaurant: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    const poll = setInterval(() => fetchData(true), 8000);
-    return () => clearInterval(poll);
+    const poll = setInterval(() => fetchData(true), 1500);
+    const onFocus = () => { fetchData(true); if (selectedTable) fetchActiveOrder(true, selectedTable); };
+    window.addEventListener('focus', onFocus);
+    return () => { clearInterval(poll); window.removeEventListener('focus', onFocus); };
   }, []);
 
   const selectedTableObj = tables.find(t => t.table_number === selectedTable);
@@ -563,12 +565,19 @@ const Restaurant: React.FC = () => {
     setBillingLoading(true);
     setError(null);
     setSuccess(null);
+    // Optimistic: immediately mark all items as SERVED in UI
+    const prevOrder = activeOrder;
+    setActiveOrder((prev: any) => prev ? {
+      ...prev,
+      items: prev.items.map((i: any) => i.status !== 'CANCELLED' ? { ...i, status: 'SERVED' } : i)
+    } : prev);
     try {
       await API.post(`orders/${activeOrder.id}/serve-all/`);
       setSuccess('All dishes marked as served to the customer.');
-      await fetchActiveOrder(true, selectedTable);
+      fetchActiveOrder(true, selectedTable);
       fetchData(true);
     } catch (err: any) {
+      setActiveOrder(prevOrder); // Revert on failure
       setError('Failed to mark dishes as served: ' + (err.response?.data?.error || err.message));
     } finally {
       setBillingLoading(false);
@@ -596,14 +605,21 @@ const Restaurant: React.FC = () => {
   };
 
   const handleUpdateItemStatus = async (itemId: number, newStatus: string) => {
+    setError(null);
+    setSuccess(null);
+    // Optimistic: immediately update item status in UI before network call
+    const prevOrder = activeOrder;
+    setActiveOrder((prev: any) => prev ? {
+      ...prev,
+      items: prev.items.map((i: any) => i.id === itemId ? { ...i, status: newStatus } : i)
+    } : prev);
+    setSuccess(`Dish marked as ${newStatus.toLowerCase()}.`);
     try {
-      setError(null);
-      setSuccess(null);
       await API.patch(`order-items/${itemId}/`, { status: newStatus });
-      setSuccess(`Dish marked as ${newStatus.toLowerCase()}.`);
       fetchActiveOrder(true, selectedTable);
       fetchData(true);
     } catch (err: any) {
+      setActiveOrder(prevOrder); // Revert on failure
       setError('Failed to update dish status: ' + (err.response?.data?.error || err.message));
     }
   };

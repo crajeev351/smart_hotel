@@ -302,8 +302,10 @@ const Reception: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    const poll = setInterval(() => fetchData(true), 8000);
-    return () => clearInterval(poll);
+    const poll = setInterval(() => fetchData(true), 1500);
+    const onFocus = () => fetchData(true);
+    window.addEventListener('focus', onFocus);
+    return () => { clearInterval(poll); window.removeEventListener('focus', onFocus); };
   }, []);
 
   useEffect(() => {

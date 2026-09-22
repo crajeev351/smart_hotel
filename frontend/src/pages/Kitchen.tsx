@@ -81,14 +81,17 @@ const Kitchen: React.FC = () => {
   useEffect(() => {
     fetchKitchenOrders();
     
-    
+    const orderPoll = setInterval(() => fetchKitchenOrders(true), 1500);
     const timeInterval = setInterval(() => {
       setNowTime(Date.now());
     }, 10000);
+    const onFocus = () => fetchKitchenOrders(true);
+    window.addEventListener('focus', onFocus);
 
     return () => {
-      
+      clearInterval(orderPoll);
       clearInterval(timeInterval);
+      window.removeEventListener('focus', onFocus);
     };
   }, []);
 

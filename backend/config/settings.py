@@ -131,19 +131,12 @@ if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
-            conn_max_age=600,
+            conn_max_age=0,
             conn_health_checks=True,
             ssl_require=True,
         )
     }
     DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
-    DATABASES['default']['OPTIONS'] = {
-        'connect_timeout': 10,
-        'keepalives': 1,
-        'keepalives_idle': 30,
-        'keepalives_interval': 10,
-        'keepalives_count': 5,
-    }
 else:
     # Support for legacy discrete env vars if DATABASE_URL is missing
     DB_NAME = os.environ.get('POSTGRES_DB')

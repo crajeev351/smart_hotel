@@ -103,8 +103,10 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData(!!stats);
-    const poll = setInterval(() => fetchDashboardData(true), 10000);
-    return () => clearInterval(poll);
+    const poll = setInterval(() => fetchDashboardData(true), 2000);
+    const onFocus = () => fetchDashboardData(true);
+    window.addEventListener('focus', onFocus);
+    return () => { clearInterval(poll); window.removeEventListener('focus', onFocus); };
   }, [role, selectedYear, selectedMonth]);
 
   const handleSeatReservation = async (resId: number, name: string, tableId: number) => {

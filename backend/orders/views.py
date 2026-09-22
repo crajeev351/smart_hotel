@@ -337,10 +337,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Check all items
-            all_active_items = []
-            for o in active_orders:
-                all_active_items.extend(list(o.items.exclude(status='CANCELLED')))
+            # Check all items using a single query
+            all_active_items_qs = OrderItem.objects.filter(
+                order__in=active_orders
+            ).exclude(status='CANCELLED').select_related('menu_item')
+            all_active_items = list(all_active_items_qs)
 
             if not all_active_items:
                 return Response(
@@ -349,19 +350,18 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 )
 
             # Ensure food has been served to the customer
-            unserved = [i for i in all_active_items if i.status != 'SERVED']
-            if unserved:
+            unserved_count = all_active_items_qs.exclude(status='SERVED').count()
+            if unserved_count:
                 if not force_serve:
                     return Response(
                         {
-                            'error': f'Food must be served to customer before generating the bill ({len(unserved)} dish(es) still in preparation or ready).'
+                            'error': f'Food must be served to customer before generating the bill ({unserved_count} dish(es) still in preparation or ready).'
                         },
                         status=status.HTTP_400_BAD_REQUEST
                     )
                 else:
-                    for itm in unserved:
-                        itm.status = 'SERVED'
-                        itm.save()
+                    # Bulk update all unserved items in a single query
+                    all_active_items_qs.exclude(status='SERVED').update(status='SERVED')
 
             food_charges = sum(float(i.quantity * i.price_at_order) for i in all_active_items)
             food_tax = round(food_charges * 0.05, 2)
@@ -393,14 +393,18 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            food_charges = 0.00
-            for o in active_orders:
-                items_to_bill = o.items.exclude(status='CANCELLED')
-                for itm in items_to_bill:
-                    if itm.status != 'SERVED' and itm.status != 'COMPLETED':
-                        itm.status = 'SERVED'
-                        itm.save()
-                food_charges += sum(float(i.quantity * i.price_at_order) for i in items_to_bill)
+            # Bulk update all unserved/uncompleted items across all orders in a single query
+            OrderItem.objects.filter(
+                order__in=active_orders
+            ).exclude(
+                status__in=['CANCELLED', 'SERVED', 'COMPLETED']
+            ).update(status='SERVED')
+
+            # Calculate food charges in a single pass
+            all_checkout_items = list(OrderItem.objects.filter(
+                order__in=active_orders
+            ).exclude(status='CANCELLED'))
+            food_charges = sum(float(i.quantity * i.price_at_order) for i in all_checkout_items)
 
             # Food GST rate: 5% GST on restaurant food orders
             food_tax = round(food_charges * 0.05, 2)
@@ -437,11 +441,15 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         if active_orders.exists():
             invoice.orders.set(active_orders)
             if billing_type == 'DINE_IN':
-                for order in active_orders:
-                    order.status = 'SERVED'
-                    order.guest = guest
-                    order.save()
+                # Bulk update all dine-in orders in a single query
+                active_orders.update(status='SERVED', guest=guest)
 
+        # Prefetch all relations before serializing to avoid N+1 queries
+        invoice = Invoice.objects.select_related(
+            'guest', 'booking__room'
+        ).prefetch_related(
+            'orders__items__menu_item', 'orders__table', 'orders__guest'
+        ).get(pk=invoice.pk)
         serializer = self.get_serializer(invoice)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
