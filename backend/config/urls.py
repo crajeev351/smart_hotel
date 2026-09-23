@@ -34,9 +34,23 @@ router.register(r'orders', OrderViewSet)
 router.register(r'order-items', OrderItemViewSet)
 router.register(r'invoices', InvoiceViewSet)
 
+from django.http import JsonResponse
+from django.utils import timezone
+
+def health_check(request):
+    return JsonResponse({
+        "status": "healthy",
+        "service": "smarthotel-backend",
+        "timestamp": timezone.now().isoformat()
+    })
+
 urlpatterns = [
     path('', RedirectView.as_view(url='/login/', permanent=False)),
     path('admin/', admin.site.urls),
+
+    # Health check (ultra-fast, unauthenticated for keep-alive and pre-warming)
+    path('api/health/', health_check, name='health_check'),
+    path('health/', health_check, name='root_health_check'),
 
     # JWT Authentication
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),

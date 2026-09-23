@@ -1,0 +1,24 @@
+name: Render Backend 24/7 Keep Alive
+
+on:
+  schedule:
+    # Run every 14 minutes (Render spins down after 15 minutes of inactivity)
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping Smart Hotel Cloud Backend
+        run: |
+          echo "Pinging Smart Hotel backend health check..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "https://smart-hotel-mchq.onrender.com/api/health/")
+          echo "Backend responded with HTTP status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 301 ] || [ "$HTTP_STATUS" -eq 302 ]; then
+            echo "Render backend is warm and healthy!"
+          else
+            echo "Received unexpected status $HTTP_STATUS, retrying ping..."
+            curl -s -f --max-time 60 "https://smart-hotel-mchq.onrender.com/api/health/" || true
+          fi

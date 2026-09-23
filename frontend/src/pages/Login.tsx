@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Hotel, KeyRound, User as UserIcon, ShieldAlert, Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Hotel, KeyRound, User as UserIcon, ShieldAlert, Mail, ArrowLeft, CheckCircle2, CloudLightning } from 'lucide-react';
+import API from '../services/api';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -12,6 +13,7 @@ const Login: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [wakingUp, setWakingUp] = useState(false);
   const { user, login } = useAuth();
   const navigate = useNavigate();
 
@@ -21,12 +23,24 @@ const Login: React.FC = () => {
     }
   }, [user, navigate]);
 
+  React.useEffect(() => {
+    // Proactively pre-warm backend so cold start begins in background while user types credentials
+    API.get('health/').catch(() => {});
+  }, []);
+
   const handleLoginSubmit = async (inputUser: string, inputPass: string, inputOtp?: string) => {
     setUsername(inputUser);
     setPassword(inputPass);
     setError('');
     setSuccessMessage('');
     setLoading(true);
+    setWakingUp(false);
+
+    // If server takes longer than 2.5s, it indicates Render free instance is waking up
+    const warmUpTimer = setTimeout(() => {
+      setWakingUp(true);
+    }, 2500);
+
     try {
       const cleanedUsername = inputUser.trim().startsWith('@') ? inputUser.trim().substring(1) : inputUser.trim();
       const payload: any = { username: cleanedUsername, password: inputPass };
@@ -46,7 +60,9 @@ const Login: React.FC = () => {
       const message = err.response?.data?.detail || err.response?.data?.error || err.message || 'Invalid credentials';
       setError(message);
     } finally {
+      clearTimeout(warmUpTimer);
       setLoading(false);
+      setWakingUp(false);
     }
   };
 
@@ -199,11 +215,21 @@ const Login: React.FC = () => {
                   className="w-full py-3.5 glowing-btn-indigo text-white font-bold rounded-xl transition duration-200 disabled:opacity-50 text-sm flex items-center justify-center gap-2"
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>{wakingUp ? 'Waking up server...' : 'Verifying...'}</span>
+                    </div>
                   ) : (
                     'Verify & Sign In'
                   )}
                 </button>
+
+                {wakingUp && (
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-amber-300 text-xs flex items-center gap-2.5 animate-fade-in">
+                    <CloudLightning className="w-4 h-4 text-amber-400 flex-shrink-0 animate-pulse" />
+                    <span>Connecting to cloud server... Waking up free instance, please hold on.</span>
+                  </div>
+                )}
 
                 <div className="flex flex-col gap-2 pt-2 animate-fade-in">
                   <button
@@ -270,11 +296,21 @@ const Login: React.FC = () => {
                   className="w-full py-3.5 glowing-btn-indigo text-white font-bold rounded-xl transition duration-200 disabled:opacity-50 text-sm flex items-center justify-center gap-2"
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>{wakingUp ? 'Waking up server...' : 'Signing In...'}</span>
+                    </div>
                   ) : (
                     'Sign In'
                   )}
                 </button>
+
+                {wakingUp && (
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-amber-300 text-xs flex items-center gap-2.5 animate-fade-in">
+                    <CloudLightning className="w-4 h-4 text-amber-400 flex-shrink-0 animate-pulse" />
+                    <span>Connecting to cloud server... Waking up free instance, please hold on.</span>
+                  </div>
+                )}
               </div>
             )}
           </form>

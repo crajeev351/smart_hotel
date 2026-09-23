@@ -289,10 +289,12 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         if not username or not password:
             return Response({"detail": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 1. Lookup user by username or email (case-insensitive)
-        user_obj = CustomUser.objects.filter(username__iexact=str(username).strip()).first()
-        if not user_obj:
-            user_obj = CustomUser.objects.filter(email__iexact=str(username).strip()).first()
+        # 1. Lookup user by username or email in a single query (case-insensitive)
+        from django.db.models import Q
+        clean_user = str(username).strip()
+        user_obj = CustomUser.objects.filter(
+            Q(username__iexact=clean_user) | Q(email__iexact=clean_user)
+        ).first()
 
         if not user_obj:
             return Response({"detail": "No active account found with the given credentials"}, status=status.HTTP_401_UNAUTHORIZED)
