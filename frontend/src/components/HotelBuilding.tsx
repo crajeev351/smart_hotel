@@ -105,44 +105,44 @@ const HotelBuilding: React.FC<HotelBuildingProps> = ({
 
         {/* Left face gradients */}
         <linearGradient id="hb-lf-base" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2a2520" />
-          <stop offset="100%" stopColor="#1a1612" />
+          <stop offset="0%" stopColor="#e2e8f0" />
+          <stop offset="100%" stopColor="#cbd5e1" />
         </linearGradient>
         <linearGradient id="hb-lf-sel-green" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3a2d15" />
-          <stop offset="100%" stopColor="#2a1f0c" />
+          <stop offset="0%" stopColor="#f1f5f9" />
+          <stop offset="100%" stopColor="#e2e8f0" />
         </linearGradient>
         <linearGradient id="hb-lf-sel-purple" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3a2d15" />
-          <stop offset="100%" stopColor="#2a1f0c" />
+          <stop offset="0%" stopColor="#f1f5f9" />
+          <stop offset="100%" stopColor="#e2e8f0" />
         </linearGradient>
 
         {/* Right face gradients */}
         <linearGradient id="hb-rf-base" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#1e1a15" />
-          <stop offset="100%" stopColor="#12100c" />
+          <stop offset="0%" stopColor="#94a3b8" />
+          <stop offset="100%" stopColor="#64748b" />
         </linearGradient>
         <linearGradient id="hb-rf-sel-green" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2d2210" />
-          <stop offset="100%" stopColor="#1a1408" />
+          <stop offset="0%" stopColor="#cbd5e1" />
+          <stop offset="100%" stopColor="#94a3b8" />
         </linearGradient>
         <linearGradient id="hb-rf-sel-purple" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2d2210" />
-          <stop offset="100%" stopColor="#1a1408" />
+          <stop offset="0%" stopColor="#cbd5e1" />
+          <stop offset="100%" stopColor="#94a3b8" />
         </linearGradient>
 
         {/* Top face gradient */}
         <linearGradient id="hb-tf-base" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#352e24" />
-          <stop offset="100%" stopColor="#28221a" />
+          <stop offset="0%" stopColor="#f8fafc" />
+          <stop offset="100%" stopColor="#e2e8f0" />
         </linearGradient>
         <linearGradient id="hb-tf-sel-green" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#4a3a1a" />
-          <stop offset="100%" stopColor="#332810" />
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#f1f5f9" />
         </linearGradient>
         <linearGradient id="hb-tf-sel-purple" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#4a3a1a" />
-          <stop offset="100%" stopColor="#332810" />
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#f1f5f9" />
         </linearGradient>
       </defs>
 
@@ -162,23 +162,22 @@ const HotelBuilding: React.FC<HotelBuildingProps> = ({
             {/* Penthouse left face */}
             <polygon
               points={pts(pTopLeft, topLeft, topBack, pTopBack)}
-              fill="#241f18"
-              stroke="#3d3428"
+              fill="#cbd5e1"
+              stroke="#94a3b8"
               strokeWidth="0.8"
             />
             {/* Penthouse right face */}
             <polygon
               points={pts(pTopBack, topRight, topBack, pTopBack)}
-              fill="#1a1610"
-              stroke="#302920"
+              fill="#94a3b8"
+              stroke="#64748b"
               strokeWidth="0.8"
             />
-            {/* Wait — simplified: just a smaller box */}
             {/* Penthouse top face */}
             <polygon
               points={pts(pTopLeft, pTopMid, pTopRight, pTopBack)}
-              fill="#2e2618"
-              stroke="#4a3d28"
+              fill="#f8fafc"
+              stroke="#cbd5e1"
               strokeWidth="0.8"
             />
             {/* Penthouse neon edge outline */}
@@ -194,7 +193,7 @@ const HotelBuilding: React.FC<HotelBuildingProps> = ({
             <line
               x1={topMid.x} y1={topLeft.y - capH}
               x2={topMid.x} y2={topLeft.y - capH - 18}
-              stroke="#6E6A63"
+              stroke="#64748b"
               strokeWidth="1.2"
             />
             <circle
@@ -208,8 +207,8 @@ const HotelBuilding: React.FC<HotelBuildingProps> = ({
               x={topMid.x - 8} y={topLeft.y - capH - 6}
               width="16" height="6"
               rx="1"
-              fill="#28221a"
-              stroke="#4a3d28"
+              fill="#94a3b8"
+              stroke="#cbd5e1"
               strokeWidth="0.6"
             />
           </g>
@@ -270,21 +269,21 @@ const HotelBuilding: React.FC<HotelBuildingProps> = ({
             <polygon
               points={pts(topLeft, botLeft, botMid, topBack)}
               fill={lfGrad}
-              stroke={isSelected ? neon : '#3d3428'}
+              stroke={isSelected ? neon : '#94a3b8'}
               strokeWidth={isSelected ? '1' : '0.7'}
             />
             {/* Right face */}
             <polygon
               points={pts(topBack, topRight, botRight, botMid)}
               fill={rfGrad}
-              stroke={isSelected ? neon : '#302920'}
+              stroke={isSelected ? neon : '#64748b'}
               strokeWidth={isSelected ? '1' : '0.7'}
             />
             {/* Top face */}
             <polygon
               points={pts(topLeft, topMid, topRight, topBack)}
               fill={tfGrad}
-              stroke={isSelected ? neon : '#3d3428'}
+              stroke={isSelected ? neon : '#cbd5e1'}
               strokeWidth={isSelected ? '1.2' : '0.7'}
             />
 
@@ -380,14 +379,14 @@ const HotelBuilding: React.FC<HotelBuildingProps> = ({
               y1={(topLeft.y + botLeft.y) / 2}
               x2={topLeft.x - 14}
               y2={(topLeft.y + botLeft.y) / 2}
-              stroke={isSelected ? neon : '#4a3d28'}
+              stroke={isSelected ? neon : '#94a3b8'}
               strokeWidth="0.8"
               strokeDasharray="2,2"
             />
             <text
               x={topLeft.x - 16}
               y={(topLeft.y + botLeft.y) / 2 - 3}
-              fill={isSelected ? neon : '#6E6A63'}
+              fill={isSelected ? neon : '#64748b'}
               fontSize="7.5"
               fontWeight="800"
               fontFamily="monospace"
